@@ -31,19 +31,33 @@ SCRIPTTALK 4, 0
 
 STARTSER
 
-	STARTSER "Root"
+ STARTSER "Root"
 
-		START
-			PAGE "Work:MediaPoint/Graphics/Pictograms/Accommodation", OFF, 0, 20, 0, 0, 2
-			DURATION 00:00:05:0
-			PROGRAM SU|MO|TU|WE|TH|FR|SA
-		END
+  START
+   PAGE "Work:MediaPoint/Graphics/Pictograms/Accommodation", OFF, 0, 20, 0, 0, 2
+   DURATION 00:00:05:0
+   PROGRAM SU|MO|TU|WE|TH|FR|SA
+  END
 
-    ...
+  ...
 ```
 
 - MediaPoint consisted of a visual script and page editor to create interactive playlists of media, a stand-alone player and communications software to transmit scripts, pages and media by modem.
 
+- As mentioned above, some of the code is in 68xxx assembly. Yes, really!
+
+```
+free_memory_view:
+  move.l db_graphbase(a3),a6
+  move.l vb_viewportw(a5),a0
+  jsr    _LVOGfxLookUp(a6)
+  move.l d0,vb_vpextra(a5)
+  move.l vb_vieww(a5),a0
+  jsr    _LVOGfxLookUp(a6)
+  move.l d0,vb_vextra(a5)
+  ...
+```
+
 ## Copyright?
 
-I honestly don't know who owns the rights of the code. If I recall correctly we sold or licensed the code to some company late in the 1990s but I don't know for sure. Contact me if you have concerns about the legitimacy of the code base being available in this repository.
+I honestly don't know who owns the rights of the code. If I recall correctly we sold or licensed the code to some company in the late 1990s but I don't know for sure. Contact me if you have concerns about the legitimacy of the code base being available in this repository.

@@ -1,5 +1,7 @@
 # Source code of MediaPoint for the Commodore Amiga
 
+![MediaPoint](https://pbs.twimg.com/media/Cfnrb7DVIAAQpwp.jpg)
+
 MediaPoint was developed between 1991 and 1994 by a Dutch company called 1001 Software Developments. The company was founded by Joost Honig, Stefan "Steve" van der Horst and myself, Erik van Eykelen. Both Joost and Erik were still attending college when the company was launched on January 1st 1989.
 
 Steve left after several years, while Erik and Joost continued to work on MediaPoint until Commodore's demise in 1994.

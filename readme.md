@@ -44,6 +44,24 @@ STARTSER
   ...
 ```
 
+and
+
+```
+PAGETALK 1,0
+
+OBJECTSTART
+	SCREEN 640,256,4,0,0,3
+	PALETTE 1, "000000 999999 888888 777777 555555 444444 333333 222222 "
+	PALETTE 2, "dd0000 dd8800 dddd00 008800 0000dd 5555ff 666666 dddddd "
+	WINDOW 0,133,640,41, 8,11,11,8, 7,9,3, 0, 0,0,0,0, 8, 1,4,10
+	FORMAT 0,0,0,0,2,1,1,0,0,3,0,0
+	STYLE topaz,8,0,13,13
+	CRAWL "topaz", 8, 12, 1
+	CRAWL "MediaPoint"
+	CRAWL " "
+OBJECTEND
+```
+
 - MediaPoint consisted of a visual script and page editor to create interactive playlists of media, a stand-alone player and communications software to transmit scripts, pages and media by modem.
 
 - As mentioned above, some of the code is in 68xxx assembly. Yes, really!

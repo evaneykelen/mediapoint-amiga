@@ -1,0 +1,94 @@
+CC = sc
+AS = genam
+
+CFLAGS = DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS
+#CFLAGS = DEFINE=USED_FOR_DEMO DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS
+AFLAGS = -iINCLUDE
+LFLAGS = SMALLCODE NODEBUG
+#LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+PH = ph:
+# these are Steve's modulues
+A_POD = $(PH)AddGuide.o $(PH)AddModule.o
+F_POD = $(PH)functions.o
+I_POD = $(PH)initsegment.o
+P_POD =	$(PH)playscript.o $(PH)proccont.o $(PH)procinit.o $(PH)ProcError.o
+L_POD = $(PH)LoadSegment.o
+M_POD = $(PH)mltool.o
+R_POD = $(PH)rexxvars.o $(PH)rexx.o $(PH)rexxcmd.o
+
+# these are Erik's modules
+A_MOD = about.o
+B_MOD = backwin.o bgm.o
+C_MOD = clipanim.o clock.o colorfuncs.o colormisc.o colad2.o coloradjust.o cols32.o\
+				commod.o config.o crawl.o
+D_MOD = da.o dbase.o dbase_funcs.o dblclicked.o debug.o demomsg.o distributor.o\
+				dofont.o dol.o dos.o dosmisc.o dostyle1.o dostyle2.o drag.o dragmove.o\
+				duplicator.o
+E_MOD = edit.o effect.o effect2.o errors.o eventhandler.o events.o
+F_MOD = filethumbs.o fonts.o formatterm.o fr.o
+G_MOD = getxapps.o globalallocs.o globlab.o
+I_MOD = icon.o import.o import2.o import_pic.o import_scr.o initglobals.o initmenus.o\
+				inputsettings.o inslit.o interact.o
+L_MOD = localedate.o
+M_MOD = memory.o menubar.o menus.o misc.o monitors1.o monloc.o
+N_MOD = nodes.o
+O_MOD = objedit.o opticols.o
+P_MOD = page.o pagetalk.o parser.o parsetext.o pedit.o ptread.o ptwrite.o\
+				pagesetup.o prefs.o print.o prog.o
+R_MOD = ra.o rdwrcols.o releasetwo.o rendezvous.o
+S_MOD = saveclips.o screens.o screenthumbs.o script.o scriptmisc.o\
+				scripttalk.o scrman.o scrsize.o settime.o sliders.o specials.o\
+				stread.o stwrite.o
+T_MOD = tctweak.o text.o textedit.o timecode.o times.o translate.o transp.o
+V_MOD = varpath.o varparse.o vars.o
+W_MOD = wdwtr.o windef1.o windef2.o windows.o windows2.o windraw2.o windraw4.o\
+				windraw5.o winreq.o
+X_MOD = xappinfo.o xload.o
+
+# these are Cees' modules
+CEES_MOD = gen:bltbitmapfm.o wm:fakerun.o nb:cees/colorreduce.o
+
+# these are Pascal's modules
+PASCAL_MOD = pascal:bufread.o pascal:fiff.o pascal:scarem.o\
+						 pascal:txed.o pascal:dither.o pascal:txedtools.o\
+						 pascal:antialias.o pascal:colsearch.o
+
+# these are my applications
+APP1 = MediaPoint
+
+# the modules needed by each application
+APP10 = $(APP1).o\
+				nb:mpplayer/dongle/dongle1.o nb:mpplayer/dongle/check.o\
+				$(A_MOD) $(B_MOD) $(C_MOD) $(D_MOD) $(E_MOD) $(F_MOD) $(G_MOD) $(I_MOD)\
+				nb:mpplayer/dongle/dongle2.o\
+				$(L_MOD) $(M_MOD) $(N_MOD) $(O_MOD) $(P_MOD) $(R_MOD) $(S_MOD) $(T_MOD)\
+				nb:mpplayer/dongle/dongle3.o\
+				$(V_MOD) $(W_MOD) $(X_MOD)\
+				nb:mpplayer/dongle/dongle4.o\
+				$(CEES_MOD)\
+				nb:mpplayer/dongle/dongle5.o\
+				$(PASCAL_MOD)\
+				$(A_POD) $(F_POD) $(I_POD) $(P_POD) $(L_POD) $(M_POD) $(R_POD)\
+				fakekprintf.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10) pascal:toolslib/tools.lib
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:scm.lib lib:sc.lib lib:amiga.lib pascal:toolslib/tools.lib lib:debug.lib
+TO $(APP1) $(LFLAGS)
+MAP mp.map H
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+#	$(AS) $(AFLAGS) $*.a
+	$(AS) $*.a

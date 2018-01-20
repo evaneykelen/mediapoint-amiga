@@ -1,0 +1,52 @@
+Light                   26-Oct-94 14:41:10  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         2858 lib:cres.o       c        code            0    0      2b4
+                       setup.o          setup.c  code          2b4    0      564
+                       demo:gen/support support. code          818    0      30c
+                       worklight.o      workligh code          b24    0      380
+                       gen:geninit.o    geninit. code          ea4    0       28
+                       lib:/source/_mai _main.c  code          ecc    0      12c
+                       lightp:asm/light <noname> code          ff8    0      304
+                       set_mouse.o      set_mous code         12fc    0      168
+                       lib:sc.lib       _fpinit. code         1464    0       30
+                       lib:sc.lib       _MemClea code         1494    0       80
+                       lib:sc.lib       _stcul_d code         1514    0       30
+                       lib:sc.lib       _stcl_o  code         1544    0       30
+                       lib:sc.lib       _stcl_h  code         1574    0       3c
+                       lib:sc.lib       _stcd_i  code         15b0    0       54
+                       lib:sc.lib       stccpy.c code         1604    0       44
+                       lib:sc.lib       _strupr. code         1648    0       3c
+                       lib:sc.lib       _cxd33   code         1684    0       c4
+                       lib:sc.lib       _exit.c  code         1748    0       5c
+                       lib:sc.lib       memmove  code         17a4    0       2c
+                       lib:sc.lib       free     code         17d0    0      16c
+                       lib:sc.lib       malloc   code         193c    0      174
+                       lib:sc.lib       sscanf.c code         1ab0    0       5c
+                       lib:sc.lib       sprintf. code         1b0c    0       44
+                       lib:sc.lib       _sfmt.c  code         1b50    0      618
+                       lib:sc.lib       _pfmt.c  code         2168    0      438
+                       lib:sc.lib       _sf.c    code         25a0    0      168
+                       lib:sc.lib       _pf.c    code         2708    0       7c
+                       lib:sc.lib       DelPort. code         2784    0       44
+                       lib:sc.lib       CrtPort. code         27c8    0       90
+   1 __MERGED      3bc setup.o          setup.c  data            0    0      24c
+                       demo:gen/support support. data          24c    0       14
+                       worklight.o      workligh data          260    0       14
+                       set_mouse.o      set_mous data          274    0       10
+                       lib:sc.lib       mstep.c  data          284    0        4
+                       lib:sc.lib       sigfunc. data          288    0       24
+                       lib:sc.lib       ctype.c  data          2ac    0      104
+                       lib:sc.lib       stack.c  data          3b0    0        4
+                       lib:sc.lib       _ufb.c   data          3b4    0        8
+                       lib:cres.o       c        bss           3bc    0       50
+                       setup.o          setup.c  bss           40c    0        c
+                       demo:gen/support support. bss           418    0      218
+                       lib:/source/_mai _main.c  bss           630    0       8c
+                       lib:sc.lib       errno.c  bss           6bc    0        4
+                       lib:sc.lib       memheap. bss           6c0    0        4
+                       lib:sc.lib       memtype. bss           6c4    0        4
+                       lib:sc.lib       dosbase  bss           6c8    0        4
+                       lib:sc.lib       _top.c   bss           6cc    0        4
+                       lib:sc.lib       _exit.c  bss           6d0    0        4
+                       lib:sc.lib       sscanf.c bss           6d4    0        8

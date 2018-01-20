@@ -1,0 +1,3 @@
+del doit.o
+del worker.o
+del setup.o

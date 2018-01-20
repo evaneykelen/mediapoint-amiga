@@ -1,0 +1,29 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK IDIR=nb: NOICONS
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+XAPPNAME = Animation
+
+APP1 = workanim
+
+APP10 = $(APP1).o lib:/source/_main.o demo:gen/general.o animplay.o demo:gen/wait50hz.o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+all: $(XAPPNAME)
+
+$(XAPPNAME): $(APP10) smakefile
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib
+# lib:amiga.lib lib:debug.lib
+TO $(XAPPNAME) $(LFLAGS)
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $*.a

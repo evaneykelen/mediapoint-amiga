@@ -1,0 +1,4 @@
+FROM LIB:c.o "simplerexx.o"
+TO "simplerexx"
+LIB LIB:sc.lib LIB:amiga.lib
+

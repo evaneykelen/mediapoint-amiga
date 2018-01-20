@@ -1,0 +1,634 @@
+SAS AMIGA 680x0OBJ Module Disassembler 6.51
+Copyright © 1993 SAS Institute, Inc.
+
+
+Amiga Object File Loader V1.00
+68000 Instruction Set
+
+EXTERNAL DEFINITIONS
+
+_SayRun 0000-00    _CheckAndChange 0056-00    _main 00EE-00
+
+SECTION 00 "text" 00000420 BYTES
+;   1: /******************************************************
+;   2: *Desc : Perform a ScriptTalk "Resource" command
+;   3: *		This routine will either wait for the command
+;   4: *		to be finished or  
+;   5: * <!> : This module is resident and re-entrant
+;   6: *		Compile without -b1 and without -y options
+;   7: *		Link with cres.o in stead of c.o
+;   8: *		Also compile umain.c : lc -b1 umain 
+;   9: *
+;  10: */
+;  11: 
+;  12: #include <stdlib.h>
+;  13: #include <stdio.h>
+;  14: #include <string.h>
+;  15: #include <workbench/startup.h>
+;  16: #include <exec/types.h>
+;  17: #include <exec/memory.h>
+;  18: #include <dos/dos.h>
+;  19: #include <libraries/dosextens.h>
+;  20: #include <proto/exec.h>
+;  21: #include <pragmas/exec_pragmas.h>
+;  22: #include <pragmas/dos_pragmas.h>
+;  23: 
+;  24: #include "nb:parser.h"
+;  25: #include "minc:types.h"
+;  26: #include "minc:Errors.h"
+;  27: #include "minc:process.h"
+;  28: #include "external.h"
+;  29: #include "gen:general.h"
+;  30: #include "mlmmu:mlmmu.h"
+;  31: #include "mlmmu:mlmmu_pragma.h"
+;  32: #include "mlmmu:mlmmu_proto.h"
+;  33: 
+;  34: #define _PRINTF FALSE
+;  35: #define _PRINTDEB FALSE
+;  36: 
+;  37: //===============================================
+;  38: //	Name		: SayRun
+;  39: //	Function	: Check which script runs
+;  40: //	Inputs	: 
+;  41: //	Result	: 1 or 2 or 0 when file not found
+;  42: //	Updated	: 19 - 09 - 1994
+;  43: //
+;  44: int SayRun ( void )
+       | 0000  9EFC 0100                      SUBA.W      #0100,A7
+       | 0004  48E7 0104                      MOVEM.L     D7/A5,-(A7)
+;  45: {
+;  46: 	char str[256];
+;  47: 	FILE *f;	
+;  48: 	int check=0;
+       | 0008  7E00                           MOVEQ       #00,D7
+;  49: 
+;  50: 	f = fopen(str,"MP:RUNS_script.1");
+       | 000A  486C  0000-01.2                PEA         01.00000000(A4)
+       | 000E  486F 000C                      PEA         000C(A7)
+       | 0012  6100  0000-XX.1                BSR.W       _fopen
+       | 0016  2A40                           MOVEA.L     D0,A5
+       | 0018  504F                           ADDQ.W      #8,A7
+;  51: 
+;  52: 	if( f )
+       | 001A  200D                           MOVE.L      A5,D0
+       | 001C  670A                           BEQ.B       0028
+;  53: 	{
+;  54: 		check =1;
+       | 001E  7E01                           MOVEQ       #01,D7
+;  55: 		fclose( f );
+       | 0020  2F0D                           MOVE.L      A5,-(A7)
+       | 0022  6100  0000-XX.1                BSR.W       _fclose
+       | 0026  584F                           ADDQ.W      #4,A7
+;  56: 	}
+;  57: 
+;  58: 	if( check ==  0 )
+       | 0028  4A87                           TST.L       D7
+       | 002A  661E                           BNE.B       004A
+;  59: 	{
+;  60: 		f = fopen(str,"MP:RUNS_script.1");
+       | 002C  486C  0012-01.2                PEA         01.00000012(A4)
+       | 0030  486F 000C                      PEA         000C(A7)
+       | 0034  6100  0000-XX.1                BSR.W       _fopen
+       | 0038  2A40                           MOVEA.L     D0,A5
+       | 003A  504F                           ADDQ.W      #8,A7
+;  61: 		if( f )
+       | 003C  200D                           MOVE.L      A5,D0
+       | 003E  670A                           BEQ.B       004A
+;  62: 		{
+;  63: 			check =2;
+       | 0040  7E02                           MOVEQ       #02,D7
+;  64: 			fclose( f );
+       | 0042  2F0D                           MOVE.L      A5,-(A7)
+       | 0044  6100  0000-XX.1                BSR.W       _fclose
+       | 0048  584F                           ADDQ.W      #4,A7
+;  65: 		}
+;  66: 	}
+;  67: 	return( check );
+       | 004A  2007                           MOVE.L      D7,D0
+;  68: }
+       | 004C  4CDF 2080                      MOVEM.L     (A7)+,D7/A5
+       | 0050  DEFC 0100                      ADDA.W      #0100,A7
+       | 0054  4E75                           RTS
+       | 0056  9EFC 0100                      SUBA.W      #0100,A7
+;  69: 
+;  70: void CheckAndChange( void )
+       | 005A  48E7 3306                      MOVEM.L     D2-D3/D6-D7/A5-A6,-(A7)
+;  71: {
+;  72: 	BPTR lock;
+;  73: 	char tt[256];
+;  74: 	int run;
+;  75: 	struct Library *DOSBase;
+;  76: 
+;  77: 	DOSBase = OpenLibrary("dos.library",0 );
+       | 005E  43EC  0024-01.2                LEA         01.00000024(A4),A1
+       | 0062  7000                           MOVEQ       #00,D0
+       | 0064  2C78 0004                      MOVEA.L     0004,A6
+       | 0068  4EAE FDD8                      JSR         FDD8(A6)
+       | 006C  2A40                           MOVEA.L     D0,A5
+;  78: 
+;  79: 	if( DOSBase )
+       | 006E  200D                           MOVE.L      A5,D0
+       | 0070  6772                           BEQ.B       00E4
+;  80: 	{
+;  81: 		lock = Lock( "mp:Swap", ACCESS_READ );
+       | 0072  41EC  0030-01.2                LEA         01.00000030(A4),A0
+       | 0076  2208                           MOVE.L      A0,D1
+       | 0078  74FE                           MOVEQ       #FE,D2
+       | 007A  2C4D                           MOVEA.L     A5,A6
+       | 007C  4EAE FFAC                      JSR         FFAC(A6)
+       | 0080  2E00                           MOVE.L      D0,D7
+;  82: 		if( lock )
+       | 0082  4A87                           TST.L       D7
+       | 0084  6754                           BEQ.B       00DA
+;  83: 		{
+;  84: 			UnLock( lock );
+       | 0086  2207                           MOVE.L      D7,D1
+       | 0088  4EAE FFA6                      JSR         FFA6(A6)
+;  85: 			run = SayRun();
+       | 008C  6100 FF72                      BSR.W       0000
+       | 0090  2C00                           MOVE.L      D0,D6
+;  86: 
+;  87: 			if( run )
+       | 0092  4A86                           TST.L       D6
+       | 0094  6744                           BEQ.B       00DA
+;  88: 			{
+;  89: 				DeleteFile( "MP:swap" );
+       | 0096  41EC  0038-01.2                LEA         01.00000038(A4),A0
+       | 009A  2208                           MOVE.L      A0,D1
+       | 009C  4EAE FFB8                      JSR         FFB8(A6)
+;  90: 
+;  91: 				SendArexx( "MEDIAPOINT","quit" );
+       | 00A0  486C  004C-01.2                PEA         01.0000004C(A4)
+       | 00A4  486C  0040-01.2                PEA         01.00000040(A4)
+       | 00A8  6100  0000-XX.1                BSR.W       _SendArexx
+       | 00AC  504F                           ADDQ.W      #8,A7
+;  92: 
+;  93: 				if( run == 1 )									// set alias to other script
+       | 00AE  2006                           MOVE.L      D6,D0
+       | 00B0  5380                           SUBQ.L      #1,D0
+       | 00B2  6604                           BNE.B       00B8
+;  94: 					run = 2;
+       | 00B4  7C02                           MOVEQ       #02,D6
+       | 00B6  6002                           BRA.B       00BA
+;  95: 				else
+;  96: 					run = 1;
+       | 00B8  7C01                           MOVEQ       #01,D6
+;  97: 
+;  98: 				sprintf(tt,"assign ALIAS: mp:script%d\n",run );
+       | 00BA  2F06                           MOVE.L      D6,-(A7)
+       | 00BC  486C  0052-01.2                PEA         01.00000052(A4)
+       | 00C0  486F 0020                      PEA         0020(A7)
+       | 00C4  6100  0000-XX.1                BSR.W       _sprintf
+       | 00C8  4FEF 000C                      LEA         000C(A7),A7
+;  99: 				Execute( tt,0,0 );							// do  alias
+       | 00CC  41EF 0018                      LEA         0018(A7),A0
+       | 00D0  2208                           MOVE.L      A0,D1
+       | 00D2  7400                           MOVEQ       #00,D2
+       | 00D4  2602                           MOVE.L      D2,D3
+       | 00D6  4EAE FF22                      JSR         FF22(A6)
+; 100: 			}	
+; 101: 		}
+; 102: 	CloseLibrary( DOSBase );
+       | 00DA  224D                           MOVEA.L     A5,A1
+       | 00DC  2C78 0004                      MOVEA.L     0004,A6
+       | 00E0  4EAE FE62                      JSR         FE62(A6)
+; 103: 	}
+; 104: }
+       | 00E4  4CDF 60CC                      MOVEM.L     (A7)+,D2-D3/D6-D7/A5-A6
+       | 00E8  DEFC 0100                      ADDA.W      #0100,A7
+       | 00EC  4E75                           RTS
+       | 00EE  9EFC 002C                      SUBA.W      #002C,A7
+; 105: 
+; 106: /*************************************************
+; 107: *Func : Display the par: input
+; 108: *in   : Argv -> Ptr to PROCESSINFO.pi_Startup
+; 109: *out  : -
+; 110: */
+; 111: void main( argc, argv)
+; 112: int argc;
+; 113: char **argv;
+       | 00F2  48E7 2736                      MOVEM.L     D2/D5-D7/A2-A3/A5-A6,-(A7)
+       | 00F6  2E2F 0050                      MOVE.L      0050(A7),D7
+       | 00FA  2A6F 0054                      MOVEA.L     0054(A7),A5
+; 114: {
+; 115: 
+; 116: 	int		ErrLoadVSC;	
+; 117: 
+; 118: 	PROCDIALOGUE	*Msg_VSCDial,	// Our dialogue 
+; 119: 						*Msg_RVSCDial;	// Our dialogue when our guide replies
+; 120: 
+; 121: 	MLSYSTEM			*MLSystem;	
+; 122: 	PROCESSINFO		*ThisPI;		// ptr to this processinfo blk (as used in our parent's list)
+; 123: 
+; 124: 	struct MsgPort	*RepP_WorkVSC;// Reply port for our parent when replying to our messages
+; 125: 
+; 126: 	ULONG		Sig_PtoC,		// A parent to child signal
+; 127: 				SigR_CtoP,		// A reply to a msg we send to our parent
+; 128: 				SigRecvd;		// Signals received
+; 129: 	int		i,action;
+; 130: 	BOOL		B_ReInit,		// if TRUE, re-initialise data
+; 131: 				B_Term,			// If TRUE, we are free to terminate
+; 132: 				B_Run,			
+; 133: 				B_Stop,
+; 134: 				B_Remove;		// If True, our guide wants us to clean up
+; 135: 
+; 136: 	struct Library *MLMMULibBase;
+; 137: 
+; 138: 	if( (ThisPI = (PROCESSINFO *)ml_FindBaseAddr(argc, argv)) == NULL)
+       | 00FE  2F0D                           MOVE.L      A5,-(A7)
+       | 0100  2F07                           MOVE.L      D7,-(A7)
+       | 0102  6100  0000-XX.1                BSR.W       _ml_FindBaseAddr
+       | 0106  504F                           ADDQ.W      #8,A7
+       | 0108  2F40 0044                      MOVE.L      D0,0044(A7)
+       | 010C  4A80                           TST.L       D0
+       | 010E  6700 0304                      BEQ.W       0414
+; 139: 		return;
+; 140: 
+; 141: 	/**** this is called when showing the GUI ****/
+; 142: 
+; 143: 	if(ThisPI->pi_Arguments.ar_Worker.aw_Origin == ORG_SCRIPTEDITOR)
+       | 0112  7202                           MOVEQ       #02,D1
+       | 0114  2040                           MOVEA.L     D0,A0
+       | 0116  B2A8 0088                      CMP.L       0088(A0),D1
+       | 011A  660A                           BNE.B       0126
+; 144: 	{
+; 145: 		ThisPI->pi_Arguments.ar_RetErr = NO_ERROR;
+       | 011C  42A8 0070                      CLR.L       0070(A0)
+; 146: 		return;
+       | 0120  7000                           MOVEQ       #00,D0
+       | 0122  6000 02F0                      BRA.W       0414
+; 147: 	}
+; 148: 
+; 149: 	MLSystem = ThisPI->pi_Arguments.ar_Worker.aw_MLSystem;
+       | 0126  2F68 0084 0048                 MOVE.L      0084(A0),0048(A7)
+; 150: 
+; 151: 	MLMMULibBase = NULL;
+       | 012C  42AF 0020                      CLR.L       0020(A7)
+; 152: 	Msg_VSCDial = NULL;
+       | 0130  97CB                           SUBA.L      A3,A3
+; 153: 	RepP_WorkVSC = NULL;
+       | 0132  42AF 0040                      CLR.L       0040(A7)
+; 154: 	if(
+; 155: 		((MLMMULibBase = (struct Library *)OpenLibrary("mpmmu.library",0)) == NULL) ||
+       | 0136  43EC  006E-01.2                LEA         01.0000006E(A4),A1
+       | 013A  7000                           MOVEQ       #00,D0
+       | 013C  2C78 0004                      MOVEA.L     0004,A6
+       | 0140  4EAE FDD8                      JSR         FDD8(A6)
+       | 0144  2F40 0020                      MOVE.L      D0,0020(A7)
+       | 0148  4A80                           TST.L       D0
+       | 014A  672A                           BEQ.B       0176
+; 156: 		((RepP_WorkVSC = (struct MsgPort *)CreatePort(0,0)) == NULL) ||
+       | 014C  42A7                           CLR.L       -(A7)
+       | 014E  42A7                           CLR.L       -(A7)
+       | 0150  6100  0000-XX.1                BSR.W       _CreatePort
+       | 0154  504F                           ADDQ.W      #8,A7
+       | 0156  2F40 0040                      MOVE.L      D0,0040(A7)
+       | 015A  4A80                           TST.L       D0
+       | 015C  6718                           BEQ.B       0176
+; 157: 		((Msg_VSCDial = (PROCDIALOGUE *)MLMMU_AllocMem(sizeof(PROCDIALOGUE), MEMF_PUBLIC|MEMF_CLEAR,NULL)) == NULL)
+       | 015E  2C6F 0020                      MOVEA.L     0020(A7),A6
+       | 0162  7026                           MOVEQ       #26,D0
+       | 0164  223C 0001 0001                 MOVE.L      #00010001,D1
+       | 016A  93C9                           SUBA.L      A1,A1
+       | 016C  4EAE FFE2                      JSR         FFE2(A6)
+       | 0170  2640                           MOVEA.L     D0,A3
+       | 0172  200B                           MOVE.L      A3,D0
+       | 0174  6638                           BNE.B       01AE
+; 158: 	  )
+; 159: 	{
+; 160: 		MLMMU_FreeMem(Msg_VSCDial);
+       | 0176  224B                           MOVEA.L     A3,A1
+       | 0178  2C6F 0020                      MOVEA.L     0020(A7),A6
+       | 017C  4EAE FFDC                      JSR         FFDC(A6)
+; 161: 		if(RepP_WorkVSC)
+       | 0180  202F 0040                      MOVE.L      0040(A7),D0
+       | 0184  6708                           BEQ.B       018E
+; 162: 			DeletePort(RepP_WorkVSC);
+       | 0186  2F00                           MOVE.L      D0,-(A7)
+       | 0188  6100  0000-XX.1                BSR.W       _DeletePort
+       | 018C  584F                           ADDQ.W      #4,A7
+; 163: 		if(MLMMULibBase)
+       | 018E  200E                           MOVE.L      A6,D0
+       | 0190  670A                           BEQ.B       019C
+; 164: 			CloseLibrary(MLMMULibBase);
+       | 0192  224E                           MOVEA.L     A6,A1
+       | 0194  2C78 0004                      MOVEA.L     0004,A6
+       | 0198  4EAE FE62                      JSR         FE62(A6)
+; 165: 		ThisPI->pi_Arguments.ar_RetErr = ERR_WORKER;
+       | 019C  206F 0044                      MOVEA.L     0044(A7),A0
+       | 01A0  217C 0000 012C 0070            MOVE.L      #0000012C,0070(A0)
+; 166: 		return;
+       | 01A8  7000                           MOVEQ       #00,D0
+       | 01AA  6000 0268                      BRA.W       0414
+; 167: 	}
+; 168: 
+; 169: 	ErrLoadVSC = TRUE;
+       | 01AE  7C01                           MOVEQ       #01,D6
+; 170: 
+; 171: 	// Set up the Dialogue message
+; 172: 	Msg_VSCDial->pd_Msg.mn_Node.ln_Type = NT_MESSAGE;
+       | 01B0  177C 0005 0008                 MOVE.B      #05,0008(A3)
+; 173: 	Msg_VSCDial->pd_Msg.mn_Length = sizeof(PROCDIALOGUE);
+       | 01B6  377C 0026 0012                 MOVE.W      #0026,0012(A3)
+; 174: 	Msg_VSCDial->pd_Msg.mn_ReplyPort = RepP_WorkVSC;
+       | 01BC  276F 0040 000E                 MOVE.L      0040(A7),000E(A3)
+; 175: 
+; 176: 	// Our guide will reply to us when we must start
+; 177: 	SigR_CtoP = 1 << RepP_WorkVSC->mp_SigBit;
+       | 01C2  7000                           MOVEQ       #00,D0
+       | 01C4  206F 0040                      MOVEA.L     0040(A7),A0
+       | 01C8  1028 000F                      MOVE.B      000F(A0),D0
+       | 01CC  7200                           MOVEQ       #00,D1
+       | 01CE  01C1                           BSET.L      D0,D1
+; 178: 	Sig_PtoC = 1 << ThisPI->pi_Port_PtoC->mp_SigBit;
+       | 01D0  226F 0044                      MOVEA.L     0044(A7),A1
+       | 01D4  2069 0040                      MOVEA.L     0040(A1),A0
+       | 01D8  7000                           MOVEQ       #00,D0
+       | 01DA  1028 000F                      MOVE.B      000F(A0),D0
+       | 01DE  7400                           MOVEQ       #00,D2
+       | 01E0  01C2                           BSET.L      D0,D2
+       | 01E2  2A02                           MOVE.L      D2,D5
+; 179: 
+; 180: 	// Send a message to the guide to indicate we are ready to start
+; 181: 	SendDialogue(Msg_VSCDial,ThisPI,DCI_CHILDREADY);
+       | 01E4  4878 0002                      PEA         0002
+       | 01E8  2F09                           MOVE.L      A1,-(A7)
+       | 01EA  2F0B                           MOVE.L      A3,-(A7)
+       | 01EC  2F41 0048                      MOVE.L      D1,0048(A7)
+       | 01F0  6100  0000-XX.1                BSR.W       _SendDialogue
+       | 01F4  4FEF 000C                      LEA         000C(A7),A7
+; 182: 
+; 183: 	// main 	
+; 184: 	B_ReInit = FALSE;
+       | 01F8  426F 002C                      CLR.W       002C(A7)
+; 185: 	B_Run = FALSE;
+       | 01FC  426F 0028                      CLR.W       0028(A7)
+; 186: 	B_Term = FALSE;
+       | 0200  426F 002A                      CLR.W       002A(A7)
+; 187: 	B_Remove = FALSE;
+       | 0204  426F 0024                      CLR.W       0024(A7)
+; 188: 	B_Stop = FALSE;
+       | 0208  426F 0026                      CLR.W       0026(A7)
+; 189: 	while(!B_Term)
+       | 020C  4A6F 002A                      TST.W       002A(A7)
+       | 0210  6600 01DA                      BNE.W       03EC
+; 190: 	{
+; 191: 		SigRecvd = Wait(Sig_PtoC | SigR_CtoP | SIGF_ABORT);
+       | 0214  2005                           MOVE.L      D5,D0
+       | 0216  80AF 003C                      OR.L        003C(A7),D0
+       | 021A  0040 0001                      ORI.W       #0001,D0
+       | 021E  2C78 0004                      MOVEA.L     0004,A6
+       | 0222  4EAE FEC2                      JSR         FEC2(A6)
+; 192: 
+; 193: 		if(SigRecvd & Sig_PtoC)
+       | 0226  2F40 0038                      MOVE.L      D0,0038(A7)
+       | 022A  C085                           AND.L       D5,D0
+       | 022C  6700 00E6                      BEQ.W       0314
+; 194: 		{
+; 195: 			if( (Msg_RVSCDial = (PROCDIALOGUE *)GetMsg(ThisPI->pi_Port_PtoC)) != NULL)
+       | 0230  206F 0044                      MOVEA.L     0044(A7),A0
+       | 0234  2068 0040                      MOVEA.L     0040(A0),A0
+       | 0238  4EAE FE8C                      JSR         FE8C(A6)
+       | 023C  2440                           MOVEA.L     D0,A2
+       | 023E  200A                           MOVE.L      A2,D0
+       | 0240  6700 00D2                      BEQ.W       0314
+; 196: 			{
+; 197: 				Msg_RVSCDial->pd_ChildPI = ThisPI;
+       | 0244  256F 0044 0016                 MOVE.L      0044(A7),0016(A2)
+; 198: 				switch(Msg_RVSCDial->pd_Cmd)
+       | 024A  202A 001A                      MOVE.L      001A(A2),D0
+       | 024E  720D                           MOVEQ       #0D,D1
+       | 0250  9081                           SUB.L       D1,D0
+       | 0252  6D00 00B0                      BLT.W       0304
+       | 0256  0C80 0000 000F                 CMPI.L      #0000000F,D0
+       | 025C  6C00 00A6                      BGE.W       0304
+       | 0260  D040                           ADD.W       D0,D0
+       | 0262  303B 0006                      MOVE.W      06(PC,D0.W),D0
+       | 0266  4EFB 0004                      JMP         04(PC,D0.W)
+       | 026A  0036 0098 0098                 ORI.B       #98,98(A6,D0.W)
+       | 0270  0098 0050 0098                 ORI.L       #00500098,(A0)+
+       | 0276  0062 001C                      ORI.W       #001C,-(A2)
+       | 027A  0098 0098 0098                 ORI.L       #00980098,(A0)+
+       | 0280  0098 0074 0098                 ORI.L       #00740098,(A0)+
+       | 0286  0086 7015 2540                 ORI.L       #70152540,D6
+; 199: 				{
+; 200: 					case DCC_DOPREPARE:
+; 201: 							Msg_RVSCDial->pd_Cmd = DCI_CHILDPREPARES;	
+       | 028C  001A 4A6F                      ORI.B       #6F,(A2)+
+; 202: 							if(!B_Remove && !B_Term)
+       | 0290  0024 6676                      ORI.B       #76,-(A4)
+       | 0294  4A6F 002A                      TST.W       002A(A7)
+       | 0298  6670                           BNE.B       030A
+; 203: 								B_ReInit = TRUE;
+       | 029A  3F7C 0001 002C                 MOVE.W      #0001,002C(A7)
+; 204: 							break;
+       | 02A0  6068                           BRA.B       030A
+; 205: 					case DCC_DORUN:
+; 206: 							if(!B_Remove && !B_Term)
+       | 02A2  4A6F 0024                      TST.W       0024(A7)
+       | 02A6  660C                           BNE.B       02B4
+       | 02A8  4A6F 002A                      TST.W       002A(A7)
+       | 02AC  6606                           BNE.B       02B4
+; 207: 								B_Run = TRUE;
+       | 02AE  3F7C 0001 0028                 MOVE.W      #0001,0028(A7)
+; 208: 							Msg_RVSCDial->pd_Cmd = DCI_CHILDRUNS;
+       | 02B4  700E                           MOVEQ       #0E,D0
+       | 02B6  2540 001A                      MOVE.L      D0,001A(A2)
+; 209: 							break;
+       | 02BA  604E                           BRA.B       030A
+; 210: 					case DCC_DOTERM:
+; 211: 						Msg_RVSCDial->pd_Cmd = DCI_CHILDTERM;
+       | 02BC  7012                           MOVEQ       #12,D0
+       | 02BE  2540 001A                      MOVE.L      D0,001A(A2)
+; 212: 							B_Remove = TRUE;
+       | 02C2  3F7C 0001 0024                 MOVE.W      #0001,0024(A7)
+; 213: 							B_Run = FALSE;
+       | 02C8  426F 0028                      CLR.W       0028(A7)
+; 214: 							break;
+       | 02CC  603C                           BRA.B       030A
+; 215: 					case DCC_DOSTOP:
+; 216: 							Msg_RVSCDial->pd_Cmd = DCI_CHILDREADY;	
+       | 02CE  7002                           MOVEQ       #02,D0
+       | 02D0  2540 001A                      MOVE.L      D0,001A(A2)
+; 217: 							B_Stop = TRUE;
+       | 02D4  3F7C 0001 0026                 MOVE.W      #0001,0026(A7)
+; 218: 							B_Run = FALSE;
+       | 02DA  426F 0028                      CLR.W       0028(A7)
+; 219: 							break;
+       | 02DE  602A                           BRA.B       030A
+; 220: 					case DCC_DOEASYTERM:
+; 221: 							Msg_RVSCDial->pd_Cmd = DCI_CHILDEASYTERM;
+       | 02E0  701A                           MOVEQ       #1A,D0
+       | 02E2  2540 001A                      MOVE.L      D0,001A(A2)
+; 222: 							B_Remove = TRUE;
+       | 02E6  3F7C 0001 0024                 MOVE.W      #0001,0024(A7)
+; 223: 							B_Run = FALSE;
+       | 02EC  426F 0028                      CLR.W       0028(A7)
+; 224: 							break;
+       | 02F0  6018                           BRA.B       030A
+; 225: 					case DCC_DOEASYSTOP:
+; 226: 							Msg_RVSCDial->pd_Cmd = DCI_CHILDEASYSTOP;	
+       | 02F2  701C                           MOVEQ       #1C,D0
+       | 02F4  2540 001A                      MOVE.L      D0,001A(A2)
+; 227: 							B_Stop = TRUE;
+       | 02F8  3F7C 0001 0026                 MOVE.W      #0001,0026(A7)
+; 228: 							B_Run = FALSE;
+       | 02FE  426F 0028                      CLR.W       0028(A7)
+; 229: 							break;
+       | 0302  6006                           BRA.B       030A
+; 230: 					default:
+; 231: 							// simply ignore what we don't understand
+; 232: 							Msg_RVSCDial->pd_Cmd = DCI_IGNORE;	
+       | 0304  7001                           MOVEQ       #01,D0
+       | 0306  2540 001A                      MOVE.L      D0,001A(A2)
+; 233: 							break;
+; 234: 				}
+; 235: 				ReplyMsg((struct Message *)Msg_RVSCDial);
+       | 030A  224A                           MOVEA.L     A2,A1
+       | 030C  2C78 0004                      MOVEA.L     0004,A6
+       | 0310  4EAE FE86                      JSR         FE86(A6)
+; 236: 			}
+; 237: 		}
+; 238: 
+; 239: 		// get a reply from our guide or the TRANSITION module
+; 240: 		if(SigRecvd & SigR_CtoP)
+       | 0314  202F 0038                      MOVE.L      0038(A7),D0
+       | 0318  C0AF 003C                      AND.L       003C(A7),D0
+       | 031C  6718                           BEQ.B       0336
+; 241: 			while( (Msg_RVSCDial = (PROCDIALOGUE *)GetMsg(RepP_WorkVSC)) != NULL)
+       | 031E  206F 0040                      MOVEA.L     0040(A7),A0
+       | 0322  2C78 0004                      MOVEA.L     0004,A6
+       | 0326  4EAE FE8C                      JSR         FE8C(A6)
+       | 032A  2440                           MOVEA.L     D0,A2
+       | 032C  200A                           MOVE.L      A2,D0
+       | 032E  6706                           BEQ.B       0336
+; 242: 				Msg_RVSCDial->pd_InUse = FALSE;
+       | 0330  426A 0014                      CLR.W       0014(A2)
+       | 0334  60E8                           BRA.B       031E
+; 243: 
+; 244: 		if(B_Stop)
+       | 0336  4A6F 0026                      TST.W       0026(A7)
+       | 033A  6704                           BEQ.B       0340
+; 245: 		{
+; 246: 			B_Stop = FALSE;
+       | 033C  426F 0026                      CLR.W       0026(A7)
+; 247: 		}
+; 248: 
+; 249: 		if( (!B_Remove && !B_Term ) )
+       | 0340  4A6F 0024                      TST.W       0024(A7)
+       | 0344  6630                           BNE.B       0376
+       | 0346  4A6F 002A                      TST.W       002A(A7)
+       | 034A  662A                           BNE.B       0376
+; 250: 		{
+; 251: 			if(B_Run)
+       | 034C  4A6F 0028                      TST.W       0028(A7)
+       | 0350  6708                           BEQ.B       035A
+; 252: 			{
+; 253: 				CheckAndChange();
+       | 0352  6100 FD02                      BSR.W       0056
+; 254: 				B_Run = FALSE;
+       | 0356  426F 0028                      CLR.W       0028(A7)
+; 255: 			}
+; 256: 
+; 257: 			if(B_ReInit)
+       | 035A  4A6F 002C                      TST.W       002C(A7)
+       | 035E  6716                           BEQ.B       0376
+; 258: 			{
+; 259: 				B_ReInit = SendDialogue(Msg_VSCDial,ThisPI,DCI_CHILDREADY);
+       | 0360  4878 0002                      PEA         0002
+       | 0364  2F2F 0048                      MOVE.L      0048(A7),-(A7)
+       | 0368  2F0B                           MOVE.L      A3,-(A7)
+       | 036A  6100  0000-XX.1                BSR.W       _SendDialogue
+       | 036E  4FEF 000C                      LEA         000C(A7),A7
+       | 0372  3F40 002C                      MOVE.W      D0,002C(A7)
+; 260: 			}
+; 261: 		}
+; 262: 
+; 263: 		if(B_Remove)
+       | 0376  4A6F 0024                      TST.W       0024(A7)
+       | 037A  6742                           BEQ.B       03BE
+; 264: 		{
+; 265: 			// wait till all dialogues used to send commands to us have been freed
+; 266: 			B_Term = TRUE;
+       | 037C  3F7C 0001 002A                 MOVE.W      #0001,002A(A7)
+; 267: 
+; 268: 			for(i = 0; i < DIAL_MAXPTOC; i++)
+       | 0382  42AF 0034                      CLR.L       0034(A7)
+       | 0386  202F 0034                      MOVE.L      0034(A7),D0
+       | 038A  7204                           MOVEQ       #04,D1
+       | 038C  B081                           CMP.L       D1,D0
+       | 038E  6C1C                           BGE.B       03AC
+; 269: 				if(((PROCDIALOGUE *)ThisPI->pi_PtoCDial[i])->pd_InUse)
+       | 0390  2400                           MOVE.L      D0,D2
+       | 0392  E582                           ASL.L       #2,D2
+       | 0394  206F 0044                      MOVEA.L     0044(A7),A0
+       | 0398  2070 285C                      MOVEA.L     5C(A0,D2.L),A0
+       | 039C  4A68 0014                      TST.W       0014(A0)
+       | 03A0  6704                           BEQ.B       03A6
+; 270: 					B_Term = FALSE;
+       | 03A2  426F 002A                      CLR.W       002A(A7)
+       | 03A6  52AF 0034                      ADDQ.L      #1,0034(A7)
+       | 03AA  60DA                           BRA.B       0386
+; 271: 
+; 272: 		if(Msg_VSCDial->pd_InUse && (Msg_VSCDial->pd_Cmd == DCI_CHILDREADY))
+       | 03AC  4A6B 0014                      TST.W       0014(A3)
+       | 03B0  670C                           BEQ.B       03BE
+       | 03B2  7002                           MOVEQ       #02,D0
+       | 03B4  B0AB 001A                      CMP.L       001A(A3),D0
+       | 03B8  6604                           BNE.B       03BE
+; 273: 				B_Term = FALSE;
+       | 03BA  426F 002A                      CLR.W       002A(A7)
+; 274: 		}
+; 275: 
+; 276: 		// Check if there are still messages in the portlist
+; 277: 		// if so then signal ourself
+; 278: 
+; 279: 		if( (struct List *)ThisPI->pi_Port_PtoC->mp_MsgList.lh_TailPred != &ThisPI->pi_Port_PtoC->mp_MsgList )
+       | 03BE  226F 0044                      MOVEA.L     0044(A7),A1
+       | 03C2  2069 0040                      MOVEA.L     0040(A1),A0
+       | 03C6  43E8 0014                      LEA         0014(A0),A1
+       | 03CA  2C68 001C                      MOVEA.L     001C(A0),A6
+       | 03CE  BDC9                           CMPA.L      A1,A6
+       | 03D0  6700 FE3A                      BEQ.W       020C
+; 280: 			Signal(&ThisPI->pi_Process->pr_Task, Sig_PtoC);
+       | 03D4  226F 0044                      MOVEA.L     0044(A7),A1
+       | 03D8  2069 0038                      MOVEA.L     0038(A1),A0
+       | 03DC  2248                           MOVEA.L     A0,A1
+       | 03DE  2005                           MOVE.L      D5,D0
+       | 03E0  2C78 0004                      MOVEA.L     0004,A6
+       | 03E4  4EAE FEBC                      JSR         FEBC(A6)
+; 281: 	}
+       | 03E8  6000 FE22                      BRA.W       020C
+; 282: 
+; 283: 	MLMMU_FreeMem(Msg_VSCDial);
+       | 03EC  224B                           MOVEA.L     A3,A1
+       | 03EE  2C6F 0020                      MOVEA.L     0020(A7),A6
+       | 03F2  4EAE FFDC                      JSR         FFDC(A6)
+; 284: 	DeletePort(RepP_WorkVSC);
+       | 03F6  2F2F 0040                      MOVE.L      0040(A7),-(A7)
+       | 03FA  6100  0000-XX.1                BSR.W       _DeletePort
+; 285: 	CloseLibrary(MLMMULibBase);
+       | 03FE  224E                           MOVEA.L     A6,A1
+       | 0400  2C78 0004                      MOVEA.L     0004,A6
+       | 0404  4EAE FE62                      JSR         FE62(A6)
+; 286: 
+; 287: 	ThisPI->pi_Arguments.ar_RetErr = NO_ERROR;
+       | 0408  206F 0048                      MOVEA.L     0048(A7),A0
+       | 040C  42A8 0070                      CLR.L       0070(A0)
+; 288: }
+       | 0410  584F                           ADDQ.W      #4,A7
+       | 0412  7000                           MOVEQ       #00,D0
+       | 0414  4CDF 6CE4                      MOVEM.L     (A7)+,D2/D5-D7/A2-A3/A5-A6
+       | 0418  DEFC 002C                      ADDA.W      #002C,A7
+       | 041C  4E75                           RTS
+       | 041E  4E71                           NOP
+
+SECTION 01 "__MERGED" 0000007C BYTES
+0000 4D 50 3A 52 55 4E 53 5F 73 63 72 69 70 74 2E 31 MP:RUNS_script.1
+0010 00 00 4D 50 3A 52 55 4E 53 5F 73 63 72 69 70 74 ..MP:RUNS_script
+0020 2E 31 00 00 64 6F 73 2E 6C 69 62 72 61 72 79 00 .1..dos.library.
+0030 6D 70 3A 53 77 61 70 00 4D 50 3A 73 77 61 70 00 mp:Swap.MP:swap.
+0040 4D 45 44 49 41 50 4F 49 4E 54 00 00 71 75 69 74 MEDIAPOINT..quit
+0050 00 00 61 73 73 69 67 6E 20 41 4C 49 41 53 3A 20 ..assign ALIAS: 
+0060 6D 70 3A 73 63 72 69 70 74 25 64 0A 00 00 6D 70 mp:script%d...mp
+0070 6D 6D 75 2E 6C 69 62 72 61 72 79 00 mmu.library.

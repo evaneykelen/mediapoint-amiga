@@ -1,0 +1,91 @@
+RA_Prefs                07-Nov-94 10:59:12  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         3580 lib:c.o          c        code            0    0      260
+                       setup.o          setup.c  code          260    0      894
+                       gui.o            gui.c    code          af4    0      368
+                       lib:sc.lib       _constru code          e5c    0       18
+                       lib:sc.lib       _fpinit. code          e74    0       30
+                       lib:sc.lib       _MemClea code          ea4    0       80
+                       lib:sc.lib       stricmp  code          f24    0       3c
+                       lib:sc.lib       _stcul_d code          f60    0       30
+                       lib:sc.lib       _stcl_o  code          f90    0       30
+                       lib:sc.lib       _stcl_h  code          fc0    0       3c
+                       lib:sc.lib       _stcd_i  code          ffc    0       54
+                       lib:sc.lib       _getbuff code         1050    0       48
+                       lib:sc.lib       _strupr. code         1098    0       3c
+                       lib:sc.lib       _write.c code         10d4    0      100
+                       lib:sc.lib       _read.c  code         11d4    0       f8
+                       lib:sc.lib       _lseek.c code         12cc    0       94
+                       lib:sc.lib       _close.c code         1360    0       70
+                       lib:sc.lib       _open.c  code         13d0    0      1dc
+                       lib:sc.lib       _cxd33   code         15ac    0       c4
+                       lib:sc.lib       _cxm22   code         1670    0       30
+                       lib:sc.lib       _exit.c  code         16a0    0       5c
+                       lib:sc.lib       _main.c  code         16fc    0      2a0
+                       lib:sc.lib       _cxbrk.c code         199c    0      14c
+                       lib:sc.lib       _chkufb. code         1ae8    0       4c
+                       lib:sc.lib       _chkabor code         1b34    0       50
+                       lib:sc.lib       memchr   code         1b84    0       24
+                       lib:sc.lib       strncat  code         1ba8    0       24
+                       lib:sc.lib       strncpy  code         1bcc    0       24
+                       lib:sc.lib       memmove  code         1bf0    0       2c
+                       lib:sc.lib       free     code         1c1c    0      16c
+                       lib:sc.lib       malloc   code         1d88    0      174
+                       lib:sc.lib       exit.c   code         1efc    0       54
+                       lib:sc.lib       sscanf.c code         1f50    0       5c
+                       lib:sc.lib       sprintf. code         1fac    0       44
+                       lib:sc.lib       fprintf. code         1ff0    0       a0
+                       lib:sc.lib       fgets.c  code         2090    0       78
+                       lib:sc.lib       fgetc.c  code         2108    0      168
+                       lib:sc.lib       fwrite.c code         2270    0      13c
+                       lib:sc.lib       fflush.c code         23ac    0       d4
+                       lib:sc.lib       fclose.c code         2480    0       60
+                       lib:sc.lib       freopen. code         24e0    0      144
+                       lib:sc.lib       fopen.c  code         2624    0       64
+                       lib:sc.lib       _sfmt.c  code         2688    0      618
+                       lib:sc.lib       _pfmt.c  code         2ca0    0      438
+                       lib:sc.lib       _sf.c    code         30d8    0      168
+                       lib:sc.lib       _pf.c    code         3240    0       7c
+                       lib:sc.lib       remove.c code         32bc    0       30
+                       lib:sc.lib       newlist  code         32ec    0       14
+                       lib:sc.lib       DelPort. code         3300    0       44
+                       lib:sc.lib       autoopen code         3344    0      154
+                       lib:sc.lib       diskfont code         3498    0       5c
+                       lib:sc.lib       io2errno code         34f4    0       60
+                       lib:sc.lib       main     code         3554    0       10
+RA_Prefs                07-Nov-94 10:59:12  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:amiga.lib    <noname> code         3564    0       1c
+   1 chip            4 setup.o          setup.c  datachip        0    0        4
+   2 __MERGED      9cc setup.o          setup.c  data            0    0      674
+                       gui.o            gui.c    data          674    0       d8
+                       T:HVJW4.0000     _ctdt.o  data          74c    0       14
+                       lib:sc.lib       mstep.c  data          760    0        4
+                       lib:sc.lib       sigfunc. data          764    0       24
+                       lib:sc.lib       ctype.c  data          788    0      104
+                       lib:sc.lib       _constru data          88c    0        4
+                       lib:sc.lib       stack.c  data          890    0        4
+                       lib:sc.lib       _iob.c   data          894    0       68
+                       lib:sc.lib       _buffsiz data          8fc    0        4
+                       lib:sc.lib       _ufb.c   data          900    0        8
+                       lib:sc.lib       _fmode.c data          908    0        8
+                       lib:sc.lib       _cxbrk.c data          910    0       50
+                       lib:sc.lib       exitfunc data          960    0        4
+                       lib:sc.lib       _stdv36. data          964    0       14
+                       lib:sc.lib       _stdwin. data          978    0       14
+                       lib:sc.lib       io2errno data          98c    0       40
+                       lib:c.o          c        bss           9cc    0       54
+                       setup.o          setup.c  bss           a20    0       9c
+                       gui.o            gui.c    bss           abc    0        4
+                       lib:sc.lib       errno.c  bss           ac0    0        4
+                       lib:sc.lib       memheap. bss           ac4    0        4
+                       lib:sc.lib       memtype. bss           ac8    0        4
+                       lib:sc.lib       dosbase  bss           acc    0        4
+                       lib:sc.lib       _top.c   bss           ad0    0        4
+                       lib:sc.lib       _exit.c  bss           ad4    0        4
+                       lib:sc.lib       _main.c  bss           ad8    0       c8
+                       lib:sc.lib       sscanf.c bss           ba0    0        8
+                       lib:sc.lib       oslibver bss           ba8    0        4
+                       lib:sc.lib       diskfont bss           bac    0        8

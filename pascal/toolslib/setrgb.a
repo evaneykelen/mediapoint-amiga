@@ -1,0 +1,80 @@
+
+;--- SetRGB.a -----------------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/setrgb.a 01.001 (02.18.94)
+
+
+	TTL	SetRGB.a
+	IDNT	SetRGB.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"toolslib.i"
+
+
+	XREF	_GfxBase
+	XREF	_LVOSetRGB32
+
+	XDEF	_SetRGB
+
+
+
+	SECTION	SetRGB,CODE
+
+
+;-------------------------------------------------------------------------
+; SetRGB( VP (a0), n (d0), R (d1), G (d2), B (d3) )
+;-------------------------------------------------------------------------
+; Set one color register for this Viewport, with maximum resolution
+; supported by software and hardware.
+;-------------------------------------------------------------------------
+
+_SetRGB	movem.l	d2/d3/a6,-(sp)
+
+	cmpa.w	#0,a0
+	beq	.exit
+
+	movea.l	_GfxBase,a6
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.b	.V39
+
+.preV39	move.l	d0,-(sp)
+	moveq.l	#12,d0
+	lsr.l	d0,d1
+	lsr.l	d0,d2
+	lsr.l	d0,d3
+	swap.w	d1
+	swap.w	d2
+	swap.w	d3
+	moveq.l	#$0F,d0
+	and.l	d0,d1
+	and.l	d0,d2
+	and.l	d0,d3
+	move.l	(sp)+,d0
+	CALLLIB	_LVOSetRGB4
+	bra.b	.exit
+
+.V39	CALLLIB	_LVOSetRGB32
+
+.exit	movem.l	(sp)+,d2/d3/a6
+	rts
+
+
+;-- END OF FILE ----------------------------------------------------------

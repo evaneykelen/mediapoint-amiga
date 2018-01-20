@@ -1,0 +1,29 @@
+CC = sc
+
+CFLAGS = VERBOSE MAPHUNK MAPXREFERENCE DEBUG=FULLFLUSH DEFINE=TINY CODE=FAR DATA=FAR STRMERGE
+LFLAGS = SMALLCODE SMALLDATA
+
+XAPPNAME = psamp
+
+APP1 = psamp
+
+APP10 = $(APP1).o loadsamp.o diskplay.o
+.SUFFIXES:	.o	.c	.h
+
+all: $(XAPPNAME)
+
+$(XAPPNAME): $(APP10) 
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:sc.lib lib:amiga.lib
+TO $(XAPPNAME) $(LFLAGS)
+MAP $(APP1).map H
+#MAPHUNK
+#MAPXREFERENCE
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $*.a

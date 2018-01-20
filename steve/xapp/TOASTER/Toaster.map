@@ -1,0 +1,68 @@
+Toaster                 18-Oct-93 19:03:40  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         4004 lib:cres.o       c        code            0    0      2b4
+                       setup.o          setup.c  code          2b4    0      c7c
+                       doit.o           doit.c   code          f30    0      2e8
+                       gen:general.o    general. code         1218    0      1dc
+                       lib:/source/_mai _main.c  code         13f4    0      12c
+                       gen:support.o    support. code         1520    0      42c
+                       toaster.o        toaster. code         194c    0      504
+                       worker.o         worker.c code         1e50    0      2e0
+                       arexx/rexx.o     rexx.c   code         2130    0      6d0
+                       lib:sc.lib       _fpinit. code         2800    0       30
+                       lib:sc.lib       _MemClea code         2830    0       80
+                       lib:sc.lib       strsfn.c code         28b0    0      178
+                       lib:sc.lib       strins.c code         2a28    0       48
+                       lib:sc.lib       _stcul_d code         2a70    0       30
+                       lib:sc.lib       _stcl_o  code         2aa0    0       30
+                       lib:sc.lib       _stcl_h  code         2ad0    0       3c
+                       lib:sc.lib       stcl_d   code         2b0c    0       3c
+                       lib:sc.lib       _stcd_i  code         2b48    0       54
+                       lib:sc.lib       stccpy.c code         2b9c    0       44
+                       lib:sc.lib       stcarg.c code         2be0    0       70
+                       lib:sc.lib       getcd.c  code         2c50    0      10c
+                       lib:sc.lib       _strupr. code         2d5c    0       3c
+                       lib:sc.lib       _cxd33   code         2d98    0       c4
+                       lib:sc.lib       _cxm33   code         2e5c    0       20
+                       lib:sc.lib       _exit.c  code         2e7c    0       5c
+                       lib:sc.lib       strchr   code         2ed8    0       18
+                       lib:sc.lib       memchr   code         2ef0    0       24
+                       lib:sc.lib       strcat   code         2f14    0       18
+                       lib:sc.lib       strncpy  code         2f2c    0       24
+                       lib:sc.lib       memmove  code         2f50    0       2c
+                       lib:sc.lib       free     code         2f7c    0      16c
+                       lib:sc.lib       malloc   code         30e8    0      174
+                       lib:sc.lib       sscanf.c code         325c    0       5c
+                       lib:sc.lib       sprintf. code         32b8    0       44
+                       lib:sc.lib       _sfmt.c  code         32fc    0      618
+                       lib:sc.lib       _pfmt.c  code         3914    0      438
+                       lib:sc.lib       _sf.c    code         3d4c    0      168
+                       lib:sc.lib       _pf.c    code         3eb4    0       7c
+                       lib:sc.lib       DelPort. code         3f30    0       44
+                       lib:sc.lib       CrtPort. code         3f74    0       90
+   1 __MERGED     2760 setup.o          setup.c  data            0    0     1f54
+                       doit.o           doit.c   data         1f54    0       60
+                       gen:general.o    general. data         1fb4    0        4
+                       gen:support.o    support. data         1fb8    0       2c
+                       toaster.o        toaster. data         1fe4    0      168
+                       arexx/rexx.o     rexx.c   data         214c    0      4dc
+                       lib:sc.lib       mstep.c  data         2628    0        4
+                       lib:sc.lib       sigfunc. data         262c    0       24
+                       lib:sc.lib       ctype.c  data         2650    0      104
+                       lib:sc.lib       stack.c  data         2754    0        4
+                       lib:sc.lib       _ufb.c   data         2758    0        8
+                       lib:cres.o       c        bss          2760    0       50
+                       setup.o          setup.c  bss          27b0    0       38
+Toaster                 18-Oct-93 19:03:40  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:/source/_mai _main.c  bss          27e8    0       8c
+                       gen:support.o    support. bss          2874    0      218
+                       lib:sc.lib       errno.c  bss          2a8c    0        4
+                       lib:sc.lib       memheap. bss          2a90    0        4
+                       lib:sc.lib       memtype. bss          2a94    0        4
+                       lib:sc.lib       dosbase  bss          2a98    0        4
+                       lib:sc.lib       _top.c   bss          2a9c    0        4
+                       lib:sc.lib       _exit.c  bss          2aa0    0        4
+                       lib:sc.lib       sscanf.c bss          2aa4    0        8

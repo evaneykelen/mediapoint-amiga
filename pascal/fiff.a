@@ -1,0 +1,1494 @@
+
+;--- fiff.a -------------------------------------------------------------+
+; MediaPoint IFF ToolBox Routines. Code written by B.O.M.B. AudioVisual  |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/fiff.a 01.050 (10.03.94)
+
+
+	TTL	fiff.a
+	IDNT	fiff.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/view.i"
+	INCLUDE	"graphics/graphics_lib.i"
+	INCLUDE	"libraries/dos.i"
+	INCLUDE	"libraries/dos_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"fiff.i"
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"toolslib.i"
+
+	XREF	_SysBase
+	XREF	_DOSBase
+	XREF	_GfxBase
+
+	XREF	_BOpen
+	XREF	_BRead
+	XREF	_BSeek
+	XREF	_BClose
+
+	XDEF	_FastInitIFFFrame
+	XDEF	_FastOpenIFF
+	XDEF	_FastCloseIFF
+	XDEF	_FastParseChunk
+	XDEF	_FastDecodeBody
+	XDEF	_FastWriteIFF
+***	XDEF	_FastScanFileType
+
+	XREF	_SetRGBCM
+	XREF	@GetRGB
+	XREF	@GetBitMapAttr24
+	XREF	@AllocRememberMP
+	XREF	@FreeRememberMP
+
+
+	SECTION	TEXT,CODE
+
+	IFNE	0
+
+;-------------------------------------------------------------------------
+; function : ULONG _FastScanFileType( STRPTR filename )
+;-------------------------------------------------------------------------
+; Scans file to determine whether file contains FORM, LIST or CAT and
+; scans to determine if file contains the 'id' chunk. If these conditions
+; are met, the function returns TRUE, otherwise FALSE.
+;-------------------------------------------------------------------------
+
+_FastScanFileType
+
+.stck_scanFile	equ	-4
+.stck_idBuffer	equ	-68
+.stck_SIZE	equ	-68
+
+	link	a5,#.stck_SIZE
+	movem.l	d0-d7/a0-a6,-(sp)
+
+	move.l	#4096,-(sp)		; bufsize
+	move.l	#MODE_OLDFILE,-(sp)
+	move.l	_1stParam(a5),-(sp)
+	jsr	_BOpen
+	lea.l	12(sp),sp
+	move.l	d0,.stck_scanFile(a5)	; if NULL, D0 is FALSE (hey!)
+	beq.b	.exit
+
+	move.l	d0,d4			; d0/d1 is trashed by C code
+
+	move.l	#8,-(sp)		; readSize
+	pea.l	.stck_idBuffer(a5)	; buffer ptr
+	move.l	d4,-(sp)		; file ptr
+	jsr	_BRead
+	lea.l	12(sp),sp		; restore stack
+	move.l	d0,d5			; size read
+	beq.b	.exit
+
+	lea.l	.stck_idBuffer(a5),a0
+	cmpi.l	#FORM,(a0)
+	beq.b	.IFF
+	cmpi.l	#'LIST',(a0)
+	beq.b	.IFF
+	cmpi.l	#'CAT ',(a0)
+	beq.b	.IFF
+	bra.b	.IsMP
+
+.IFF	moveq.l	#FILETYPE_PICTURE,d0
+	bra.b	.exit
+
+.IsMP	cmpi.l	#'PAGE',0(a0)
+	bne.b	.ismp01
+	cmpi.l	#'TALK',4(a0)
+	bne.b	.ismp01
+	moveq.l	#FILETYPE_PAGE,d0
+	bra.b	.exit
+
+.ismp01	cmpi.l	#'SCRI',0(a0)
+	bne.b	.IsIcon
+	cmpi.l	#'PTTA',4(a0)
+	bne.b	.IsIcon
+	moveq.l	#FILETYPE_SCRIPT,d0
+	bra.b	.exit
+
+.IsIcon	moveq.l	#FILETYPE_UNKNOWN,d0
+
+.exit	move.w	d0,-(sp)
+	move.l	.stck_scanFile(a5),-(sp)
+	jsr	_BClose
+	lea.l	4(sp),sp
+	move.w	(sp)+,d0
+
+	movem.l	(sp)+,d0-d7/a0-a6
+	unlk	a5
+	rts
+
+
+	ENDC
+
+
+
+
+;-------------------------------------------------------------------------
+; function : _FastInitIFFFrame( struct IFF_FRAME *iff )
+;-------------------------------------------------------------------------
+; The iff_frame structure is initialized to all zero's. (Very fast!)
+;-------------------------------------------------------------------------
+
+_FastInitIFFFrame
+	link	a5,#0
+	movem.l	d0/a0,-(sp)
+	move.l	_1stParam(a5),a0
+	move.l	#(iff_SIZEOF-1),d0
+.loop	clr.b	(a0)+
+	dbra	d0,.loop
+	movem.l	(sp)+,d0/a0
+	unlk	a5
+	rts
+
+
+
+
+
+
+
+;-------------------------------------------------------------------------
+; function : _FastOpenIFF(struct IFF_FRAME *iff,STRPTR filename,ULONG id )
+;-------------------------------------------------------------------------
+; File is opened (if possible), attempt is made to read 12 bytes from the
+; file, and from FORM size XXXX -> XXXX is returned if possible.
+;-------------------------------------------------------------------------
+
+  STACKSTRUCT
+	_STRUCT	fo_Buffer,3*4
+	_LABEL	fo_SIZEOF
+
+_FastOpenIFF
+
+	link	a5,#fo_SIZEOF
+	movem.l	d1-d7/a0-a6,-(sp)
+
+	move.l	_1stParam(a5),a2	; init pointer to struct
+
+	clr.l	iff_Error(a2)
+	clr.l	iff_ErrorInfo(a2)
+
+	move.l	#8192,-(sp)		; bufsize 8 KB
+	move.l	#MODE_OLDFILE,-(sp)
+	move.l	_2ndParam(a5),-(sp)
+	jsr	_BOpen
+	lea.l	12(sp),sp
+	move.l	d0,iff_BufFileHandle(a2)
+	beq.w	.doserr
+
+	move.l	#12,-(sp)
+	pea.l	fo_Buffer(a5)
+	move.l	iff_BufFileHandle(a2),-(sp)	; filehandle
+	jsr	_BRead
+	lea.l	12(sp),sp
+	tst.l	d0
+	bmi.s	.doserr
+	cmp.l	#12,d0
+	bne.b	.no_iff
+
+	cmpi.l	#FORM,fo_Buffer(a5)
+	beq.b	.typeOK
+;	cmpi.l	#LIST,fo_Buffer(a5)
+;	beq.b	.typeOK
+;	cmpi.l	#CAT,fo_Buffer(a5)
+;	beq.b	.typeOK
+	bra.b	.no_iff
+
+.typeOK	move.l	fo_Buffer+8(a5),d0
+	bra.b	.exit2
+
+.exit	moveq.l	#0,d0
+.exit2	movem.l	(sp)+,d1-d7/a0-a6
+	unlk	a5
+	rts
+
+
+.no_mem	move.l	#IFF_ERROR_NO_MEMORY,iff_Error(a2)
+	bra.b	.exit
+
+.no_iff	move.l	#IFF_ERROR_NOT_IFF,iff_Error(a2)
+	bra.b	.exit
+
+.doserr	move.l	#IFF_ERROR_DOS_FAILURE,iff_Error(a2)
+
+	movea.l	_DOSBase,a6
+	CALLLIB	_LVOIoErr
+	move.l	d0,iff_ErrorInfo(a2)
+	bra.b	.exit
+
+
+
+
+
+
+;-------------------------------------------------------------------------
+; function : _FastParseChunk( struct IFF_FRAME *iff, ULONG id )
+;-------------------------------------------------------------------------
+; The ID is tested to see if it's known to this function. If so, the
+; file is scanned for the existence of the identifier and the structure
+; is filled with the interesting parts of the data.
+; An ID that's not known to this function can't do anything useful.
+; Known at the moment : BMHD, CAMG & CMAP chunks.
+;-------------------------------------------------------------------------
+
+  STACKSTRUCT
+	_STRUCT	fpc_Buffer,4
+	_LABEL	fpc_SIZEOF
+
+_FastParseChunk
+
+	link	a5,#fpc_SIZEOF
+	movem.l	d0-d7/a0-a6,-(sp)
+
+	move.l	_1stParam(a5),a2		; get ptr to structure
+	move.l	_2ndParam(a5),d1		; get IDentifier
+
+	clr.l	iff_Error(a2)
+	clr.l	iff_ErrorInfo(a2)
+
+.bmhd	cmpi.l	#BMHD,d1
+	bne.b	.camg
+	bsr.w	FindChunkData
+	tst.l	d0
+	beq.w	.notfnd
+	move.l	a6,-(sp)
+	move.l	#bmh_SIZEOF,-(sp)
+	pea.l	iff_BMH(a2)			; ptr to BMHD in struct
+	move.l	iff_BufFileHandle(a2),-(sp)
+	jsr	_BRead
+	lea.l	12(sp),sp
+	move.l	(sp)+,a6
+	cmpi.l	#-1,d0
+	beq.w	.doserr
+	cmpi.l	#bmh_SIZEOF,d0
+	bne.w	.badiff
+	bra.w	.exit
+
+.camg	cmpi.l	#CAMG,d1
+	bne.b	.cmap
+	bsr.w	FindChunkData
+	tst.l	d0
+	beq.w	.notfnd
+	move.l	a6,-(sp)
+	move.l	#4,-(sp)
+	pea.l	iff_viewModes(a2)		; ptr to BMHD in struct
+	move.l	iff_BufFileHandle(a2),-(sp)
+	jsr	_BRead
+	lea.l	12(sp),sp
+	movea.l	(sp)+,a6
+	cmpi.l	#-1,d0
+	beq.w	.doserr
+	cmpi.l	#4,d0
+	bne.w	.badiff
+	bra.w	.exit
+
+.cmap	cmpi.l	#CMAP,d1
+	bne.w	.notfnd
+	bsr.w	FindChunkData
+	clr.l	iff_colorMap(a2)
+	tst.l	d0
+	beq.w	.notfnd
+	move.l	d0,d5				; get size of CMAP chunk
+	divu.w  #3,d5				; get actual # of colors
+
+	movea.l	_GfxBase,a6
+
+	moveq.l	#0,d0
+	move.w	d5,d0
+
+	movem.l	d1/a0-a1,-(sp)
+	CALLLIB	_LVOGetColorMap
+	movem.l	(sp)+,d1/a0-a1
+
+	move.l	d0,iff_colorMap(a2)
+	beq.w	.no_mem
+
+	lea.l	fpc_Buffer(a5),a3		; a3 points to CMAP chunk data
+	movea.l	d0,a0				; ColorMap
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+	moveq.l	#0,d3
+
+.loop	movem.l	d0-d1/a0-a1/a6,-(sp)
+	move.l	#3,-(sp)
+	move.l	a3,-(sp)
+	move.l	iff_BufFileHandle(a2),-(sp)
+	jsr	_BRead
+	lea.l	12(sp),sp
+	movem.l	(sp)+,d0-d1/a0-a1/a6
+
+	moveq.l	#0,d1
+	move.b	0(a3),d1
+	move.b	d1,d4
+	lsl.w	#8,d4
+	or.w	d1,d4
+	move.w	d4,d1
+	swap.w	d1
+	move.w	d4,d1
+
+	moveq.l	#0,d2
+	move.b	1(a3),d2
+	move.b	d2,d4
+	lsl.w	#8,d4
+	or.w	d2,d4
+	move.w	d4,d2
+	swap.w	d2
+	move.w	d4,d2
+
+	moveq.l	#0,d3
+	move.b	2(a3),d3
+	move.b	d3,d4
+	lsl.w	#8,d4
+	or.w	d3,d4
+	move.w	d4,d3
+	swap.w	d3
+	move.w	d4,d3
+
+	movem.l	d0/a0,-(sp)
+	jsr	_SetRGBCM
+	movem.l	(sp)+,d0/a0
+	addq.w	#1,d0
+	cmp.w	d0,d5
+	bne.b	.loop
+
+.exit	tst.l	iff_Error(a2)
+	bne.b	.exit2
+	bsr.w	GetEven
+	bne.b	.exit2
+	move.l	#IFF_ERROR_DOS_FAILURE,iff_Error(a2)
+.exit2	movem.l	(sp)+,d0-d7/a0-a6
+	unlk	a5
+	rts
+
+.doserr	move.l	#IFF_ERROR_DOS_FAILURE,iff_Error(a2)
+	bra.b	.exit
+
+.badiff	move.l	#IFF_ERROR_BAD_FORM,iff_Error(a2)
+	bra.b	.exit
+
+.no_mem	move.l	#IFF_ERROR_NO_MEMORY,iff_Error(a2)
+	bra.b	.exit
+
+.notfnd	move.l	#IFF_ERROR_ID_NOT_FOUND,iff_Error(a2)
+	bra.b	.exit
+
+
+
+
+;-------------------------------------------------------------------------
+; func: _FastDecodeBody( IFF_FRAME *iff, BitMap *bm, APTR mask )
+;-------------------------------------------------------------------------
+; The memory buffer is scanned for the existence of the identifier BODY.
+; If it is found, the bitmap will be filled with the information of the
+; BODY. If the BODY can't be found, an IFF_ERROR_ID_NOT_FOUND will be
+; returned. This function will skip too many bitmaps, clip too large
+; bitmaps, skip stencils, etc. Raw bitmaps are (ofcourse) also supported.
+; This function assumes it gets an correct initialized bitmap struct.
+;-------------------------------------------------------------------------
+
+  STACKSTRUCT
+	_UWORD	dcde_copywidth
+	_UWORD	dcde_copyheight
+	_UWORD	dcde_copydepth
+	_UWORD	dcde_ilbmwidth
+	_UWORD	dcde_dbracopy
+	_UWORD	dcde_rows
+	_UWORD	dcde_bytesperrow
+	_UWORD	dcde_bytes
+	_UWORD	dcde_depth
+	_LABEL	dcde_SIZEOF
+
+_FastDecodeBody
+	link	a5,#dcde_SIZEOF
+	movem.l	d0-d7/a0-a6,-(sp)
+
+	move.l	_1stParam(a5),a2		; get ptr to iff structure
+	move.l	_2ndParam(a5),a3		; get ptr to bitmap struct
+	clr.l	iff_Error(a2)			; IFF_ERROR_OK = zero
+	clr.l	iff_ErrorInfo(a2)
+	clr.l	iff_Memory(a2)
+
+	tst.b	iff_BMH+bmh_nPlanes(a2)		; is there a valid BMHD read ?
+	beq.w	.malbmh				; if not, we must give up
+
+	move.l	#BODY,d1
+	bsr.w	FindChunkData
+	tst.l	d0
+	beq.w	.notfnd
+	bmi.w	.malbdy
+
+	move.l	d0,-(sp)
+	move.l	#MEMF_PUBLIC,d1
+	jsr	@AllocRememberMP
+	movea.l	d0,a0
+	move.l	(sp)+,d0
+	cmpa.w	#0,a0
+	beq	.no_mem
+	move.l	a0,iff_Memory(a2)
+
+	move.l	a0,-(sp)
+	move.l	d0,-(sp)			; readSize
+	move.l	a0,-(sp)			; buffer ptr
+	move.l	iff_BufFileHandle(a2),-(sp)	; file ptr
+	jsr	_BRead
+	lea.l	12(sp),sp
+	move.l	(sp)+,a0
+
+	move.l	a0,-(sp)
+	movea.l	a3,a0
+	moveq.l	#BM24A_WIDTH,d0
+	jsr	@GetBitMapAttr24
+	cmp.w	iff_BMH+bmh_w(a2),d0
+	beq.b	.a1
+	bhi.b	.a0
+	ori.l	#IFF_ERRINFO_X_CLIPPED,iff_ErrorInfo(a2)
+	bra.b	.a1
+.a0	ori.l	#IFF_ERRINFO_X_UNDERSCAN,iff_ErrorInfo(a2)
+.a1	movea.l	a3,a0
+	moveq.l	#BM24A_HEIGHT,d0
+	jsr	@GetBitMapAttr24
+	cmp.w	iff_BMH+bmh_h(a2),d0
+	beq.b	.a3
+	bhi.b	.a2
+	ori.l	#IFF_ERRINFO_Y_CLIPPED,iff_ErrorInfo(a2)
+	bra.b	.a3
+.a2	ori.l	#IFF_ERRINFO_Y_UNDERSCAN,iff_ErrorInfo(a2)
+.a3	move.l	(sp)+,a0
+
+; Let's give an message whether the stencil will be skipped
+
+.chkmsk	cmp.b	#mskHasMask,iff_BMH+bmh_masking(a2)
+	bne.b	.decode
+	tst.l	_3rdParam(a5)
+	bne.b	.decode
+	ori.l	#IFF_ERRINFO_STENCIL,iff_ErrorInfo(a2)
+.decode	bsr.w	iffDecodeWhatEver
+
+.exit	movea.l	iff_Memory(a2),a0
+	clr.l	iff_Memory(a2)
+	jsr	@FreeRememberMP
+
+.exit2	tst.l	iff_Error(a2)
+	bne.b	.exit3
+	bsr.w	GetEven
+	bne.b	.exit3
+	move.l	#IFF_ERROR_DOS_FAILURE,iff_Error(a2)
+.exit3	movem.l	(sp)+,d0-d7/a0-a6
+	unlk	a5
+	rts
+
+.notfnd	move.l	#IFF_ERROR_ID_NOT_FOUND,iff_Error(a2)
+	bra.b	.exit
+
+.malbmh	move.l	#IFF_ERROR_BAD_BMHD,iff_Error(a2)
+	bra.b	.exit
+
+.malbdy	move.l	#IFF_ERROR_BAD_BODY,iff_Error(a2)
+	bra.b	.exit
+
+.no_mem	move.l	#IFF_ERROR_NO_MEMORY,iff_Error(a2)
+	bra.b	.exit
+
+
+
+
+;-------------------------------------------------------------------------
+; local function : ULONG FindChunkData( IFF_FRAME, ID ) ( a2, d1 )
+;-------------------------------------------------------------------------
+; Searches file, places filepointer at start of chunk data and returns
+; 0 if chunk not found or otherwise the chunk size found.
+;-------------------------------------------------------------------------
+
+FindChunkData
+	movem.l	d1-d3/a0-a1,-(sp)
+
+	move.l	d1,-(sp)
+	move.l	#OFFSET_BEGINNING,-(sp)
+	move.l	#12,-(sp)			; skip FORM .... ILBM
+	move.l	iff_BufFileHandle(a2),-(sp)
+	jsr	_BSeek
+	lea.l	12(sp),sp
+	move.l	(sp)+,d2
+
+.loop	bsr.w	GetLong				; Get ID (eg. BODY)
+	move.l	d0,d3
+	beq.b	.notfnd
+	bmi.b	.notfnd
+	bsr.w	GetLong				; Get chunk size
+	tst.l	d0
+	beq.b	.notfnd
+	bmi.b	.notfnd
+	cmp.l	#FORM,d3
+	bne.b	.skip
+	bsr.w	GetLong
+	bra.b	.loop
+
+.skip	cmp.l	d2,d3
+	beq.b	.exit
+	bsr.b	SkipBytes
+	bra.b	.loop
+
+.exit	movem.l	(sp)+,d1-d3/a0-a1
+	rts
+
+.notfnd	moveq.l	#0,d0
+	bra.b	.exit
+
+
+
+
+;----------------------------------------------------------------------------
+; Function : SkipBytes
+;
+; Causes some bytes to be skipped
+;
+; In  :	a2 - iff frame
+;	d0 - number of bytes to skip
+;----------------------------------------------------------------------------
+
+SkipBytes
+	move.l	d0,-(sp)
+	btst.l	#0,d0
+	beq.b	.skip
+	addq.l	#1,d0
+.skip	move.l	#OFFSET_CURRENT,-(sp)
+	move.l	d0,-(sp)
+	move.l	iff_BufFileHandle(a2),-(sp)
+	jsr	_BSeek
+	lea.l	12(sp),sp
+	move.l	(sp)+,d0
+	rts
+
+
+;----------------------------------------------------------------------------
+; Function : GetLong
+;
+; Retrieves next four bytes from file which form the ID or chunksize
+;
+; In  : a2 - iff frame
+; Out : d0 - retrieved value, 0 EOF, -1 if problems arise.
+;----------------------------------------------------------------------------
+
+GetLong	link	a5,#-4
+	move.l	#4,-(sp)
+	pea.l	-4(a5)
+	move.l	iff_BufFileHandle(a2),-(sp)
+	jsr	_BRead
+	lea.l	12(sp),sp
+	tst.l	d0
+	beq.b	.exit
+	cmpi.l	#4,d0
+	bne.b	.error
+	move.l	-4(a5),d0
+.exit	unlk	a5
+	rts
+
+.error	moveq.l	#-1,d0
+	bra.b	.exit
+
+
+;----------------------------------------------------------------------------
+; Function : GetEven
+;
+; Makes sure that the next read is at an even byte in the file
+;
+; In  : a2 - iff frame
+; Out : d0 - FALSE if not succeeded, TRUE if all ok
+;----------------------------------------------------------------------------
+
+GetEven	movem.l	a0-a1/d1,-(sp)
+	move.l	#OFFSET_CURRENT,-(sp)
+	clr.l	-(sp)
+	move.l	iff_BufFileHandle(a2),-(sp)
+	jsr	_BSeek
+	lea.l	12(sp),sp
+
+	tst.l	d0
+	bmi.b	.error
+	btst.l	#0,d0
+	beq.b	.ok
+
+	move.l	#OFFSET_CURRENT,-(sp)
+	move.l	#1,-(sp)
+	move.l	iff_BufFileHandle(a2),-(sp)
+	jsr	_BSeek
+	lea.l	12(sp),sp
+
+	tst.l	d0
+	bmi.b	.error
+
+.ok	moveq.l	#TRUE,d0
+.exit	movem.l	(sp)+,a0-a1/d1
+	rts
+
+.error	moveq.l	#FALSE,d0
+	bra.b	.exit
+
+
+;-------------------------------------------------------------------------
+; local function : a0 = iffDecodeWhatEver( .... )
+;-------------------------------------------------------------------------
+; Upon entry :	a0 contains pointer to begin of ilbm data
+;		a2 contains pointer to IFF_FRAME struct
+;		a3 contains pointer to BitMap struct
+;
+; Performs decoding of ilbm data into allocated bitmap.
+; ILBM will be clipped if neccessary.
+;-------------------------------------------------------------------------
+
+iffDecodeWhatEver
+	movem.l	d0-d7/a0-a6,-(sp)	; just to make sure
+;-------------------------------------------------------------------------
+	move.w	iff_BMH+bmh_w(a2),d2
+	addi.w	#15,d2
+	lsr.w	#3,d2
+	bclr.l	#0,d2
+	move.w	d2,dcde_ilbmwidth(a5)
+;-------------------------------------------------------------------------
+	move.l	a0,-(sp)
+
+	movea.l	a3,a0
+	moveq.l	#BM24A_WIDTH,d0
+	jsr	@GetBitMapAttr24
+	addi.w	#15,d0
+	lsr.w	#3,d0
+	bclr.l	#0,d0
+	move.w	d0,dcde_bytes(a5)
+	move.w	bm24_Modulo(a3),dcde_bytesperrow(a5)
+
+	movea.l	a3,a0
+	moveq.l	#BM24A_HEIGHT,d0
+	jsr	@GetBitMapAttr24
+	move.w	d0,dcde_rows(a5)
+
+	movea.l	a3,a0
+	moveq.l	#BM24A_DEPTH,d0
+	jsr	@GetBitMapAttr24
+	move.w	d0,dcde_depth(a5)
+
+	movea.l	(sp)+,a0
+;---------------------------------------------------
+.init_parameters
+
+	move.w	dcde_bytes(a5),d0
+	move.w	dcde_ilbmwidth(a5),d2
+	cmp.w	d0,d2
+	bls.s	.min001
+	move.w	d0,d2
+.min001	move.w	d2,dcde_copywidth(a5)
+
+	move.w	dcde_rows(a5),d0
+	move.w	iff_BMH+bmh_h(a2),d2
+	cmp.w	d0,d2
+	bls.s	.min002
+	move.w	d0,d2
+.min002	move.w	d2,dcde_copyheight(a5)
+
+	moveq.l	#0,d2
+	move.w	dcde_depth(a5),d0
+	move.b	iff_BMH+bmh_nPlanes(a2),d2
+	cmp.w	d2,d0
+	bls.s	.min003
+	move.b	d2,d0
+.min003	move.w	d0,dcde_copydepth(a5)
+
+	move.w	dcde_copywidth(a5),dcde_dbracopy(a5)
+	subi.w	#1,dcde_dbracopy(a5)
+
+	lea.l	bm24_Planes(a3),a1	; a1 ptr to plane addresses
+	suba.l	a6,a6			; offset in bitmap to zero
+	moveq.l	#0,d6			; cntr for actual line
+	move.w	dcde_copyheight(a5),d3
+	move.w	dcde_copydepth(a5),d4
+
+	cmp.b	#cmpNone,iff_BMH+bmh_compression(a2)
+	beq.w	DecodeRaw
+	cmp.b	#cmpByteRun1,iff_BMH+bmh_compression(a2)
+	beq.w	DecodeByteRun1
+	move.l	#IFF_ERROR_UNKNOWN_COMPRESSION,iff_Error(a2)
+
+iffDecoded
+	movem.l	(sp)+,d0-d7/a0-a6
+	rts
+;-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+;-----------------------------------------------------------------------------
+DecodeByteRun1
+
+	move.w	dcde_rows(a5),d6
+	subq.w	#1,d6
+.loopY	movem.l	d6/a1,-(sp)
+
+	moveq.l	#0,d6
+	move.b	iff_BMH+bmh_nPlanes(a2),d6
+	subq.w	#1,d6
+.loopX	movea.l	(a1)+,a3		; get address of plane in a1
+	adda.l	a6,a3			; add offset to get on lower lines
+	move.w	dcde_copywidth(a5),d0
+	move.w	dcde_ilbmwidth(a5),d1
+	bsr	iffUnpackRow
+	dbra	d6,.loopX
+
+	cmp.b	#mskHasMask,iff_BMH+bmh_masking(a2)
+	bne	.fillMask
+
+.readMask	movea.l	_3rdParam(a5),a3
+	cmpa.w	#0,a3
+	beq	.skipMask
+	adda.l	a6,a3
+
+	move.w	dcde_copywidth(a5),d0
+	move.w	dcde_ilbmwidth(a5),d1
+	bsr.w	iffUnpackRow
+	bra	.endX
+
+.skipMask	move.w	dcde_ilbmwidth(a5),d0
+	bsr.w	iffSkipPackedRow	; skip the mask
+	bra.b	.endX
+
+
+.fillMask	movea.l	_3rdParam(a5),a3
+	cmpa.w	#0,a3
+	beq	.endX
+	adda.l	a6,a3
+
+	move.w	dcde_copywidth(a5),d0
+	subq.w	#1,d0
+.loop_fm	move.b	#-1,(a3)+
+	dbra	d0,.loop_fm
+
+
+.endX	movem.l	(sp)+,d6/a1
+	adda.w	dcde_bytesperrow(a5),a6	; next line in bitmap
+	dbra	d6,.loopY
+	bra	iffDecoded
+;-----------------------------------------------------------------------------
+
+
+
+
+
+
+;-----------------------------------------------------------------------------
+DecodeRaw	move.w	dcde_rows(a5),d6
+	subq.w	#1,d6
+.loopY	movem.l	d6/a1,-(sp)
+
+	moveq.l	#0,d6
+	move.b	iff_BMH+bmh_nPlanes(a2),d6
+	subq.w	#1,d6
+.loopX	movea.l	(a1)+,a3		; get address of plane in a1
+	adda.l	a6,a3			; add offset to get on lower lines
+
+	move.w	dcde_ilbmwidth(a5),d0
+	subq.w	#1,d0
+.copyX	move.b	(a0)+,(a3)+
+	dbra	d0,.copyX
+
+	dbra	d6,.loopX
+
+	cmp.b	#mskHasMask,iff_BMH+bmh_masking(a2)
+	bne	.fillMask
+
+.readMask	movea.l	_3rdParam(a5),a3
+	cmpa.w	#0,a3
+	beq	.skipMask
+	adda.l	a6,a3
+
+	move.w	dcde_ilbmwidth(a5),d0
+	subq.w	#1,d0
+.copyMask	move.b	(a0)+,(a3)+
+	dbra	d0,.copyMask
+	bra	.endX
+
+.skipMask	move.w	dcde_ilbmwidth(a5),d0
+	adda.w	d0,a0
+	bra.b	.endX
+
+
+.fillMask	movea.l	_3rdParam(a5),a3
+	cmpa.w	#0,a3
+	beq	.endX
+	adda.l	a6,a3
+
+	move.w	dcde_ilbmwidth(a5),d0
+	subq.w	#1,d0
+.loop_fm	move.b	#-1,(a3)+
+	dbra	d0,.loop_fm
+
+
+.endX	movem.l	(sp)+,d6/a1
+	adda.w	dcde_bytesperrow(a5),a6	; next line in bitmap
+	dbra	d6,.loopY
+	bra	iffDecoded
+;-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+;-------------------------------------------------------------------------
+; local function: iffUnpackRow( )
+;-------------------------------------------------------------------------
+; This function performs a ByteRun1 decompression on a memory to memory
+; basis. Upon entry :
+;	d0 < amount of bytes to copy
+;	d1 < total size of line
+;	a0 < pointer to source data
+;	a3 < pointer to destination location
+; Returns:
+;	a0 > pointer to next ilbm packed line
+;	a3 > pointer to end of unpacked data
+;-------------------------------------------------------------------------
+
+iffUnpackRow	movem.l	d0-d3/a2,-(sp)
+
+.stckbufsize	equ	-512		; 4096 pixels is a lot ! 
+
+.copysize		equr	d0
+.linesize		equr	d1
+.byte		equr	d2
+.count		equr	d3
+.srcaddr		equr	a0
+.stckbuffer	equr	a2
+.dstaddr		equr	a3
+
+		link	a5,#.stckbufsize
+		lea.l	.stckbufsize(a5),.stckbuffer
+
+		moveq.l	#0,.count
+
+.getnextbyte	move.b	(.srcaddr)+,.byte
+		ext.w	.byte
+		bmi.b	.negative
+
+.repeat		add.w	.byte,.count
+		add.w	#1,.count
+.repeat002	move.b	(.srcaddr)+,(.stckbuffer)+
+		dbra	.byte,.repeat002
+		bra.b	.tst_eol
+
+.negative		cmpi.w	#-128,.byte
+		beq.b	.tst_eol
+
+.replicate	neg.w	.byte
+		add.w	.byte,.count
+		addq.w	#1,.count
+.replicate002	move.b	(.srcaddr),(.stckbuffer)+
+		dbra	.byte,.replicate002
+		addq.w	#1,.srcaddr
+
+.tst_eol		cmp.w	.count,.linesize	;has eol been reached ?
+		bgt.b	.getnextbyte		;no - let's decrunch
+
+.copyline		lea.l	.stckbufsize(a5),.stckbuffer
+		subq.w	#1,.copysize
+
+.copyline002	move.b	(.stckbuffer)+,(.dstaddr)+
+		dbra	.copysize,.copyline002
+
+.exit		unlk	a5
+		movem.l	(sp)+,d0-d3/a2
+		rts
+
+
+
+
+
+;-------------------------------------------------------------------------
+; local function : iffSkipPackedRow( )
+;-------------------------------------------------------------------------
+; This function performs a fake ByteRun1 decompression thus setting ptr
+; a0 to the beginning of the next plane in the ILBM.
+; Upon entry : a0 > pointer to compressed interleaved line
+;              d0 > size of interleaved line in bytes
+; Returns :    a0 < pointer to next compressed interleaved line
+; All other registers will keep their previous contents.
+;-------------------------------------------------------------------------
+
+iffSkipPackedRow	movem.l	d0/d2/d3,-(sp)
+
+		moveq.l	#0,d3
+
+.getnextbyte	move.b	(a0)+,d2
+		ext.w	d2
+		bmi.b	.negative
+
+.repeat		addq.w	#1,d2
+		add.w	d2,d3
+		adda.w	d2,a0
+		bra.b	.tst_eol
+
+.negative		cmpi.w	#-128,d2
+		beq.b	.tst_eol
+
+.replicate	neg.w	d2
+		addq.w	#1,d2
+		add.w	d2,d3
+		addq.w	#1,a0
+
+.tst_eol		cmp.w	d3,d0	;has eol been reached ?
+		bgt.b	.getnextbyte		;no - let's decrunch
+
+.exit		movem.l	(sp)+,d0/d2/d3
+		rts
+
+
+
+
+
+
+
+;-------------------------------------------------------------------------
+; func: _FastWriteIFF( IFF_FRAME *iff, STRPTR file, BitMap *bm, BM *mask)
+;-------------------------------------------------------------------------
+; Attempt to write file with specified name is made. The IFF file will
+; be structured in the following manner :
+;
+; FORM ILBM
+; .BMHD
+; .CMAP (if colormap present)
+; .CAMG
+; .BODY
+;
+; Notice : Upon error, the iff in memory is left alone, so close it using
+; FastCloseIFF().
+;-------------------------------------------------------------------------
+
+_FastWriteIFF
+
+   STACKSTRUCT
+	_APTR	fwi_filehandle
+	_APTR	fwi_memorypool
+	_ULONG	fwi_mempoolsize
+	_UWORD	fwi_num_colors
+	_APTR	fwi_addrilbmsize
+	_APTR	fwi_addrbodysize
+	_STRUCT	fwi_colortable,4*3
+	_UWORD	fwi_bytes
+	_UWORD	fwi_bytesperrow
+	_UWORD	fwi_rows
+	_UWORD	fwi_depth
+	_UWORD	fwi_totaldepth
+	_APTR	fwi_reg_a4
+	_UWORD	fwi_depthcount
+	_LABEL	fwi_SIZEOF
+
+	link	a5,#fwi_SIZEOF
+	movem.l	d0-d7/a0-a6,-(sp)
+
+	move.l	a4,fwi_reg_a4(a5)
+	movea.l	_3rdParam(a5),a3
+
+	movea.l	a3,a0
+	moveq.l	#BM24A_WIDTH,d0
+	jsr	@GetBitMapAttr24
+	addi.w	#15,d0
+	lsr.w	#3,d0
+	bclr.l	#0,d0
+	move.w	d0,fwi_bytes(a5)
+	move.w	bm24_Modulo(a3),fwi_bytesperrow(a5)
+
+	movea.l	a3,a0
+	moveq.l	#BM24A_HEIGHT,d0
+	jsr	@GetBitMapAttr24
+	move.w	d0,fwi_rows(a5)
+
+	movea.l	a3,a0
+	moveq.l	#BM24A_DEPTH,d0
+	jsr	@GetBitMapAttr24
+	move.w	d0,fwi_depth(a5)
+	move.w	d0,fwi_totaldepth(a5)
+
+	movea.l	_1stParam(a5),a2
+	movea.l	_4thParam(a5),a1
+	cmpa.w	#0,a1
+	beq	.noMask00
+	tst.l	bm24_Planes+0(a1)
+	beq	.noMask00
+	add.w	#1,fwi_totaldepth(a5)
+	move.b	#mskHasMask,iff_BMH+bmh_masking(a2)
+.noMask00	clr.l	iff_Error(a2)
+	clr.l	iff_ErrorInfo(a2)
+	clr.l	fwi_memorypool(a5)
+	clr.l	fwi_mempoolsize(a5)
+
+	move.l	_2ndParam(a5),d1
+	move.l	#MODE_NEWFILE,d2
+
+	LINKLIB	_LVOOpen,_DOSBase
+	move.l	d0,fwi_filehandle(a5)
+	beq.w	.doserr
+
+	tst.l	iff_colorMap(a2)
+	beq.b	.ncmap1
+	moveq.l	#0,d0
+	move.b	bm24_Depth(a3),d0
+	moveq.l	#1,d2
+	lsl.l	d0,d2		; 1<<Depth
+	move.l	iff_viewModes(a2),d1
+	andi.l	#V_HAM,d1
+	beq.b	.EHB
+
+.HAM	moveq.l	#16,d2		; HAM
+	cmp.w	#8,d0
+	bne.b	.exitXX
+	moveq.l	#64,d2		; HAM8
+	bra.b	.exitXX
+
+.EHB	move.l	iff_viewModes(a2),d1
+	andi.l	#V_EXTRA_HALFBRITE,d1
+	beq.b	.exitXX
+	moveq.l	#64,d2		; EHB
+
+.exitXX	move.w	d2,fwi_num_colors(a5)
+	mulu.w	#3,d2
+	btst.l	#0,d2
+	beq.b	.ncmap1
+	addq.l	#1,d2
+
+.ncmap1	move.w	fwi_bytes(a5),d3	; calculate max ByteRun1 size
+	add.w	#127,d3
+	asr.w	#7,d3
+	add.w	fwi_bytes(a5),d3	; for 640 pixels now should be 81
+	mulu.w	fwi_totaldepth(a5),d3
+	mulu.w	fwi_rows(a5),d3
+
+	moveq.l	#4+4+4+4+4+bmh_SIZEOF,d0
+					; FORM  + [SIZE] + ILBM
+					; .BMHD + [SIZE] + BMHDSIZE
+	tst.l	iff_colorMap(a2)
+	beq.b	.ncmap2
+	addq.l	#4+4,d0			; .CMAP + [SIZE] +
+	add.l	d2,d0			;    CMAPSIZE
+
+.ncmap2	add.l	#4+4+4+4+4,d0		; .CAMG + [SIZE] + CAMGSIZE
+					; .BODY + [SIZE] +
+	add.l	d3,d0			;    MAX_BODYSIZE
+
+	move.l	d0,fwi_mempoolsize(a5)
+	move.l	#MEMF_PUBLIC,d1
+	LINKLIB	_LVOAllocMem,$4		; allocate mem for IFF ILBM
+	move.l	d0,fwi_memorypool(a5)
+	beq.w	.no_mem			; error if unsuccesful
+	movea.l	d0,a0
+
+.form	move.l	#FORM,(a0)+
+	move.l	a0,fwi_addrilbmsize(a5)
+	clr.l	(a0)+
+	move.l	#ILBM,(a0)+
+
+.bmhd	move.l	#BMHD,(a0)+
+	move.l	#bmh_SIZEOF,(a0)+
+	move.w	iff_BMH+bmh_w(a2),(a0)+
+	move.w	iff_BMH+bmh_h(a2),(a0)+
+	clr.l	(a0)+					; x, y
+	move.b	fwi_depth+1(a5),(a0)+
+	move.b	iff_BMH+bmh_masking(a2),(a0)+
+	move.b	#cmpByteRun1,(a0)+
+	clr.b	(a0)+					; pad1
+	move.w	iff_BMH+bmh_transparentColor(a2),(a0)+
+	move.b	iff_BMH+bmh_xAspect(a2),(a0)+
+	move.b	iff_BMH+bmh_yAspect(a2),(a0)+
+	move.w	iff_BMH+bmh_pageWidth(a2),(a0)+
+	move.w	iff_BMH+bmh_pageHeight(a2),(a0)+
+	bsr.w	.realignA0
+
+.cmap	tst.l	iff_colorMap(a2)
+	beq.w	.camg
+
+	move.l	#CMAP,(a0)+
+	move.l	d2,(a0)+
+
+	moveq.l	#0,d0
+	move.w	fwi_num_colors(a5),d2
+
+.loop	movem.l	d0/a0,-(sp)
+	movea.l	iff_colorMap(a2),a0
+	moveq.l	#1,d1
+	lea.l	fwi_colortable(a5),a1
+	jsr	@GetRGB
+	movem.l	(sp)+,d0/a0
+	move.b	fwi_colortable+0(a5),(a0)+	; Get 8 bit RED
+	move.b	fwi_colortable+4(a5),(a0)+	; Get 8 bit GRN
+	move.b	fwi_colortable+8(a5),(a0)+	; Get 8 bit BLU
+	addq.w	#1,d0
+	cmp.w	d0,d2
+	bne.b	.loop
+
+.end_cmap	bsr.w	.realignA0
+
+.camg	move.l	#CAMG,(a0)+
+	move.l	#4,(a0)+
+	move.l	iff_viewModes(a2),(a0)+
+
+.body	move.l	#BODY,(a0)+
+	move.l	a0,fwi_addrbodysize(a5)
+	clr.l	(a0)+
+	movea.l	a0,a1
+
+	movem.l	d0-d7/a1-a6,-(sp)
+	movea.l	_3rdParam(a5),a3
+	lea.l	bm24_Planes(a3),a6
+	suba.l	a2,a2
+	suba.l	a3,a3
+	move.w	fwi_rows(a5),d2
+	subq.w	#1,d2
+	move.w	fwi_depth(a5),d3
+	subq.w	#1,d3			; we'd like to use <dbra>
+	move.w	d3,fwi_depthcount(a5)
+
+.body3	move.w	fwi_depthcount(a5),d3
+	moveq.l	#0,d4
+	moveq.l	#0,d1
+	move.w	fwi_bytes(a5),d1
+
+.body2	movea.l	(a6,d4.w),a4		; (PlanePtrs+PtrOffset) to a4
+	adda.l	a3,a4			; add a3 for current line
+
+	tst.l	_4thParam(a5)
+	beq	.noAndMsk
+
+
+
+	movem.l	d0-d1/a0/a4,-(sp)
+	movea.l	_4thParam(a5),a0
+	movea.l	bm24_Planes(a0),a0
+	cmpa.w	#0,a0
+	beq	.noMskPl
+	adda.l	a2,a0
+
+	subq.w	#1,d1
+.do_And	move.b	(a0)+,d0
+	and.b	d0,(a4)+
+	dbra	d1,.do_And
+
+.noMskPl	movem.l	(sp)+,d0-d1/a0/a4
+
+
+
+
+
+.noAndMsk	bsr	iffPackRow
+	adda.l	d0,a0
+	addq.w	#4,d4
+	dbra	d3,.body2		; perform packing for every plane
+
+	movea.l	_4thParam(a5),a4
+	cmpa.w	#0,a4
+	beq	.noMask01
+	movea.l	bm24_Planes+0(a4),a4
+	cmpa.w	#0,a4			; is maskplane available ?
+	beq	.noMask01
+	adda.l	a2,a4
+	bsr	iffPackRow		; if so, pack maskplane too
+	adda.l	d0,a0
+	movea.l	_4thParam(a5),a4
+	adda.w	bm24_Modulo(a4),a2
+
+.noMask01	adda.w	fwi_bytesperrow(a5),a3	; add rowsize to a5 (next line)
+	dbra	d2,.body3
+	movem.l	(sp)+,d0-d7/a1-a6
+
+	move.l	a0,-(sp)
+	suba.l	a1,a0			; a1 ptr to start of BODY data
+	move.l	fwi_addrbodysize(a5),a1
+	move.l	a0,(a1)
+	move.l	a0,d1			; so we can test if we need a pad
+	movea.l	(sp)+,a0
+	bsr.w	.realignA0
+
+	suba.l	fwi_memorypool(a5),a0
+	move.l	a0,d2
+	move.l	a0,d3			; for Write() some lines below
+	subq.l	#8,d2
+	movea.l	fwi_addrilbmsize(a5),a1
+	move.l	d2,(a1)
+
+	movea.l	_DOSBase,a6
+
+	move.l	fwi_filehandle(a5),d1
+	move.l	fwi_memorypool(a5),d2
+	CALLLIB	_LVOWrite
+	cmp.l	d0,d3
+	bne.s	.doserr
+
+	bsr.s	.free
+	bsr.s	.close
+
+.exit	movem.l	(sp)+,d0-d7/a0-a6
+	unlk	a5
+	rts
+
+.doserr	move.l	#IFF_ERROR_DOS_FAILURE,iff_Error(a2)
+	LINKLIB	_LVOIoErr,_DOSBase
+	move.l	d0,iff_ErrorInfo(a2)
+.error	bsr.b	.free
+	bsr.b	.close
+	bra.b	.exit
+
+.free	move.l	fwi_memorypool(a5),d0
+	beq.b	.nofree
+	move.l	d0,a1
+	move.l	fwi_mempoolsize(a5),d0
+	LINKLIB	_LVOFreeMem,$4
+	clr.l	fwi_memorypool(a5)
+.nofree	clr.l	fwi_mempoolsize(a5)
+	rts
+
+.close	move.l	fwi_filehandle(a5),d1
+	beq.b	.nocls
+	clr.l	fwi_filehandle(a5)
+	LINKLIB	_LVOClose,_DOSBase
+.nocls	rts
+
+.no_mem	move.l	#IFF_ERROR_NO_MEMORY,iff_Error(a2)
+	bra.b	.error
+
+.no_dat	move.l	#IFF_ERROR_NO_PLANES,iff_Error(a2)
+	bra.b	.error
+
+.realignA0
+	movem.l	d0,-(sp)
+	move.l	a0,d0
+	btst.l	#0,d0
+	beq.b	.isaligned
+	clr.b	(a0)+
+.isaligned
+	movem.l	(sp)+,d0
+	rts
+
+
+
+
+
+
+;-------------------------------------------------------------------------
+; function : _FastCloseIFF( struct IFF_FRAME *iff )
+;-------------------------------------------------------------------------
+; Closes the file associated with the iff_frame structure, frees the
+; allocated memory for the buffer to the free memory pool. Calling this
+; function multiple times causes no problems.
+;-------------------------------------------------------------------------
+
+_FastCloseIFF
+	link	a5,#0
+	movem.l	d0-d7/a0-a6,-(sp)
+	movea.l	_1stParam(a5),a0	; get ptr to structure
+	bsr.b	FreeColorMap
+	bsr.b	CloseFile
+	movem.l	(sp)+,d0-d7/a0-a6
+	unlk	a5
+	rts
+
+FreeColorMap
+	movem.l	d0-d1/a0-a1/a6,-(sp)
+	movea.l	_GfxBase,a6
+	move.l	iff_colorMap(a0),d0
+	beq.b	.exit
+	clr.l	iff_colorMap(a0)
+	movea.l	d0,a0
+	CALLLIB	_LVOFreeColorMap
+.exit	movem.l	(sp)+,d0-d1/a0-a1/a6
+	rts
+
+CloseFile
+	movem.l	d0-d1/a0-a1/a6,-(sp)
+	move.l	iff_BufFileHandle(a0),d0
+	beq.b	.exit
+	clr.l	iff_BufFileHandle(a0)
+	move.l	d0,-(sp)
+	jsr	_BClose
+	lea.l	4(sp),sp
+.exit	movem.l	(sp)+,d0-d1/a0-a1/a6
+	rts
+
+
+
+
+
+
+;-------------------------------------------------------------------------
+; local function : d0 = iffPackRow( src *, dst *, size ) ( a4, a0, d1 )
+;-------------------------------------------------------------------------
+; ByteRun1 compresses the data at src, stores to dst, returns packed size
+; Taken from apack.asm, written by Dr. Gerald Hull. See EA-IFF-88 docs.
+;-------------------------------------------------------------------------
+
+iffPackRow
+
+.PT	equr	a0		; beginning of replicate run (if any)
+.IX	equr	a1		; end+1 of input line
+.IP	equr	a2		; beginning of literal run (if any)
+.IQ	equr	a3		; end+1 of lit and/or rep run (if any)
+.OP	equr	a4		; end+1 of output line current pos
+.FP	equr	a5		; frame pointer
+
+.RT	equr	d0		; return value
+.MX	equr	d1		; check for maximum run = MAX
+.AM	equr	d2		; amount
+.CH	equr	d3		; character
+
+.REGS	reg	.AM/.CH/.IP/.IQ/.OP/.MX/.PT/.IX/.FP
+
+.MAX	equ	128		; maximum encodable output run
+
+
+;--- case 0 : grab parameters & initialize -------------------------------
+.CAS0	movem.l	.REGS,-(sp)
+	movea.l	a4,.IP
+	movea.l	.IP,.IQ		; IQ = IP
+	movea.l	.IQ,.IX
+	adda.l	d1,.IX		; IX = IP + amt
+	movea.l	a0,.OP
+	move.l	.OP,-(sp)
+
+;--- case 1 : literal run ------------------------------------------------
+.CAS1	movea.l	.IQ,.PT		; adjust PT ( no replicates yet! )
+	move.b	(.IQ)+,.CH	; grab character
+	cmpa.l	.IQ,.IX		; if input is finished
+	beq.s	.CAS5		;   branch to case 5
+
+	move.l	.IQ,.MX
+	sub.l	.IP,.MX
+	cmpi	#.MAX,.MX	; if run has reached MAX
+	beq.s	.CAS6		;   branch to case 6
+
+	cmp.b	(.IQ),.CH	; if next character != CH
+	bne.s	.CAS1		;   stay in case 1
+				; else fall into case 2
+
+;--- case 2 : at least 2 byte repeat -------------------------------------
+.CAS2	move.b	(.IQ)+,.CH	; grab character
+	cmpa.l	.IQ,.IX		; if input is finished
+	beq.s	.CAS7		;   branch to case 7
+
+	move.l	.IQ,.MX
+	sub.l	.IP,.MX
+	cmpi.l	#.MAX,.MX	; if run has reached MAX
+	beq.s	.CAS6		;   branch to case 6
+
+	cmp.b	(.IQ),.CH	; if next character != CH
+	bne.s	.CAS1		;   branch to case 1
+				; else fall into case 3
+
+;--- case 3 : replicate run ---------------------------------------------
+.CAS3	move.b	(.IQ)+,.CH	; grab character
+	cmpa.l	.IQ,.IX		; if input is finished
+	beq.s	.CAS7		;   branch to case 7
+
+	move.l	.IQ,.MX
+	sub.l	.PT,.MX
+	cmpi	#.MAX,.MX	; if run has reached MAX
+	beq.s	.CAS4		;   branch to case 4
+
+	cmp.b	(.IQ),.CH	; if next character = CH
+	beq.w	.CAS3		;   stay in case 3
+				; else fall into case 4
+
+;--- case 4 : lit and/or rep dump & continue ----------------------------
+.CAS4	move.l	.PT,.AM
+	sub.l	.IP,.AM		; AM = PT - IP
+				; if no literal run
+	beq.s	.C41		;   branch to replicate run
+
+	subq	#1,.AM		; AM = AM - 1
+	move.b	.AM,(.OP)+	; output literal control byte
+
+.C40	move.b	(.IP)+,(.OP)+	; output literal run
+	dbra	.AM,.C40
+
+.C41	move.l	.PT,.AM
+	sub.l	.IQ,.AM		; AM = PT - IQ (negative result!)
+	addq	#1,.AM		; AM = AM + 1
+	move.b	.AM,(.OP)+	; output replicate control byte
+	move.b	.CH,(.OP)+	; output repeated character
+	movea.l	.IQ,.IP		; reset IP
+	bra.s	.CAS1		; branch to case 1 (not done)
+
+;--- case 5 : literal dump & quit ---------------------------------------
+.CAS5	move.l	.IQ,.AM
+	sub.l	.IP,.AM		; AM = IQ - IP (positive result > 0)
+	subq	#1,.AM		; AM = AM - 1
+	move.b	.AM,(.OP)+	; output literal control byte
+
+.C50	move.b	(.IP)+,(.OP)+	; output literal run
+	dbra	.AM,.C50
+
+	bra.s	.CAS8		; branch to case 8 (done)
+
+;--- case 6 : literal dump & continue -----------------------------------
+.CAS6	move.l	.IQ,.AM
+	sub.l	.IP,.AM		; AM = IQ - IP (positive result > 0)
+	subq	#1,.AM		; AM = AM - 1
+	move.b	.AM,(.OP)+	; output literal control byte
+
+.C60	move.b	(.IP)+,(.OP)+	; output literal run
+	dbra	.AM,.C60
+
+	bra.b	.CAS1		; branch to case 1 (not done)
+
+;--- case 7 : lit and/or rep dump & finish ------------------------------
+.CAS7	move.l	.PT,.AM
+	sub.l	.IP,.AM		; AM = PT - IP (positive result > 0)
+				; if no literal run
+	beq.s	.C71		;   branch to replicate run
+
+	subq	#1,.AM		; AM = AM - 1
+	move.b	.AM,(.OP)+	; output literal control byte
+
+.C70	move.b	(.IP)+,(.OP)+	; output literal run
+	dbra	.AM,.C70
+
+.C71	move.l	.PT,.AM
+	sub.l	.IQ,.AM		; AM = PT - IQ (negative result)
+	addq	#1,.AM		; AM = AM + 1
+	move.b	.AM,(.OP)+	; output replicate control byte
+	move.b	.CH,(.OP)+	; output repeated character
+
+				; fall into case 8
+
+;--- case 8 : adjust parameters and return value ------------------------
+.CAS8	move.l	.OP,.RT
+	sub.l	(sp)+,.RT
+	movem.l	(sp)+,.REGS
+	rts
+;-------------------------------------------------------------------------
+
+
+
+;------ END OF FILE ------------------------------------------------------

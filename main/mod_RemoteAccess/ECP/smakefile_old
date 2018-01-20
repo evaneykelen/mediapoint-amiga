@@ -1,0 +1,59 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR NMINC NOSTKCHK SAVEDS GST=nb:all.sym
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+APP1  = Modem.ECP
+APP10 = ECP_Main.o parsebig.o session.o\
+				ECP_Modem/X_ValSes.o ECP_Modem/X_InitCon.o\
+				ECP_Modem/X_OpenCon.o ECP_Modem/X_LogOn.o ECP_Modem/X_DoTrans.o\
+				ECP_Modem/X_LogOff.o ECP_Modem/X_CloseCon.o ECP_Modem/X_DeInitCon.o\
+				nb:parser.o\
+				mpri:errors.o
+
+APPSER =	ECP_Modem/serial/serfuncs.o ECP_Modem/serial/serprint.o\
+					ECP_Modem/serial/serwork.o ECP_Modem/serial/protocols.o\
+					ECP_Modem/serial/serfiles.o\
+					ECP_Modem/serial/sergetdir.o ECP_Modem/serial/serrexx.o\
+					ECP_Modem/serial/simplerexx.o\
+					ECP_Modem/serial/waitsec.o
+# sc:source/_main.o
+
+APP2  = Network.ECP
+APP20 = ECP_Main.o parsebig.o session.o\
+				ECP_Network/X_ValSes.o ECP_Network/X_InitCon.o\
+				ECP_Network/X_OpenCon.o ECP_Network/X_LogOn.o ECP_Network/X_DoTrans.o\
+				ECP_Network/X_LogOff.o ECP_Network/X_CloseCon.o ECP_Network/X_DeInitCon.o\
+				ECP_Network/netfiles.o\
+				sc:source/_main.o\
+				nb:parser.o\
+				mpri:errors.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+all: $(APP1) $(APP2)
+
+$(APP1): $(APP10) $(APPSER)
+	slink <WITH <
+FROM lib:c.o $(APP10) $(APPSER)
+LIBRARY lib:scm.lib lib:sc.lib lib:amiga.lib lib:debug.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+	cop
+
+$(APP2): $(APP20)
+	slink <WITH <
+FROM lib:c.o $(APP20)
+LIBRARY lib:sc.lib lib:amiga.lib lib:debug.lib
+TO $(APP2) $(LFLAGS)
+MAP $(APP2).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

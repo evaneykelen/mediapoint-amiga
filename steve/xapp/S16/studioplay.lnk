@@ -1,0 +1,4 @@
+FROM LIB:c.o "studioplay.o"+"studiostub.o"
+TO "studioplay"
+LIB LIB:sc.lib LIB:amiga.lib
+

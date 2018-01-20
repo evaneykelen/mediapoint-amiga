@@ -1,0 +1,60 @@
+about_seg               25-Aug-94 13:51:09  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         24b4 lib:c.o          c        code            0    0      260
+                       about_seg.o      about_se code          260    0      628
+                       sc:source/_main. _main.c  code          888    0      12c
+                       lib:scm.lib      _pfmt.c  code          9b4    0      840
+                       lib:scm.lib      sprintf. code         11f4    0       44
+                       lib:scm.lib      _fpinit. code         1238    0       30
+                       lib:scm.lib      _cxvfd   code         1268    0      404
+                       lib:scm.lib      _cxv35   code         166c    0       54
+                       lib:scm.lib      _cxspc5  code         16c0    0       94
+                       lib:scm.lib      _cxren5  code         1754    0       64
+                       lib:scm.lib      _cxnrm5  code         17b8    0       9c
+                       lib:scm.lib      _cxfxt5  code         1854    0       ec
+                       lib:scm.lib      _cxferr. code         1940    0       10
+                       lib:scm.lib      _cxd55   code         1950    0      240
+                       lib:scm.lib      _cxadj5  code         1b90    0       84
+                       lib:sc.lib       _MemClea code         1c14    0       80
+                       lib:sc.lib       _stcul_d code         1c94    0       30
+                       lib:sc.lib       _stcl_o  code         1cc4    0       30
+                       lib:sc.lib       _stcl_h  code         1cf4    0       3c
+                       lib:sc.lib       _stcd_i  code         1d30    0       54
+                       lib:sc.lib       _strupr. code         1d84    0       3c
+                       lib:sc.lib       _write.c code         1dc0    0      100
+                       lib:sc.lib       _lseek.c code         1ec0    0       94
+                       lib:sc.lib       _cxfpe.c code         1f54    0       3c
+                       lib:sc.lib       _cxd33   code         1f90    0       c4
+                       lib:sc.lib       _exit.c  code         2054    0       5c
+                       lib:sc.lib       _cxbrk.c code         20b0    0      14c
+                       lib:sc.lib       _chkufb. code         21fc    0       4c
+                       lib:sc.lib       _chkabor code         2248    0       50
+                       lib:sc.lib       memchr   code         2298    0       24
+                       lib:sc.lib       memmove  code         22bc    0       2c
+                       lib:sc.lib       exit.c   code         22e8    0       54
+                       lib:sc.lib       _pf.c    code         233c    0       7c
+                       lib:sc.lib       raise.c  code         23b8    0       64
+                       lib:sc.lib       signal.c code         241c    0       38
+                       lib:sc.lib       io2errno code         2454    0       60
+   1 chip          f24 about_seg.o      about_se datachip        0    0      f24
+   2 __MERGED      42c about_seg.o      about_se data            0    0      1fc
+                       lib:sc.lib       sigfunc. data          1fc    0       24
+                       lib:sc.lib       ctype.c  data          220    0      104
+                       lib:sc.lib       stack.c  data          324    0        4
+                       lib:sc.lib       _iob.c   data          328    0       68
+                       lib:sc.lib       _ufb.c   data          390    0        8
+                       lib:sc.lib       _cxbrk.c data          398    0       50
+                       lib:sc.lib       exitfunc data          3e8    0        4
+                       lib:sc.lib       io2errno data          3ec    0       40
+                       lib:c.o          c        bss           42c    0       54
+                       about_seg.o      about_se bss           480    0       40
+                       sc:source/_main. _main.c  bss           4c0    0       8c
+                       lib:sc.lib       errno.c  bss           54c    0        4
+                       lib:sc.lib       memheap. bss           550    0        4
+                       lib:sc.lib       dosbase  bss           554    0        4
+                       lib:sc.lib       _top.c   bss           558    0        4
+about_seg               25-Aug-94 13:51:09  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       _exit.c  bss           55c    0        4

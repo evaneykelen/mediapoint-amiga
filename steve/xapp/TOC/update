@@ -1,0 +1,3 @@
+del workerTOC.o
+del doit.o
+del setup.o

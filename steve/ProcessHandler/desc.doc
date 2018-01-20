@@ -1,0 +1,324 @@
+Process controller
+
+1 Algemene werking en taakomschrijving
+
+Zoals de naam al zegt, de voornaamste taak van de process controller is het
+aanmaken, begeleiden en be-eindigen van processen.
+
+De PC doet echter niet al het werk alleen maar wordt daarin bijgestaan door
+de Serial guides. Deze guides vormen als het ware de aannemers van het process.
+Zij laden, starten en stoppen alle processen die tijdens de uitvoer niet constant
+aanwezig zijn. Deze processen worden binnen MediaLink 'Workers' genoemd. 
+Uiteindelijk zijn zij degenen die al het werk doen.
+
+De PC wordt in zijn taakuitvoering bijgestaan door een aantal trouwe medewerkers
+die als taak hebben de verschillende soorten van input door te sluizen. Deze 
+processen zijn de 'Synchronizer' en de 'Event processor'. Zonder deze twee 
+processen zal de PC  niet werken.
+
+Een derde medewerker is 'Guide.1'. Deze Guide heeft het beheer over het eerste
+level in een script.
+
+Daarnaast is er voor iedere seriele tak een Guide aanwezig die uitsluitend die 
+workers begeleidt die zich in zijn tak bevinden. 
+
+Hieronder volgt een globale opzet van de in- en uitvoer van de PC:
+
+
+		Synchronizer				EventProcessor
+^ Tijden	^								^		^ Local events
+v start/	|___________	 _______________|		v labels
+  stop punches			|	|
+						v   v
+					Process Controller
+						|	|	|
+		 _______________|	|	|_______________
+		|					|					|
+		v					v					v
+	Guide.1				[Guide.2]	...		[Guide.n]
+ 	 | | |				 | | | |			 | | | |
+	 | | |__________________________________________
+ 	 | |____________________						|
+	 |					 	|						|
+	 |					 	|						|	
+	 v					 	v						v
+	Worker.1			[Worker.2]		...		[Worker.n]				
+
+
+PC <=> Synchronizer 
+
+De PC stuurt nieuwe tijdgegevens met bijbehorende akties naar de Synchronizer.
+Deze plaatst ze vervolgens in een wachtrij tot de gezette tijden zijn bereikt.
+De akties zijn (minc:sync.h):
+
+#define PT_NOPUNCH	0			// punches removed from the punch list
+#define PT_DORUN	1
+#define PT_DOHOLD	2
+#define PT_DOSTOP	3
+
+De DOHOLD is wel in het systeem ge-implementeerd maar wordt vooralsnog niet 
+gebruikt. De functie is het (tijdelijk) stopzetten van een process. De DORUN
+en DOSTOP worden naar de PC teruggestuurd als het bijbehorende tijdevent
+geaktiveerd wordt. De PC zal dienovereenkomstig de bij de Worker behorende
+Guide een DCC_DORUNOBJ of DCC_DOSTOPOBJ sturen.
+
+De Synchronizer kent intern ook nog een extra Punchtype nl. de PT_NOPUNCH.
+Wanneer de Synchronizer van de PC het commando krijgt om alle punches te
+laten vervallen zal de Synchro alle in de wachtrij aanwezige punches vervangen
+door PT_NOPUNCH. Dit heeft als gevolg dat als de punch later geaktiveerd wordt
+deze niet wordt doorgegeven naar de PC. Deze situatie ontstaat wanneer er in
+de in verloop van het script ingegrepen wordt door de gebruiker bv in het geval
+van een Global of Local event. Alle in de wachtrij aanwezige punches worden vanaf
+dat moment ongeldig en de PC zal nieuwe punches versturen. 
+
+n.b. De PC is niet op de hoogte van het hoe en waarom binnen de Synchronizer. Het
+zal hem bij wijze van spreken een worst wezen hoe een Synchro zijn werk doet.
+
+PC <=> Event Processor
+
+Tijdens de initialisatiefase van de Event Processor worden twee arrays aangemaakt,
+voor global events en voor local events. De global events worden uit de 
+ScriptInfoRecord gehaald en geconverteerd naar een ge-indexeerde tabel.
+
+Als de PC tijdens het uitvoeren van het script een PAGE object tegenkomt dan wordt
+de local event list van het object doorgegeven naar de EP die daar vervolgens
+een local event list van maakt. Wanneer er geen local event list in de PAGE 
+aanwezig is wordt de bestaande list gecleared.
+
+De EP heeft haar input event handler aan de lijst van systeem event handler 
+toegevoegd met een prioriteit hoger dan de andere handlers als intuition. Hierdoor
+is het mogelijk om in een later stadium niet alleen events te ontvangen maar
+ze ook aan de rest van het systeem door te geven. 
+
+Wanneer er een toets wordt ingedrukt zal de EP eerst in haar local event list 
+kijken of er een label aan het event hangt. Is dat niet het geval dan wordt 
+de global event tabel bekeken. Is er wel een label voorhanden dan wordt dat
+label verstuurd naar de PC.
+
+De EP kent een aantal commando's voor uit-/aanschakelen van mouse buttons,
+cursor toetsen en dergelijke. Deze zijn (minc:ge.h):
+
+#define CBB_MOUSE	1<<0				// if TRUE, use mousebuttons to 
+										// move through the show. Default FALSE
+#define CBB_CURSOR  1<<1				// if TRUE, use LEFT/RIGHT key to move
+										// through the show. Default TRUE
+#define CBB_ESCAPE  1<<2				// if TRUE, the ESCAPE key can be used
+										//	to quit the player   
+
+Deze commando's kunnen tijdens het spelen worden gegeven via een ARexx
+commando.
+
+De EP heeft geen ARexx poort maar ontvangt arexx commando's van de PC.
+
+
+2 Technische omschrijving
+
+De process controller kent 3 levensfases namelijk (minc:defs.h):
+
+RS_INIT 	- PC is initializing its guides/modules and their children
+RS_CONTROL  - PC is controlling the script
+RS_REMOVE	- PC is removing the guides/modules and their children
+
+Opsomming van funties tijdens de initialisatiefase:
+
+De richting waarin het script doorlopen wordt gezet:
+	FollowDirection = FOLLOW_FORWARD;	
+
+Nu wordt gekeken of er wel een executable object in de list aanwezig is,
+is er geen object (leeg script) dan keert de PC terug naar de script editor.
+	if(FindObject(ScriptInfo->allLists[1],NULL) == NULL)
+		return(ERR_EMPTYSCRIPT);
+
+Aangezien er nu een geldige reden is om het script uit te voeren worden de
+systeem libraries geopend, message ports geopend en de control modules
+(synchro, TRANSITION host, en event processor) gestart. Nu wordt eerst gekeken 
+of er een verbinding met deze modules kan worden opgebouwd en als dat lukt
+gaat de PC verder.
+	if( (Error = InitProcessController(SIR)) != NO_ERROR)
+		return(FreeProcessController(Error));
+
+Nu worden de system memory areas gealloceerd. Hieronder vallen de onscreen en
+offscreen buffers.
+	if( (Error = ProcessInitializer()) != NO_ERROR)
+	{
+		ProcessDeInitializer();
+		return(FreeProcessController(Error));
+	}
+
+Initialisatie van de dialogues voor communicatie met de synchronizer en
+event processor:
+	for(i = 0; i < DIAL_MAXSYNC; i++)
+	{
+		Msg_SyncDial[i]->sd_Msg.mn_Node.ln_Type = NT_MESSAGE;
+		Msg_SyncDial[i]->sd_Msg.mn_Length = sizeof(SYNCDIALOGUE);
+		Msg_SyncDial[i]->sd_Msg.mn_ReplyPort = RepP_PCtoS;
+
+De process controller kent, zoals alle andere modules, guides en XaPPs, geen
+PROCESSINFO structure.
+		Msg_SyncDial[i]->sd_ProcInfo = (PROCESSINFO *)-1L;
+	}
+
+	for(i = 0; i < DIAL_MAXGE; i++)
+	{
+		// set up standard GEDialogue information 
+		Msg_GEDial[i]->gd_Msg.mn_Node.ln_Type = NT_MESSAGE;
+		Msg_GEDial[i]->gd_Msg.mn_Length = sizeof(GEDIALOGUE);
+		Msg_GEDial[i]->gd_Msg.mn_ReplyPort = RepP_PCtoGE;
+	}
+
+Bepalen van alle in het systeem aanwezige signals:
+Signal van child tijdens sterven
+	SigR_WBStartup 	= 1 << RepP_WBStartup->mp_SigBit;
+Een kind stuurt een boodschap naar de PC
+	Sig_CtoP 		= 1 << Port_CtoP->mp_SigBit;
+Een antwoord van een kind nadat de PC een boodschap verstuurd heeft.
+	SigR_PtoC 		= 1 << RepP_PtoC->mp_SigBit;
+De event processor heeft wat te zeggen.
+ 	Sig_GEtoPC 		= 1 << Port_GEtoPC->mp_SigBit;
+De synchronizer geeft antwoord op een vraag van de PC.
+	SigR_PCtoS		= 1 << RepP_PCtoS->mp_SigBit;
+De synchronizer heeft wat te zeggen.
+	Sig_StoPC		= 1 << Port_StoPC->mp_SigBit;
+De event processor geeft antwoord op een vraag van de PC.
+	SigR_PCtoGE		= 1 << RepP_PCtoGE->mp_SigBit;
+
+Arexx heeft wat te vertellen.
+	if(RexxContext)
+		Sig_RXtoPC	= 1 << RexxContext->ARexxPort->mp_SigBit;
+	else
+		Sig_RXtoPC = 0;
+
+Vervolgens worden de ti
+Beschrijving van de belangrijkste globale variabelen:
+
+Trackplay houdt ALTIJD bij welk object op dat moment actief is m.a.w. als 
+er tijdelijk geen objecten aktief zijn staat deze SNR op NULL;
+	SNR_TrackPlay = NULL;		
+
+In tegenstelling tot SNR_Trackplay staat in deze SNR het meest recent gestarte
+object. 
+	SNR_Play = NULL;	
+
+SNR_Load geeft aan of en zo ja welk object er geladen moet worden. Werkt
+samen met B_LoadObj. Zie de functie ({void ObjectLoader( void)} in ph:proccont.c).
+	SNR_Load = NULL;
+
+Het op te starten object volgens de script followers.
+	SNR_Script = NULL;
+
+Deze SNR wordt gezet vlak voordat een nieuw object gestart moet worden.
+De punches van het betreffende object worden naar de sycnhronizer gestuurd
+als B_PunchObj TRUE wordt.
+ 	SNR_Punch = NULL;	
+
+Het op te starten object volgens de event processor. Deze SNR werkt samen
+met de boolean B_SNRGE welke TRUE moet zijn.
+	SNR_GE = NULL;
+
+Booleans:
+
+Tijdens de periode dat deze boolean op FALSE staat zullen de scriptfollowers
+niet gebruikt worden. Dit is het geval bij een nieuw object van de event 
+processor. 
+	B_NoPlayParse = FALSE;
+	B_NoLoadParse = FALSE;
+
+Bepaal wat het nieuw te aktiveren object wordt en stop dat in SNR_Play.
+Vervolgens wordt B_Punchobj op TRUE gezet om de punches te versturen.
+zie de functie ({void ObjectPlayer( void)} in ph:proccont.c)
+	B_PlayObj = FALSE;
+	B_PunchObj = FALSE;	
+
+Systeem exit.
+	B_Terminate = FALSE;
+
+Er is een object van de Event processor.
+	B_SNRGE = FALSE;
+
+Geheugen probleem.
+	B_MemProblem = FALSE;
+
+De volgende stap in de initialisatie is het starten van alle serial guides/
+Start eerste de belangrijkste guide -> guide.1
+	if( (Err = AddGuide(MLMMULibBase,MLSystem,SegList,PIList,SIR,GT_SER,Guide1SNR,Port_CtoP,RepP_WBStartup,MainDirPath,PreLoadLevel)) == NO_ERROR)
+	{
+Start guides van hogere takken
+		if( (Err = AddGuides(ScriptInfo->allLists[1])) == NO_ERROR)
+		{
+Alleen deze signals worden tijdens de init gebruikt
+
+			SigWait = Sig_RXtoPC|Sig_CtoP|SIGF_ABORT;
+			// Main loop, continue this loop until all processes have removed themselves
+			while( (struct List *)PIList->lh_TailPred != (struct List *)PIList)
+			{
+				SigRecvd = Wait(SigWait);
+
+				/*
+					The mainloop has three parts
+					RS_INIT	 	- Init of guides and their children
+					RS_CONTROL 	- Running the show
+					RS_REMOVE 	- Termination of the guides and wait for removal
+				*/
+				if(RunState == RS_INIT)
+				{
+					if(SigRecvd & Sig_RXtoPC);
+						ArexxTalks(RexxContext,SIR);
+
+					if(SigRecvd & Sig_CtoP)
+						ChildTalks();
+
+					B_PlayObj = TRUE;
+					B_PunchObj = TRUE;	
+
+					RunState = RS_CONTROL;
+					SigWait = Sig_RXtoPC|SigR_PtoC|Sig_CtoP|Sig_StoPC|
+							  Sig_GEtoPC|SigR_PCtoS|SigR_PCtoGE|SIGF_ABORT;
+
+					for(PI = (PROCESSINFO *)PIList->lh_Head; 
+						(PROCESSINFO *)PI->pi_Node.ln_Succ;
+						PI = (PROCESSINFO *)PI->pi_Node.ln_Succ)
+					{
+						if(PI->pi_Node.ln_Type == NT_SERGUIDEPROC && PI->pi_State != ST_READY)
+						{
+							B_PlayObj = FALSE;
+							B_PunchObj = FALSE;
+							RunState = RS_INIT;
+							SigWait = Sig_RXtoPC|Sig_CtoP|SIGF_ABORT;
+						}
+						// if any of the modules terminate then go to RS_REMOVE
+						if(PI->pi_Node.ln_Type == NT_SERGUIDEPROC && PI->pi_State == ST_TERM)
+						{
+							SigWait = SigR_WBStartup|SigR_PtoC|Sig_CtoP|Sig_StoPC|
+									  Sig_RXtoPC|Sig_GEtoPC|SigR_PCtoS|SIGF_ABORT;
+							RunState = RS_REMOVE;
+							if(PI->pi_Arguments.ar_RetErr != NO_ERROR)
+								Err = PI->pi_Arguments.ar_RetErr;
+							break;
+						}
+					}		
+					// Last memory check, if there is too little memory then free
+					// some of it.
+					if((RunState == RS_CONTROL) && B_MemProblem)
+					{
+#if _PRINTF
+						printf("MemProblem\n");
+#endif
+						if(MLMMU_AvailMem(MEMF_PUBLIC) < 50000)	
+						{
+#if _PRINTF
+							printf("too little mem\n");
+#endif
+							if(MLMMU_PleaseFree(100000) < 50000)
+							{
+								MLMMU_SetMemReside(FALSE);
+#if _PRINTF
+								printf("couldn't free 50000 Kbyte, clearing memreside bit\n");
+#endif
+							}
+						}
+					}
+				}
+
+
+
+

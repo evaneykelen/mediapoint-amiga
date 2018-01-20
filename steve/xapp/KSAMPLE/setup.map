@@ -1,0 +1,67 @@
+setup                   16-Jul-93 16:29:27  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         5114 lib:cres.o       c        code            0    0      2b4
+                       setup.o          setup.c  code          2b4    0      e48
+                       crawl:support.o  support. code         10fc    0      920
+                       worksamp.o       worksamp code         1a1c    0      92c
+                       gp:general.o     general. code         2348    0       e8
+                       doit.o           doit.c   code         2430    0      3f4
+                       lib:/source/_mai _main.c  code         2824    0      12c
+                       loadsamp.o       loadsamp code         2950    0      ae8
+                       diskplay.o       <noname> code         3438    0      494
+                       lib:sc.lib       _fpinit. code         38cc    0       30
+                       lib:sc.lib       _MemClea code         38fc    0       80
+                       lib:sc.lib       strsfn.c code         397c    0      178
+                       lib:sc.lib       strins.c code         3af4    0       48
+                       lib:sc.lib       _stcul_d code         3b3c    0       30
+                       lib:sc.lib       _stcl_o  code         3b6c    0       30
+                       lib:sc.lib       _stcl_h  code         3b9c    0       3c
+                       lib:sc.lib       _stcd_i  code         3bd8    0       54
+                       lib:sc.lib       stccpy.c code         3c2c    0       44
+                       lib:sc.lib       stcarg.c code         3c70    0       70
+                       lib:sc.lib       getcd.c  code         3ce0    0      10c
+                       lib:sc.lib       _strupr. code         3dec    0       3c
+                       lib:sc.lib       _cxd33   code         3e28    0       c4
+                       lib:sc.lib       _cxm33   code         3eec    0       20
+                       lib:sc.lib       _exit.c  code         3f0c    0       5c
+                       lib:sc.lib       strchr   code         3f68    0       18
+                       lib:sc.lib       memchr   code         3f80    0       24
+                       lib:sc.lib       strcat   code         3fa4    0       18
+                       lib:sc.lib       strncpy  code         3fbc    0       24
+                       lib:sc.lib       memmove  code         3fe0    0       2c
+                       lib:sc.lib       free     code         400c    0      16c
+                       lib:sc.lib       malloc   code         4178    0      174
+                       lib:sc.lib       sscanf.c code         42ec    0       5c
+                       lib:sc.lib       sprintf. code         4348    0       44
+                       lib:sc.lib       _sfmt.c  code         438c    0      618
+                       lib:sc.lib       _pfmt.c  code         49a4    0      438
+                       lib:sc.lib       _sf.c    code         4ddc    0      168
+                       lib:sc.lib       _pf.c    code         4f44    0       7c
+                       lib:sc.lib       DelPort. code         4fc0    0       44
+                       lib:sc.lib       CrtPort. code         5004    0       90
+                       lib:debug.lib    <noname> code         5094    0       80
+   1 __MERGED      a70 setup.o          setup.c  data            0    0      730
+                       crawl:support.o  support. data          730    0       20
+                       worksamp.o       worksamp data          750    0      148
+                       doit.o           doit.c   data          898    0       84
+                       loadsamp.o       loadsamp data          91c    0       1c
+                       lib:sc.lib       mstep.c  data          938    0        4
+                       lib:sc.lib       sigfunc. data          93c    0       24
+                       lib:sc.lib       ctype.c  data          960    0      104
+                       lib:sc.lib       stack.c  data          a64    0        4
+                       lib:sc.lib       _ufb.c   data          a68    0        8
+                       lib:cres.o       c        bss           a70    0       50
+                       setup.o          setup.c  bss           ac0    0        4
+                       crawl:support.o  support. bss           ac4    0      218
+setup                   16-Jul-93 16:29:27  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:/source/_mai _main.c  bss           cdc    0       8c
+                       lib:sc.lib       errno.c  bss           d68    0        4
+                       lib:sc.lib       memheap. bss           d6c    0        4
+                       lib:sc.lib       memtype. bss           d70    0        4
+                       lib:sc.lib       dosbase  bss           d74    0        4
+                       lib:sc.lib       _top.c   bss           d78    0        4
+                       lib:sc.lib       _exit.c  bss           d7c    0        4
+                       lib:sc.lib       sscanf.c bss           d80    0        8

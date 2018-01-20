@@ -1,0 +1,543 @@
+
+;--- dither.a -----------------------------------------------------------+
+; MediaPoint Dither Routine. Code written by B.O.M.B. AudioVisual        |
+; Entertainment and 1001 Software Development.                           |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;    Cees Lieshout, MediaPoint Inc.                                      |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/dither.a 0.025 (11.04.94)
+
+
+	TTL	dither.a
+	IDNT	dither.a
+
+
+	INCDIR "include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/view.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"colsearch.i"
+	INCLUDE	"dither.i"
+
+	XREF	_InitBaseColor
+
+	XDEF	_AllocDither
+	XDEF	_PerformDither
+	XDEF	_FreeDither
+
+
+	SECTION	TEXT,CODE
+
+;--------------------------------------------------------------------------
+; func: BOOL _AllocDither( struct DitherInfo *, ULONG lineWidth )
+;--------------------------------------------------------------------------
+; Allocates memory for error-diffusion buffers, and initializes some other
+; (not all) parameters of the ditherinfo structure.
+;--------------------------------------------------------------------------
+_AllocDither
+	link	a5,#0
+	movea.l	_1stParam(a5),a0
+	move.l	_2ndParam(a5),d0
+	clr.w	di_LineNumber(a0)
+	move.w	d0,di_LineWidth(a0)
+	mulu.w	#6,d0
+	move.w	d0,di_ErrorModulo(a0)
+
+	move.l	_3rdParam(a5),d0
+	andi.l	#V_HAM,d0
+	beq	.normal
+
+.HAM	pea.l	FloydEven(pc)
+	pea.l	FloydEven(pc)
+	cmp.w	#DITHER_FLOYD,di_DitherMode(a0)
+	beq	.setFuncs
+
+	addq.l	#8,sp
+	pea.l	BurkEven(pc)
+	pea.l	BurkEven(pc)
+	cmp.w	#DITHER_BURKES,di_DitherMode(a0)
+	beq	.setFuncs
+	bra	.random
+
+.normal	pea.l	FloydEven(pc)
+	pea.l	FloydOdd(pc)
+	cmp.w	#DITHER_FLOYD,di_DitherMode(a0)
+	beq	.setFuncs
+
+	addq.l	#8,sp
+	pea.l	BurkEven(pc)
+	pea.l	BurkOdd(pc)
+	cmp.w	#DITHER_BURKES,di_DitherMode(a0)
+	beq	.setFuncs
+
+.random	addq.l	#8,sp
+	pea.l	Random(pc)
+	pea.l	Random(pc)
+	move.l	#$12000,number
+	cmp.w	#DITHER_RANDOM,di_DitherMode(a0)
+	beq	.setFuncs
+
+.orderd	addq.l	#8,sp
+	pea.l	Ordered(pc)
+	pea.l	Ordered(pc)
+	movem.l	a0/a1,-(sp)
+	moveq.l	#5,d0			; Matrix Scale Factor
+	lea.l	OrderedMatrixOriginal(pc),a0
+	lea.l	OrderedMatrix(pc),a1
+	moveq.l	#15,d7
+.ScMatrix	move.w	(a0)+,d1
+	mulu.w	d0,d1
+	move.w	d1,(a1)+
+	dbra	d7,.ScMatrix
+	movem.l	(sp)+,a0/a1
+
+
+.setFuncs	move.l	(sp)+,di_DitherFuncOdd(a0)
+	move.l	(sp)+,di_DitherFuncEven(a0)
+
+	pea.l	errorsu+12(pc)
+	move.l	(sp)+,di_UpperErrors(a0)
+	pea.l	errorsl+12(pc)
+	move.l	(sp)+,di_LowerErrors(a0)
+
+	move.w	di_LineWidth(a0),d0
+	addq.w	#3,d0
+	movea.l	di_UpperErrors(a0),a1
+	suba.w	#12,a1
+.loop	clr.l	(a1)+
+	clr.w	(a1)+
+	dbra	d0,.loop
+
+	moveq.l	#TRUE,d0
+	unlk	a5
+	rts
+
+
+_FreeDither
+	rts
+
+
+;--------------------------------------------------------------------------
+; func: BOOL _PerformDither( struct DitherInfo * )
+;--------------------------------------------------------------------------
+  STACKSTRUCT
+	_LABEL	pd_SIZEOF
+
+_PerformDither
+	link	a5,#pd_SIZEOF
+	movem.l	d1-d7/a0-a6,-(sp)
+	movea.l	_1stParam(a5),a5
+
+	move.w	#1024,di_ColorHdr+cth_BaseRED(a5)
+	move.w	#1024,di_ColorHdr+cth_BaseGRN(a5)
+	move.w	#1024,di_ColorHdr+cth_BaseBLU(a5)
+
+	tst.w	di_DitherMode(a5)
+	beq	.exit
+	movea.l	di_DitherFuncEven(a5),a0
+	btst.b	#0,di_LineNumber+1(a5)
+	beq	.jmp
+	movea.l	di_DitherFuncOdd(a5),a0
+.jmp	jsr	(a0)
+
+	addi.w	#1,di_LineNumber(a5)
+	move.l	di_UpperErrors(a5),d0
+	move.l	di_LowerErrors(a5),di_UpperErrors(a5)
+	move.l	d0,di_LowerErrors(a5)
+	move.l	d0,a0
+	clr.l	-12(a0)
+	clr.l	-8(a0)
+	clr.l	-4(a0)
+
+.exit	movem.l	(sp)+,d1-d7/a0-a6
+	moveq.l	#TRUE,d0
+	unlk	a5
+	rts
+
+
+FloydStoreErrors MACRO
+	move.w	d0,d1
+	asl.w	#3,d1
+	sub.w	d0,d1
+	add.w	d1,\1+\2(a0)		; error x7
+	move.w	d0,d1
+	add.w	d1,d1
+	add.w	d0,d1
+	add.w	d1,\1+\3(a1)		; error x3
+	move.w	d0,d1
+	asl.w	#2,d1
+	add.w	d0,d1
+	add.w	d1,\1+\4(a1)		; error x5
+	move.w	d0,\1+\5(a1)		; error x1
+	ENDM
+
+BurkesStoreErrors MACRO
+	asl.w	#1,d0
+	add.w	d0,\1+\2(a1)		; error x2
+	move.w	d0,\1+\3(a1)
+	asl.w	#1,d0
+	add.w	d0,\1+\4(a1)		; error x4
+	add.w	d0,\1+\5(a1)
+	add.w	d0,\1+\6(a0)
+	asl.w	#1,d0
+	add.w	d0,\1+\7(a0)		; error x8
+	add.w	d0,\1+\8(a1)
+	ENDM
+
+
+*
+* The input line is rgb orientated
+* The error line is rrggbb orientated
+*
+FloydEven	movea.l	di_UpperErrors(a5),a0		; a0 points to upper errors
+	movea.l	di_LowerErrors(a5),a1		; a6 points to second error line
+	clr.l	0(a1)				; clear first error ?
+	clr.w	4(a1)
+
+	movea.l	di_PenDest(a5),a6	; write pen to (a1)
+	movea.l	di_RGBupper(a5),a2
+
+	move.w	di_LineWidth(a5),d6
+	subq.w	#1,d6			; number off pixels
+
+.rep_rgb:	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+
+	move.b	(a2)+,d0		; get red value
+	move.w	(a0)+,d4		; get red error
+	asr.w	#4,d4
+	add.w	d4,d0			; add red error
+	move.b	(a2)+,d1		; get green value
+	move.w	(a0)+,d4		; get green error
+	asr.w	#4,d4
+	add.w	d4,d1			; add green error
+	move.b	(a2)+,d2		; get blue value
+	move.w	(a0)+,d4		; get blue error
+	asr.w	#4,d4
+	add.w	d4,d2			; add blue error
+
+	movem.l	a0/a1,-(sp)
+	lea.l	di_ColorHdr(a5),a0
+	movea.l	cth_ColorFunc(a0),a1
+	jsr	(a1)
+	movem.l	(sp)+,a0/a1
+
+	move.b	d0,(a6)+		; store this pen
+	addq.l	#6,a1
+
+	move.w	di_ColorHdr+cth_DiffsRED(a5),d0		; red difference
+	FloydStoreErrors	0,6-6,-6-6,0-6,6-6
+	move.w	di_ColorHdr+cth_DiffsGRN(a5),d0		; green difference
+	FloydStoreErrors	2,6-6,-6-6,0-6,6-6
+	move.w	di_ColorHdr+cth_DiffsBLU(a5),d0		; blue difference
+	FloydStoreErrors	4,6-6,-6-6,0-6,6-6
+
+	dbf	d6,.rep_rgb
+	rts
+
+
+FloydOdd	movea.l	di_UpperErrors(a5),a0		; a0 points to upper errors
+	movea.l	di_LowerErrors(a5),a1		; a6 points to second error line
+	move.w	di_ErrorModulo(a5),d6
+	adda.w	d6,a0
+	adda.w	d6,a1
+	subq.w	#6,a0
+	clr.l	-4(a1)
+	clr.w	-6(a1)
+
+	movea.l	di_RGBupper(a5),a2
+	lsr.w	#1,d6
+	adda.w	d6,a2
+
+	movea.l	di_PenDest(a5),a6	; write pen to (a1)
+	move.w	di_LineWidth(a5),d6
+	adda.w	d6,a6
+	subq.w	#1,d6			; number off pixels
+
+.rep_rgb	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+
+	move.b	-(a2),d2		; get blue value
+	move.w	-(a0),d4		; get blue error
+	asr.w	#4,d4			; error = x/16
+	add.w	d4,d2			; add blue error
+
+	move.b	-(a2),d1		; get green value
+	move.w	-(a0),d4		; get green error
+	asr.w	#4,d4			; error = x/16
+	add.w	d4,d1			; add green error
+
+	move.b	-(a2),d0		; get red value
+	move.w	-(a0),d4		; get red error
+	asr.w	#4,d4			; error = x/16
+	add.w	d4,d0			; add red error
+
+	movem.l	a0/a1,-(sp)
+	lea.l	di_ColorHdr(a5),a0
+	movea.l	cth_ColorFunc(a0),a1
+	jsr	(a1)
+	movem.l	(sp)+,a0/a1
+
+	move.b	d0,-(a6)		; store this pen
+	subq.l	#6,a1
+
+	move.w	di_ColorHdr+cth_DiffsRED(a5),d0		; red difference
+	FloydStoreErrors	0,-6,6,0,-6
+	move.w	di_ColorHdr+cth_DiffsGRN(a5),d0		; green difference
+	FloydStoreErrors	2,-6,6,0,-6
+	move.w	di_ColorHdr+cth_DiffsBLU(a5),d0		; blue difference
+	FloydStoreErrors	4,-6,6,0,-6
+
+	dbra	d6,.rep_rgb
+	rts
+
+
+
+
+
+
+
+BurkEven	movea.l	di_UpperErrors(a5),a0		; a0 points to upper errors
+	movea.l	di_LowerErrors(a5),a1		; a6 points to second error line
+	clr.l	0(a1)				; clear first error ?
+	clr.l	4(a1)
+	clr.l	8(a1)
+
+	movea.l	di_PenDest(a5),a6	; write pen to (a1)
+	movea.l	di_RGBupper(a5),a2
+
+	move.w	di_LineWidth(a5),d6
+	subq.l	#1,d6			; number off pixels
+
+.rep_rgb:	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+
+	move.b	(a2)+,d0		; get red value
+	move.w	(a0)+,d4		; get red error
+	asr.w	#5,d4			; error = x/32
+	add.w	d4,d0			; add red error
+	move.b	(a2)+,d1		; get green value
+	move.w	(a0)+,d4		; get green error
+	asr.w	#5,d4			; error = x/32
+	add.w	d4,d1			; add green error
+	move.b	(a2)+,d2		; get blue value
+	move.w	(a0)+,d4		; get blue error
+	asr.w	#5,d4			; error = x/32
+	add.w	d4,d2			; add blue error
+
+	movem.l	a0/a1,-(sp)
+	lea.l	di_ColorHdr(a5),a0
+	movea.l	cth_ColorFunc(a0),a1
+	jsr	(a1)
+	movem.l	(sp)+,a0/a1
+
+	move.b	d0,(a6)+		; store this pen
+	addq.l	#6,a1
+
+	move.w	di_ColorHdr+cth_DiffsRED(a5),d0		; red difference
+	BurkesStoreErrors	0,-12-6,+12-6,-6-6,+6-6,+12-6,+6-6,0-6
+	move.w	di_ColorHdr+cth_DiffsGRN(a5),d0		; green difference
+	BurkesStoreErrors	2,-12-6,+12-6,-6-6,+6-6,+12-6,+6-6,0-6
+	move.w	di_ColorHdr+cth_DiffsBLU(a5),d0		; blue difference
+	BurkesStoreErrors	4,-12-6,+12-6,-6-6,+6-6,+12-6,+6-6,0-6
+
+	dbf	d6,.rep_rgb
+	rts
+
+
+BurkOdd	movea.l	di_UpperErrors(a5),a0		; a0 points to upper errors
+	movea.l	di_LowerErrors(a5),a1		; a6 points to second error line
+	move.w	di_ErrorModulo(a5),d6
+	adda.w	d6,a0
+	adda.w	d6,a1
+	subq.w	#6,a0
+	clr.l	-4(a1)
+	clr.l	-8(a1)
+	clr.l	-12(a1)
+
+	movea.l	di_RGBupper(a5),a2
+	lsr.w	#1,d6
+	adda.w	d6,a2
+
+	movea.l	di_PenDest(a5),a6	; write pen to (a1)
+	move.w	di_LineWidth(a5),d6
+	adda.w	d6,a6
+	subq.l	#1,d6			; number off pixels
+
+.rep_rgb	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+
+	move.b	-(a2),d2		; get blue value
+	move.w	-(a0),d4		; get blue error
+	asr.w	#5,d4			; error = x/32
+	add.w	d4,d2			; add blue error
+
+	move.b	-(a2),d1		; get green value
+	move.w	-(a0),d4		; get green error
+	asr.w	#5,d4			; error = x/32
+	add.w	d4,d1			; add green error
+
+	move.b	-(a2),d0		; get red value
+	move.w	-(a0),d4		; get red error
+	asr.w	#5,d4			; error = x/32
+	add.w	d4,d0			; add red error
+
+	movem.l	a0/a1,-(sp)
+	lea.l	di_ColorHdr(a5),a0
+	movea.l	cth_ColorFunc(a0),a1
+	jsr	(a1)
+	movem.l	(sp)+,a0/a1
+
+	move.b	d0,-(a6)		; store this pen
+	subq.l	#6,a1
+
+	move.w	di_ColorHdr+cth_DiffsRED(a5),d0		; red difference
+	BurkesStoreErrors	0,+12,-12,+6,-6,-6,-12,0
+	move.w	di_ColorHdr+cth_DiffsGRN(a5),d0		; green difference
+	BurkesStoreErrors	2,+12,-12,+6,-6,-6,-12,0
+	move.w	di_ColorHdr+cth_DiffsBLU(a5),d0		; blue difference
+	BurkesStoreErrors	4,+12,-12,+6,-6,-6,-12,0
+
+	dbra	d6,.rep_rgb
+	rts
+
+
+
+
+Random	movea.l	di_PenDest(a5),a6	; write pen to (a1)
+	movea.l	di_RGBupper(a5),a2
+
+	move.w	di_LineWidth(a5),d6
+	subq.l	#1,d6			; number off pixels
+
+.rep_rgb:	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+
+	move.b	(a2)+,d0		; get red value
+	move.l	number(pc),d4
+	lsr.l	#1,d4
+	bhi.s	.no_eor1
+	eor.l	#$12000,d4
+
+.no_eor1:	move.l	d4,number
+	and.w	#$7f,d4
+	sub.w	#64,d4
+
+	add.w	d4,d0			; add red noise
+	move.b	(a2)+,d1		; get green value
+
+	move.l	number(pc),d4
+	lsr.l	#1,d4
+	bhi.s	.no_eor2
+	eor.l	#$12000,d4
+
+.no_eor2:	move.l	d4,number
+	and.w	#$7f,d4
+	sub.w	#64,d4
+	add.w	d4,d1			; add green noise
+	move.b	(a2)+,d2		; get blue value
+	move.l	number(pc),d4
+	lsr.l	#1,d4
+	bhi.s	.no_eor3
+	eor.l	#$12000,d4
+
+.no_eor3:	move.l	d4,number
+
+	and.w	#$7f,d4
+	sub.w	#64,d4
+	add.w	d4,d2			; add blue noise
+
+	lea.l	di_ColorHdr(a5),a0
+	movea.l	cth_ColorFunc(a0),a1
+	jsr	(a1)
+	move.b	d0,(a6)+		; store this pen
+
+	dbf	d6,.rep_rgb
+	rts
+
+
+
+
+
+Ordered	movem.l	d0-d7/a0-a6,-(a7)
+	move.w	di_LineNumber(a5),d0
+	andi.w	#%11,d0
+	lsl.w	#3,d0
+	lea	OrderedMatrix(pc,d0.w),a0
+	
+	movea.l	di_PenDest(a5),a6	; write pen to (a6)
+	movea.l	di_RGBupper(a5),a4
+	move.w	di_LineWidth(a5),d6
+	subq.l	#1,d6			; number off pixels
+
+.rep_rgb:	moveq	#0,d0
+	moveq	#0,d1
+	moveq	#0,d2
+
+	move.w	d6,d4
+	and.w	#$3,d4
+	add.w	d4,d4
+	move.w	0(a0,d4.w),d4
+	move.b	(a4)+,d0
+	add.w	d4,d0
+	move.b	(a4)+,d1
+	add.w	d4,d1
+	move.b	(a4)+,d2
+	add.w	d4,d2
+
+	movem.l	a0/a1,-(sp)
+	lea.l	di_ColorHdr(a5),a0
+	movea.l	cth_ColorFunc(a0),a1
+	jsr	(a1)
+	movem.l	(sp)+,a0/a1
+
+	move.b	d0,(a6)+		; store this pen
+	addq.l	#6,a1
+	dbf	d6,.rep_rgb
+	movem.l	(a7)+,d0-d7/a0-a6
+	rts
+
+
+
+OrderedMatrixOriginal:				; original matrix
+	dc.w	-7,1,-5,3
+	dc.w	5,-3,7,-1
+	dc.w	-4,4,-6,2
+	dc.w	8,0,6,-2
+
+OrderedMatrix:					; copied from original, used
+	dc.w	-7,1,-5,3
+	dc.w	5,-3,7,-1
+	dc.w	-4,4,-6,2
+	dc.w	8,0,6,-2
+
+errorsu:	dcb.w	1600*3,0
+errorsl:	dcb.w	1600*3,0
+number:	dc.l	0
+
+
+;-- END OF FILE ----------------------------------------------------------

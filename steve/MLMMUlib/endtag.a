@@ -1,0 +1,5 @@
+	section text,data
+
+	XDEF endtag
+endtag:
+	END

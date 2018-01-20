@@ -1,0 +1,26 @@
+* "toccata.library"
+##base _ToccataBase
+##bias 30
+*
+##public
+T_NextFrequency(freq)(d0)
+T_FindFrequency(freq)(d0)
+T_SetPart(tags)(a0)
+T_GetPart(num)(d0)
+*
+T_Capture(tags)(a0)
+T_Playback(tags)(a0)
+T_Pause(pause)(d0)
+T_Stop(flags)(d0)
+*
+T_StartLevel(tags)(a0)
+T_StopLevel()()
+*
+T_Expand(value,mode)(d0,d1)
+*
+T_SaveSettings(flags)(d0)
+T_LoadSettings(flags)(d0)
+*
+T_RawPlayback(tags)(a0)
+*
+##end

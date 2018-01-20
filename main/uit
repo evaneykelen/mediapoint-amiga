@@ -1,0 +1,488 @@
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS MediaPoint.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS about.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS backwin.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+	ClearBitMap(&backES.ori_bm[33;7m)[0m;
+backwin.c 117 Warning 88: argument type incorrect
+                          Expecting "struct BitMap *", found "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS clipboard.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS clock.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS colorfuncs.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS colormisc.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS colad2.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS coloradjust.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS cols32.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS commod.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS config.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS crawl.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS da.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS dblclicked.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS debug.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS distributor.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS dofont.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS dol.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS dos.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS dosmisc.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS dostyle.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS drag.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS dragmove.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS duplicator.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS edit.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS effect.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS effect2.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS errors.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+	KPrintF[33;7m([0mstr);
+errors.c 63 Warning 100: no prototype declared for function "KPrintF"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS eventhandler.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+	RemovePicFromWindow(&backES, &backES.ori_bm[33;7m)[0m;
+eventhandler.c 133 Warning 88: argument type incorrect
+                               Expecting "struct BitMap *", found "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS events.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS filethumbs.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS fonts.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	asm -iINCLUDE formatterm.a
+SAS/C 680x0 Assembler V6.2 for AmigaDOS
+Copyright 1992 SAS Institute, Inc.  All Rights Reserved
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS fr.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS getxapps.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS globalallocs.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS globlab.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS helpwdw.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS icon.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS import.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS import2.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS import_pic.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+	RemovePicFromWindow(es,&es->ori_bm[33;7m)[0m;
+import_pic.c 234 Warning 88: argument type incorrect
+                             Expecting "struct BitMap *", found "struct BitMap24 *"
+
+====================
+	ClearBitMap(&es->ori_bm[33;7m)[0m;
+import_pic.c 238 Warning 88: argument type incorrect
+                             Expecting "struct BitMap *", found "struct BitMap24 *"
+
+====================
+	if ( !InitAndAllocFastBitMap(&es->ori_bm[33;7m,[0m es->iff->BMH.nPlanes, es->
+import_pic.c 345 Warning 88: argument type incorrect
+                             Expecting "struct BitMap *", found "struct BitMap24 *"
+
+====================
+	FastDecodeBody(es->iff, &es->ori_bm[33;7m)[0m;
+import_pic.c 356 Warning 88: argument type incorrect
+                             Expecting "struct BitMap *", found "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS import_scr.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+	RemovePicFromWindow(es,&es->ori_bm[33;7m)[0m;
+import_scr.c 137 Warning 88: argument type incorrect
+                             Expecting "struct BitMap *", found "struct BitMap24 *"
+
+====================
+	ClearBitMap(&es->ori_bm[33;7m)[0m;
+import_scr.c 141 Warning 88: argument type incorrect
+                             Expecting "struct BitMap *", found "struct BitMap24 *"
+
+====================
+	if ( !InitAndAllocFastBitMap(&es->ori_bm[33;7m,[0m es->iff->BMH.nPlanes, es->
+import_scr.c 212 Warning 88: argument type incorrect
+                             Expecting "struct BitMap *", found "struct BitMap24 *"
+
+====================
+	BltBitMapFM(screen->RastPort.BitMap, 0,0, &es->ori_bm[33;7m,[0m 0,0,
+import_scr.c 223 Warning 88: argument type incorrect
+                             Expecting "struct BitMap *", found "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS initglobals.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS initmenus.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS inslit.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS interact.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+interact.c 524 Warning 93: no reference to identifier "j"
+interact.c 526 Warning 93: no reference to identifier "ser2"
+interact.c 526 Warning 93: no reference to identifier "kept_ser_list"
+interact.c 530 Warning 93: no reference to identifier "mode"
+interact.c 714 Warning 93: no reference to identifier "ser2"
+interact.c 718 Warning 93: no reference to identifier "mode"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS localedate.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+	callback.h_Entry	= (void *)HookFunc[33;7m;[0m
+localedate.c 34 Warning 147: conversion between function and data pointers
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS memory.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS menus.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS misc.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS monloc.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS nodes.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS objedit.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS page.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS pagetalk.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS parser.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS parsetext.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS pedit.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+		RemovePicFromWindow(&backES, &backES.ori_bm[33;7m)[0m;
+pedit.c 311 Warning 88: argument type incorrect
+                        Expecting "struct BitMap *", found "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ptread.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+		ClearBitMap(&es->ori_bm[33;7m)[0m;
+ptread.c 611 Warning 88: argument type incorrect
+                         Expecting "struct BitMap *", found "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ptwrite.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS pagesetup.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS prefs.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS print.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS prog.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS rdwrcols.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS releasetwo.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS rendezvous.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS saveclips.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS screens.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS screenthumbs.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS script.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+	process->pr_WindowPtr = -1[33;7m;[0m
+script.c 1031 Warning 225: pointer type mismatch
+                           "void *" does not match "int"
+
+====================
+	process->pr_WindowPtr = -1[33;7m;[0m
+script.c 1284 Warning 225: pointer type mismatch
+                           "void *" does not match "int"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS scriptmisc.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS scripttalk.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS scrman.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS scrsize.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS settime.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS sliders.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS specials.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+					FreeFastBitMap( &backES.ori_bm [33;7m)[0m;
+specials.c 259 Warning 88: argument type incorrect
+                           Expecting "struct BitMap *", found "struct BitMap24 *"
+
+====================
+							FreeFastBitMap( &EditSupportList[i]->ori_bm [33;7m)[0m;
+specials.c 354 Warning 88: argument type incorrect
+                           Expecting "struct BitMap *", found "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS stread.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS stwrite.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS tctweak.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS text.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS textedit.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS timecode.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS times.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS translate.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS transp.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+		bm = &EditSupportList[lastHit]->ori_bm[33;7m;[0m
+transp.c 114 Warning 225: pointer type mismatch
+                          "struct BitMap *" does not match "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS varparse.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS vars.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS wdwtr.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS windef.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS windows.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+		ClearBitMap(&es->ori_bm[33;7m)[0m;
+windows.c 485 Warning 88: argument type incorrect
+                          Expecting "struct BitMap *", found "struct BitMap24 *"
+
+====================
+	RemovePicFromWindow(es,&es->ori_bm[33;7m)[0m;
+windows.c 620 Warning 88: argument type incorrect
+                          Expecting "struct BitMap *", found "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS windows2.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS windraw2.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+			SRI.SrcBitMap			= &es->ori_bm[33;7m;[0m
+windraw2.c 305 Warning 225: pointer type mismatch
+                            "struct BitMap *" does not match "struct BitMap24 *"
+windraw2.c 235 Warning 93: no reference to identifier "remap"
+windraw2.c 236 Warning 93: no reference to identifier "BSA"
+windraw2.c 237 Warning 93: no reference to identifier "FRI"
+windraw2.c 240 Warning 93: no reference to identifier "old_depth"
+windraw2.c 241 Warning 93: no reference to identifier "tempBM"
+
+====================
+		BltBitMapFM(&es->ori_bm[33;7m,[0mx,y,&sharedBM,0,0,w,h,0xc0,0xff,NULL);
+windraw2.c 503 Warning 88: argument type incorrect
+                           Expecting "struct BitMap *", found "struct BitMap24 *"
+windraw2.c 364 Warning 93: no reference to identifier "depth"
+
+====================
+						RemovePicFromWindow(EditSupportList[i],&EditSupportList[i]->ori_bm[33;7m)[0m
+windraw2.c 586 Warning 88: argument type incorrect
+                           Expecting "struct BitMap *", found "struct BitMap24 *"
+
+====================
+						ClearBitMap(&EditSupportList[i]->ori_bm[33;7m)[0m;
+windraw2.c 587 Warning 88: argument type incorrect
+                           Expecting "struct BitMap *", found "struct BitMap24 *"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS windraw4.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS windraw5.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS winreq.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS xload.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:AddGuide.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:AddModule.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:functions.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:initsegment.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:playscript.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:proccont.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+
+====================
+#define [33;7mprintf[0m PrintSer
+ph:proccont.c 25 Warning 84: redefinition of pragma or preprocessor symbol "printf"
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:procinit.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:ProcError.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:LoadSegment.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:mltool.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:rexx.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS ph:rexxcmd.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	sc DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS fakekprintf.c
+SAS/C Amiga Compiler 6.2
+Copyright (c) 1988-1992 SAS Institute Inc.
+	slink WITH temp_smk.tmp
+Slink - Version 6.2
+Copyright (c) 1992 SAS Institute, Inc.  All Rights Reserved.
+
+[4mUndefined symbols       [0m [4mFirst Referenced[0m
+_ScaleRemap              File 'windraw2.o'
+Enter a DEFINE value for _ScaleRemap (default ___stub): 
+SLINK Complete - Maximum code size = 453492 ($0006eb74) bytes
+
+Final output file size = 453912 ($0006ed18) bytes

@@ -1,0 +1,70 @@
+rexx                    15-Sep-94 11:46:56  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         1ccc lib:c.o          c        code            0    0      260
+                       rexx.o           rexx.c   code          260    0       dc
+                       simplerexx.o     SimpleRe code          33c    0      8cc
+                       lib:sc.lib       _fpinit. code          c08    0       30
+                       lib:sc.lib       writes.c code          c38    0       38
+                       lib:sc.lib       tinyprin code          c70    0       e4
+                       lib:sc.lib       _MemClea code          d54    0       80
+                       lib:sc.lib       stcl_d   code          dd4    0       3c
+                       lib:sc.lib       _getbuff code          e10    0       48
+                       lib:sc.lib       _write.c code          e58    0      100
+                       lib:sc.lib       _lseek.c code          f58    0       94
+                       lib:sc.lib       _cxd33   code          fec    0       c4
+                       lib:sc.lib       _exit.c  code         10b0    0       5c
+                       lib:sc.lib       _main.c  code         110c    0      2a0
+                       lib:sc.lib       _cxbrk.c code         13ac    0      14c
+                       lib:sc.lib       _chkufb. code         14f8    0       4c
+                       lib:sc.lib       _chkabor code         1544    0       50
+                       lib:sc.lib       memchr   code         1594    0       24
+                       lib:sc.lib       strncat  code         15b8    0       24
+                       lib:sc.lib       strncpy  code         15dc    0       24
+                       lib:sc.lib       malloc   code         1600    0      174
+                       lib:sc.lib       exit.c   code         1774    0       54
+                       lib:sc.lib       fputc.c  code         17c8    0      174
+                       lib:sc.lib       fflush.c code         193c    0       d4
+                       lib:sc.lib       DelPort. code         1a10    0       44
+                       lib:sc.lib       CrtPort. code         1a54    0       90
+                       lib:sc.lib       io2errno code         1ae4    0       60
+                       lib:sc.lib       main     code         1b44    0       10
+                       lib:amiga.lib    <noname> code         1b54    0       18
+                       lib:amiga.lib    <noname> code         1b6c    0       14
+                       lib:amiga.lib    <noname> code         1b80    0       14
+                       lib:amiga.lib    <noname> code         1b94    0       10
+                       lib:amiga.lib    <noname> code         1ba4    0       18
+                       lib:amiga.lib    <noname> code         1bbc    0       14
+                       lib:amiga.lib    <noname> code         1bd0    0       18
+                       lib:amiga.lib    <noname> code         1be8    0       10
+                       lib:amiga.lib    <noname> code         1bf8    0       18
+                       lib:amiga.lib    <noname> code         1c10    0       14
+                       lib:amiga.lib    <noname> code         1c24    0       14
+                       lib:amiga.lib    <noname> code         1c38    0       14
+                       lib:debug.lib    <noname> code         1c4c    0       80
+   1 __MERGED      358 rexx.o           rexx.c   data            0    0       78
+                       simplerexx.o     SimpleRe data           78    0       78
+                       lib:sc.lib       mstep.c  data           f0    0        4
+                       lib:sc.lib       sigfunc. data           f4    0       24
+                       lib:sc.lib       ctype.c  data          118    0      104
+                       lib:sc.lib       stack.c  data          21c    0        4
+                       lib:sc.lib       _iob.c   data          220    0       68
+                       lib:sc.lib       _buffsiz data          288    0        4
+                       lib:sc.lib       _ufb.c   data          28c    0        8
+                       lib:sc.lib       _fmode.c data          294    0        8
+                       lib:sc.lib       _cxbrk.c data          29c    0       50
+                       lib:sc.lib       exitfunc data          2ec    0        4
+rexx                    15-Sep-94 11:46:56  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       _stdv36. data          2f0    0       14
+                       lib:sc.lib       _stdwin. data          304    0       14
+                       lib:sc.lib       io2errno data          318    0       40
+                       lib:c.o          c        bss           358    0       54
+                       lib:sc.lib       errno.c  bss           3ac    0        4
+                       lib:sc.lib       memheap. bss           3b0    0        4
+                       lib:sc.lib       memtype. bss           3b4    0        4
+                       lib:sc.lib       dosbase  bss           3b8    0        4
+                       lib:sc.lib       _top.c   bss           3bc    0        4
+                       lib:sc.lib       _exit.c  bss           3c0    0        4
+                       lib:sc.lib       _main.c  bss           3c4    0       c8

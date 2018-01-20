@@ -1,0 +1,4 @@
+del input.o
+del beep.o
+del vars.o
+del functions.o

@@ -1,0 +1,52 @@
+CC = sc
+
+CFLAGS = DEFINE=USED_FOR_PLAYER DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS
+AFLAGS = -iINCLUDE
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+PH = ph:
+# these are Steve's modulues
+A_POD = $(PH)AddGuide.o $(PH)AddModule.o
+F_POD = $(PH)functions.o
+I_POD = $(PH)initsegment.o
+P_POD =	$(PH)playscript.o $(PH)proccont.o $(PH)procinit.o $(PH)ProcError.o
+L_POD = $(PH)LoadSegment.o
+M_POD = $(PH)mltool.o
+R_POD = $(PH)rexxvars.o $(PH)rexx.o $(PH)rexxcmd.o
+
+DONGLE = ml:dongle/dongle.o ml:dongle/dongleio.o
+
+# these are the Player modules
+PLAYER_MOD =	config.o dos.o dosmisc.o errors.o\
+							fonts.o formatterm.o globalallocs.o interact.o initglobals.o misc.o\
+							nodes.o pagetalk.o parser.o releasetwo.o rendezvous.o \
+							scripttalk.o sprite.o stread.o times.o translate.o winreq.o
+
+# these are my applications
+APP2 = Player
+
+APP20 = $(APP2).o\
+				$(PLAYER_MOD)\
+				$(A_POD) $(F_POD) $(I_POD) $(P_POD) $(L_POD) $(M_POD) $(R_POD)\
+				$(DONGLE)\
+				fakekprintf.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP2)
+
+$(APP2): $(APP20)
+	slink <WITH <
+FROM lib:c.o $(APP20)
+LIBRARY lib:scm.lib lib:sc.lib lib:amiga.lib lib:debug.lib
+TO $(APP2) $(LFLAGS)
+MAP $(APP2).map H
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

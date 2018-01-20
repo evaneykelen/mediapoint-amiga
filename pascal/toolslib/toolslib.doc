@@ -1,0 +1,323 @@
+TABLE OF CONTENTS
+
+tools.lib/AllocBitMap24
+tools.lib/AllocPlanes24
+tools.lib/AllocRememberMP
+tools.lib/FreeBitMap24
+tools.lib/FreePlanes24
+tools.lib/FreeRememberMP
+tools.lib/GetBitMapAttr24
+tools.lib/GetPaletteSize
+tools.lib/GetRGB
+tools.lib/InitBitMap24
+tools.lib/LoadRGB
+tools.lib/SetRGB
+tools.lib/SetRGBCM
+tools.lib/AllocBitMap24                               tools.lib/AllocBitMap24
+
+   NAME
+	AllocBitMap24 -- Allocate a bitmap and attach bitplanes to it.
+
+
+   SYNOPSIS
+	bitmap=AllocBitMap24(sizex,sizey,depth,flags )
+	                     d0    d1    d2    d3
+
+	struct BitMap *AllocBitMap24(ULONG,ULONG,ULONG,ULONG);
+
+   FUNCTION
+	Allocates and initializes a bitmap structure. Allocates and initializes
+	bitplane data, and sets the bitmap's planes to point to it.
+
+   INPUTS
+	sizex = the width (in pixels) desired for the bitmap data.
+
+	sizey = the height (in pixels) desired.
+
+	depth = the number of bitplanes deep for the allocation.
+
+	flags = BM24F_CLEAR to specify that the allocated raster should be
+	        filled with color 0.
+
+	   (NOT CURRENTLY IN USE)
+	        BMF_DISPLAYABLE to specify that this bitmap data should
+	        be allocated in such a manner that it can be displayed.
+	        Displayable data has more severe alignment restrictions
+	        than non-displayable data in some systems. 
+
+	        BM24F_INTERLEAVED tells graphics that you would like your
+	        bitmap to be allocated with one large chunk of display
+	        memory for all bitplanes. This minimizes color flashing
+	        on deep displays. If there is not enough contiguous RAM
+		for an interleaved bitmap, graphics.library will fall
+		back to a non-interleaved one.
+
+   BUGS
+
+   NOTES
+
+   SEE ALSO
+	FreeBitMap24()
+
+tools.lib/AllocPlanes24                               tools.lib/AllocPlanes24
+
+   NOTE
+	Set bm24.MagicCookie to MAGIC_COOKIE_BM24 before usage of the
+	bitmap24 structure. All bitmap24 functions test for this value.
+	If this value is not set, some things will not be possible with
+	these special bitmaps.
+
+tools.lib/AllocRememberMP                           tools.lib/AllocRememberMP
+tools.lib/FreeBitMap24                                 tools.lib/FreeBitMap24
+
+   NAME
+	FreeBitMap24 -- free a bitmap created by AllocBitMap24
+
+   SYNOPSIS
+	FreeBitMap24(bm)
+	             a0
+
+	VOID FreeBitMap( struct BitMap(24) * )
+
+   FUNCTION
+	Frees bitmap and all associated bitplanes
+
+   INPUTS
+	bm  =  A pointer to a BitMap structure. Passing a NULL-pointer
+	       (meaning "do nothing") is OK.
+
+   BUGS
+
+   NOTES
+	Be careful to insure that any rendering done to the bitmap has
+	completed (by calling WaitBlit()) before you call this function.
+
+   SEE ALSO
+	AllocBitMap24()
+
+tools.lib/FreePlanes24                                 tools.lib/FreePlanes24
+tools.lib/FreeRememberMP                             tools.lib/FreeRememberMP
+tools.lib/GetBitMapAttr24                           tools.lib/GetBitMapAttr24
+
+   NAME
+	GetBitMapAttr24 -- Returns information about a bitmap.
+
+
+   SYNOPSIS
+	value=GetBitMapAttr24( bitmap, attribute_number );
+	  d0	                   a0       d1
+
+	ULONG GetBitMapAttr24( struct BitMap(24) *, ULONG );
+
+   FUNCTION
+	Determines information about a bitmap. This function should be used
+	instead of reading the bitmap structure fields directly. This will
+	provide future compatibility.
+
+   INPUTS
+	bm  =  A pointer to a BitMap(24) structure.
+
+	attribute_number = A number telling graphics which attribute
+	                   of the bitmap should be returned:
+
+	                BM24A_HEIGHT returns the height in pixels
+	                BM24A_WIDTH  returns the width in pixels.
+	                BM24A_DEPTH  returns the depth. This is the number of
+	                        bits which are required to store the information
+	                        for one pixel in the bitmap.
+	                BM24A_FLAGS  returns a longword bitfield describing
+	                        various attributes which the bitmap may have.
+	                        Currently defined flags are:
+	                        BMF_INTERLEAVED (see AllocBitMap24())
+
+   BUGS
+
+   NOTES
+	Unknown attributes are reserved for future use, and return zero.
+
+   SEE ALSO
+	AllocBitMap24()
+
+tools.lib/GetPaletteSize                             tools.lib/GetPaletteSize
+tools.lib/GetRGB                                             tools.lib/GetRGB
+
+   NAME
+	GetRGB -- Get a series of color registers for this Colormap.
+
+   SYNOPSIS
+	GetRGB(  cm,  firstcolor, ncolors, table )
+	         a0   d0   	  d1       a1
+
+	void GetRGB( struct ColorMap *, ULONG, ULONG, ULONG * );
+
+   INPUTS
+	cm = colormap
+	firstcolor = the first color register to get
+	ncolors = the number of color registers to set.
+	table=a pointer to a series of 32-bit RGB triplets.
+
+   RESULT
+	The ULONG data pointed to by 'table' will be filled with the 32 bit
+	fractional RGB values from the colormap.
+
+   BUGS
+
+   NOTES
+	'Table' should point to at least ncolors*3 longwords.
+	Intuition's DisplayBeep() changes color 0. Reading Color 0 under V38 or
+	lower during a DisplayBeep() will lead to incorrect results.
+
+   SEE ALSO
+	GetColorMap() LoadRGB() SetRGBCM() graphics/view.h
+tools.lib/InitBitMap24                                 tools.lib/InitBitMap24
+ 
+   NAME   
+ 
+   	InitBitMap24 -- Initialize bit map structure with input values.
+ 
+   SYNOPSIS
+	InitBitMap24( bm, depth, width, height )
+		      a0   d0     d1      d2
+
+	void InitBitMap( struct BitMap(24) *, BYTE, UWORD, UWORD );
+	
+   FUNCTION
+	Initialize various elements in the BitMap structure to
+	correctly reflect depth, width, and height.
+	Must be used before use of BitMap in other graphics calls.
+	The Planes[8]/[24] are cleared and need to be set up by the
+	caller.  All routines that use BitMap should only depend on
+	existence of depth number of bitplanes. The Flags and pad fields
+	are reserved for future use and should not be used by application
+	programs.
+
+   INPUTS
+	bm     - pointer to a BitMap(24) structure (gfx.h/toolslib.h)
+	depth  - number of bitplanes that this bitmap will have
+	width  - number of bits (columns) wide for this BitMap
+	height - number of bits (rows) tall for this BitMap
+
+   NOTE
+	Set bm24.MagicCookie to MAGIC_COOKIE_BM24 before usage of the
+	bitmap24 structure. All bitmap24 functions test for this value.
+	If this value is not set, some things will not be possible with
+	these special bitmaps.
+
+   BUGS
+ 
+   SEE ALSO
+	graphics/gfx.h
+ 
+tools.lib/LoadRGB                                           tools.lib/LoadRGB
+
+   NAME
+	LoadRGB -- Set a series of color registers for this Viewport.
+
+   SYNOPSIS
+	LoadRGB(  vp,  table )
+	          a0   a1
+
+	void LoadRGB( struct ViewPort *, ULONG *);
+
+   INPUTS
+	vp = viewport
+	table = a pointer to a series of records which describe which colors
+	to modify.
+
+   RESULT
+	The selected color registers are changed to match your specs.
+
+   BUGS
+	NOTE: Under V36 - V38, it is not safe to call this function
+	from an interrupt, due to semaphore protection of graphics
+	copper lists.
+
+   NOTES
+	Passing a NULL "table" is ignored.
+	The format of the table passed to this function is a series of records,
+	each with the following format:
+
+	        1 Word with the number of colors to load
+	        1 Word with the first color to be loaded.
+	        3 longwords representing a left justified 32 bit rgb triplet.
+	        The list is terminated by a count value of 0.
+
+	   examples:
+	        ULONG table[]={1l<<16+0,0xffffffff,0,0,0} loads color register
+	                0 with 100% red.
+	        ULONG table[]={256l<<16+0,r1,g1,b1,r2,g2,b2,.....0} can be used
+	                to load an entire 256 color palette.
+
+	Lower order bits of the palette specification will be discarded,
+	depending on the color palette resolution of the target graphics
+	device. Use 0xffffffff for the full value, 0x7fffffff for 50%,
+	etc. You can find out the palette range for your screen by
+	querying the graphics data base.
+
+	LoadRGB is faster than SetRGB under V39+, even for one color.
+
+   SEE ALSO
+	GetColorMap() GetRGB() SetRGBCM() graphics/view.h
+tools.lib/SetRGB                                             tools.lib/SetRGB
+
+   NAME
+	SetRGB -- Set one color register for this Viewport.
+
+   SYNOPSIS
+	SetRGB(  vp,  n,   r,    g,    b)
+	         a0  d0   d1    d2    d3
+
+	void SetRGB( struct ViewPort *, ULONG, ULONG, ULONG, ULONG );
+
+   INPUTS
+	vp = viewport
+	n = the number of the color register to set.
+	r = red level   (32 bit left justified fraction)
+	g = green level (32 bit left justified fraction)
+	b = blue level  (32 bit left justified fraction)
+
+   RESULT
+	If there is a ColorMap for this viewport, then the value will
+	be stored in the ColorMap.
+	The selected color register is changed to match your specs.
+
+   BUGS
+
+   NOTES
+	Lower order bits of the palette specification will be discarded,
+	depending on the color palette resolution of the target graphics
+	device. Use 0xffffffff for the full value, 0x7fffffff for 50%,
+	etc. You can find out the palette range for your screen by
+	querying the graphics data base.
+
+   SEE ALSO
+	GetColorMap() GetRGB() SetRGBCM() LoadRGB32() graphics/view.h
+tools.lib/SetRGBCM                                         tools.lib/SetRGBCM
+
+   NAME
+	SetRGBCM -- Set one color register for this ColorMap.
+
+   SYNOPSIS
+	SetRGBCM(  cm,  n,   r,    g,    b)
+		   a0  d0   d1    d2    d3
+
+	void SetRGBCM( struct ColorMap *, ULONG, ULONG, ULONG, ULONG);
+
+   INPUTS
+	cm = colormap
+	n = the number of the color register to set. Must not exceed the
+	    number of colors allocated for the colormap.
+	r = red level (32 bit unsigned left justified fraction)
+	g = green level
+	b = blue level
+
+   RESULT
+	Store the (r,g,b) triplet at index n of the ColorMap structure.
+	This function can be used to set up a ColorMap before before
+	linking it into a viewport.
+
+   BUGS
+
+   SEE ALSO
+	GetColorMap() GetRGB() SetRGB() graphics/view.h
+

@@ -1,0 +1,53 @@
+; modules
+ed mpri:smakefile	-STICKY
+ed ma:smakefile	-STICKY
+ed mbgm:smakefile	-STICKY
+ed mpag:smakefile	-STICKY
+ed mpre:smakefile	-STICKY
+ed msm:smakefile	-STICKY
+ed mra:smakefile 	-STICKY
+
+;xapps
+ed air:smakefile	-STICKY
+ed cd32:smakefile	-STICKY
+ed cdtv:smakefile	-STICKY
+ed cdxl:smakefile	-STICKY
+ed demo:smakefile	-STICKY
+ed dpspar:smakefile	-STICKY
+ed endscr:smakefile	-STICKY
+ed gl:smakefile	-STICKY
+ed ion:smakefile	-STICKY
+ed iv24:smakefile	-STICKY
+ed lightp:smakefile	-STICKY
+ed midi:smakefile	-STICKY
+ed nep:smakefile	-STICKY
+ed newscr:smakefile	-STICKY
+ed pdev:smakefile	-STICKY
+ed res:smakefile	-STICKY
+ed s16:smakefile	-STICKY
+ed sample:smakefile	-STICKY
+ed seri:smakefile	-STICKY
+ed toc:smakefile	-STICKY
+ed vscroll:smakefile	-STICKY
+ed vu:smakefile	-STICKY
+
+; cees & steve
+ed sync:gmt/smakefile -STICKY
+ed sync:miditc/smakefile -STICKY
+ed sync:zentc/smakefile -STICKY
+
+ed gp:smakefile -STICKY
+
+ed pg:smakefile -STICKY
+ed sg:smakefile -STICKY
+
+ed wa:smakefile -STICKY
+ed wd:smakefile -STICKY
+ed wm:smakefile -STICKY
+ed ml:workarexx/smakefile -STICKY
+ed wp:smakefile -STICKY
+ed vars:smakefile	-STICKY
+
+; libs
+ed mllib:smakefile -STICKY
+ed mlmmu:smakefile -STICKY

@@ -1,0 +1,22 @@
+#
+#
+#
+
+CFLAGS = DATA=FAR DEBUG=FF NMINC STRMERGE STREQ NOSTKCHK SAVEDS
+
+HEAD= external.h commands.h defs.h
+
+CODE= dongle.c dongleio.c
+
+OBJS= dongle.o dongleio.o
+
+LIBS=LIB:SC.lib LIB:amiga.lib
+
+.c.o:
+    @SC $(CFLAGS) $*
+
+rc: $(OBJS) $(LIBS)
+   slink FROM LIB:c.o $(OBJS) TO dongle LIB $(LIBS) SMALLDATA SMALLCODE NODEBUG
+
+dongle.o: dongle.c external.h commands.h defs.h
+dongleio.o: dongleio.c external.h commands.h defs.h

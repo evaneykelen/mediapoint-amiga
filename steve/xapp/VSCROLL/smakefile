@@ -1,0 +1,35 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK NOICONS
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+AS = asm
+
+XAPPNAME = Vscroll
+
+# these are my applications
+APP1 = WorkVscroll
+
+# the modules needed by each application
+APP10 = $(APP1).o inthandler.o workpageasm.o preview.o setup.o texted.o lib:/source/_main.o demo:gen/support.o demo:gen/general.o vscroll:asm/easy_up.o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib
+# lib:amiga.lib lib:debug.lib
+TO $(XAPPNAME) $(LFLAGS)
+MAP $(XAPPNAME).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

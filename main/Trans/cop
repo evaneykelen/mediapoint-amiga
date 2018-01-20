@@ -1,0 +1,6 @@
+;copy texts.Italiano nb:system
+;copy texts.Norsk nb:system
+copy texts.Nederlands nb:system
+copy texts.English nb:system
+;copy texts.Deutsch nb:system
+;copy texts.Français nb:system

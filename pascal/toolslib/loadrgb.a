@@ -1,0 +1,101 @@
+
+;--- LoadRGB.a ----------------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/loadrgb.a 01.101 (02.18.94)
+
+
+	TTL	LoadRGB.a
+	IDNT	LoadRGB.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/view.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"toolslib.i"
+
+
+	XREF	_GfxBase
+	XREF	_IntuitionBase
+	XREF	_LVOLoadRGB32
+	XREF	_LVORethinkDisplay
+
+
+	XDEF	_LoadRGB
+	XDEF	@LoadRGB
+
+
+
+	SECTION	LoadRGB,CODE
+
+
+;-------------------------------------------------------------------------
+; LoadRGB( VP (a0), table (a1)
+;-------------------------------------------------------------------------
+
+_LoadRGB	move.l	4(sp),a0
+	move.l	8(sp),a1
+
+@LoadRGB	movem.l	d2/d3/a6,-(sp)
+
+	cmpa.w	#0,a0
+	beq	.exit
+	cmpa.w	#0,a1
+	beq	.exit
+	move.l	d0,-(sp)
+	movea.l	_GfxBase,a6
+	move.l	(sp)+,d0
+
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi	.V39
+
+.preV39	tst.w	(a1)
+	beq	.exit
+
+.loop	move.w	(a1)+,d2	; number
+	beq	.setvp
+	move.w	(a1)+,d3	; first color
+	subq.w	#1,d2
+
+.loopCnt	movem.l	a0/a1/d2/d3,-(sp)
+	movea.l	vp_ColorMap(a0),a0
+	move.w	d3,d0
+	move.b	0(a1),d1
+	move.b	4(a1),d2
+	move.b	8(a1),d3
+	lsr.b	#4,d1
+	lsr.b	#4,d2
+	lsr.b	#4,d3
+	CALLLIB	_LVOSetRGB4CM
+	movem.l	(sp)+,a0/a1/d2/d3
+	addq.w	#1,d3
+	dbra	d2,.loopCnt
+
+	adda.w	#12,a1
+	bra	.loop
+
+.setvp	LINKLIB	_LVORethinkDisplay,_IntuitionBase
+	bra	.exit
+
+.V39	CALLLIB	_LVOLoadRGB32
+
+.exit	movem.l	(sp)+,d2/d3/a6
+	rts
+
+
+;-- END OF FILE ----------------------------------------------------------

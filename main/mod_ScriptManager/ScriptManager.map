@@ -1,0 +1,117 @@
+ScriptManager           26-Oct-94 14:30:13  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         8fac lib:c.o          c        code            0    0      260
+                       copyfiles.o      copyfile code          260    0      93c
+                       deepscan.o       deepscan code          b9c    0      860
+                       parse1.o         parse1.c code         13fc    0      bd4
+                       parse2.o         parse2.c code         1fd0    0     23a4
+                       parse3.o         parse3.c code         4374    0      42c
+                       parse4.o         parse4.c code         47a0    0      1b8
+                       setup.o          setup.c  code         4958    0     136c
+                       sc:source/_main. _main.c  code         5cc4    0      12c
+                       nb:parser.o      parser.c code         5df0    0      518
+                       mpri:errors.o    errors.c code         6308    0      298
+                       lib:sc.lib       _fpinit. code         65a0    0       30
+                       lib:sc.lib       _MemClea code         65d0    0       80
+                       lib:sc.lib       strnicmp code         6650    0       88
+                       lib:sc.lib       strins.c code         66d8    0       48
+                       lib:sc.lib       stricmp  code         6720    0       3c
+                       lib:sc.lib       stpblk   code         675c    0       1c
+                       lib:sc.lib       _stcul_d code         6778    0       30
+                       lib:sc.lib       _stcl_o  code         67a8    0       30
+                       lib:sc.lib       _stcl_h  code         67d8    0       3c
+                       lib:sc.lib       _stcd_i  code         6814    0       54
+                       lib:sc.lib       stccpy.c code         6868    0       44
+                       lib:sc.lib       stcarg.c code         68ac    0       70
+                       lib:sc.lib       _datecvt code         691c    0       44
+                       lib:sc.lib       getpath. code         6960    0       bc
+                       lib:sc.lib       getdfs.c code         6a1c    0       c4
+                       lib:sc.lib       getcd.c  code         6ae0    0      10c
+                       lib:sc.lib       _getbuff code         6bec    0       48
+                       lib:sc.lib       _strupr. code         6c34    0       3c
+                       lib:sc.lib       statfunc code         6c70    0      1d8
+                       lib:sc.lib       stat.c   code         6e48    0       38
+                       lib:sc.lib       _write.c code         6e80    0      100
+                       lib:sc.lib       _read.c  code         6f80    0       f8
+                       lib:sc.lib       _lseek.c code         7078    0       94
+                       lib:sc.lib       _close.c code         710c    0       70
+                       lib:sc.lib       _open.c  code         717c    0      1dc
+                       lib:sc.lib       _cxd33   code         7358    0       c4
+                       lib:sc.lib       _cxm33   code         741c    0       20
+                       lib:sc.lib       _cxm22   code         743c    0       30
+                       lib:sc.lib       _exit.c  code         746c    0       5c
+                       lib:sc.lib       _cxbrk.c code         74c8    0      14c
+                       lib:sc.lib       _chkufb. code         7614    0       4c
+                       lib:sc.lib       _chkabor code         7660    0       50
+                       lib:sc.lib       strchr   code         76b0    0       18
+                       lib:sc.lib       memchr   code         76c8    0       24
+                       lib:sc.lib       strncmp  code         76ec    0       30
+                       lib:sc.lib       strcat   code         771c    0       18
+                       lib:sc.lib       memmove  code         7734    0       2c
+                       lib:sc.lib       free     code         7760    0      16c
+                       lib:sc.lib       malloc   code         78cc    0      174
+                       lib:sc.lib       exit.c   code         7a40    0       54
+                       lib:sc.lib       sscanf.c code         7a94    0       5c
+                       lib:sc.lib       sprintf. code         7af0    0       44
+ScriptManager           26-Oct-94 14:30:13  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       fprintf. code         7b34    0       a0
+                       lib:sc.lib       fgets.c  code         7bd4    0       78
+                       lib:sc.lib       fgetc.c  code         7c4c    0      168
+                       lib:sc.lib       ftell.c  code         7db4    0       90
+                       lib:sc.lib       fseek.c  code         7e44    0       78
+                       lib:sc.lib       fwrite.c code         7ebc    0      13c
+                       lib:sc.lib       fflush.c code         7ff8    0       d4
+                       lib:sc.lib       fclose.c code         80cc    0       60
+                       lib:sc.lib       freopen. code         812c    0      144
+                       lib:sc.lib       fopen.c  code         8270    0       64
+                       lib:sc.lib       _sfmt.c  code         82d4    0      618
+                       lib:sc.lib       _pfmt.c  code         88ec    0      438
+                       lib:sc.lib       _sf.c    code         8d24    0      168
+                       lib:sc.lib       _pf.c    code         8e8c    0       7c
+                       lib:sc.lib       remove.c code         8f08    0       30
+                       lib:sc.lib       newlist  code         8f38    0       14
+                       lib:sc.lib       io2errno code         8f4c    0       60
+   1 chip            4 setup.o          setup.c  datachip        0    0        4
+   2 __MERGED     110c copyfiles.o      copyfile data            0    0       c0
+                       deepscan.o       deepscan data           c0    0        8
+                       parse1.o         parse1.c data           c8    0      220
+                       parse2.o         parse2.c data          2e8    0      5f0
+                       parse3.o         parse3.c data          8d8    0       1c
+                       parse4.o         parse4.c data          8f4    0       14
+                       setup.o          setup.c  data          908    0      5a0
+                       nb:parser.o      parser.c data          ea8    0        c
+                       mpri:errors.o    errors.c data          eb4    0       10
+                       lib:sc.lib       mstep.c  data          ec4    0        4
+                       lib:sc.lib       tzinfo.c data          ec8    0        8
+                       lib:sc.lib       sigfunc. data          ed0    0       24
+                       lib:sc.lib       ctype.c  data          ef4    0      104
+                       lib:sc.lib       stack.c  data          ff8    0        4
+                       lib:sc.lib       _iob.c   data          ffc    0       68
+                       lib:sc.lib       _buffsiz data         1064    0        4
+                       lib:sc.lib       _ufb.c   data         1068    0        8
+                       lib:sc.lib       _fmode.c data         1070    0        8
+                       lib:sc.lib       _cxbrk.c data         1078    0       50
+                       lib:sc.lib       exitfunc data         10c8    0        4
+                       lib:sc.lib       io2errno data         10cc    0       40
+                       lib:c.o          c        bss          110c    0       54
+                       deepscan.o       deepscan bss          1160    0      230
+                       parse1.o         parse1.c bss          1390    0       10
+                       parse2.o         parse2.c bss          13a0    0     1240
+                       setup.o          setup.c  bss          25e0    0      190
+                       sc:source/_main. _main.c  bss          2770    0       8c
+                       mpri:errors.o    errors.c bss          27fc    0      218
+                       lib:sc.lib       errno.c  bss          2a14    0        4
+                       lib:sc.lib       memheap. bss          2a18    0        4
+                       lib:sc.lib       memtype. bss          2a1c    0        4
+                       lib:sc.lib       tzinfo.c bss          2a20    0       14
+                       lib:sc.lib       dosbase  bss          2a34    0        4
+                       lib:sc.lib       statfunc bss          2a38    0       a0
+                       lib:sc.lib       _top.c   bss          2ad8    0        4
+ScriptManager           26-Oct-94 14:30:13  Hunk Section                Page 1-3
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       _exit.c  bss          2adc    0        4
+                       lib:sc.lib       sscanf.c bss          2ae0    0        8

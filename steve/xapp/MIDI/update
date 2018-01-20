@@ -1,0 +1,5 @@
+del playmidi.o
+del workmidi.o
+del setup.o
+del inthandler.o
+del preview.o

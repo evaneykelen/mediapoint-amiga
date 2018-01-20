@@ -1,0 +1,421 @@
+
+;--- allocplanes24.a ----------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/allocplanes.a 01.001 (02.05.94)
+
+
+	TTL	allocplanes24.a
+	IDNT	allocplanes24.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"toolslib.i"
+
+	XREF	_SysBase
+	XREF	_GfxBase
+
+	XDEF	_AllocPlanes24
+	XDEF	_FreePlanes24
+
+
+
+
+	SECTION	AllocPlanes24,CODE
+
+
+;-------------------------------------------------------------------------
+; BOOL AllocPlanes24( struct BitMap24 *bitmap, UBYTE depth, UWORD width,
+;	UWORD height, ULONG memtype, ULONG flags );
+;-------------------------------------------------------------------------
+; Attempt to allocate the plane(s) for the forementioned BitMap24. The
+; bitmap struct is tested for the presence of a magic cookie. If this
+; cookie is not present, no 24bit or chunky bitmaps can be allocated.
+; Returned is succes, or no succes.
+;-------------------------------------------------------------------------
+_AllocPlanes24
+	link	a5,#0
+	movem.l	d2-d3/a2/a3/a6,-(sp)
+
+	movea.l	_1stParam(a5),a2
+	cmpa.w	#0,a2
+	beq	.exit
+
+	movea.l	_SysBase,a6
+
+	clr.b	bm_Flags(a2)
+	clr.b	bm_Pad(a2)
+
+	btst.b	#BM24B_CLEAR,_6thParam+3(a5)
+	beq.b	.tstCky
+	ori.l	#MEMF_CLEAR,_5thParam(a5)
+
+.tstCky	cmpi.l	#MAGIC_COOKIE_BM24,bm24_MagicCookie(a2)
+	bne	.bm8
+
+;-------------------------------------------------------
+.bm24	moveq.l	#23,d0
+	lea.l	bm24_Planes(a2),a0
+.lp1_24	clr.l	(a0)+
+	dbra	d0,.lp1_24
+;-------------------------------------------------------
+	clr.w	bm24_Flags24(a2)
+
+	btst.b	#BM24B_FASTMEM,_6thParam+3(a5)
+	beq.b	.nFast24
+	ori.w	#BM24B_FASTMEM,bm24_Flags24(a2)
+	andi.l	#~MEMF_CHIP,_5thParam(a5)
+.nFast24
+
+	btst.b	#BM24B_CHUNKY,_6thParam+3(a5)
+	bne	.chunky24
+	btst.b	#BM24B_TRUE_RGB,_6thParam+3(a5)
+	beq.b	.tstInt
+	move.l	#24,_2ndParam(a5)
+	ori.w	#BM24F_TRUE_RGB,bm24_Flags24(a2)
+.tstInt	btst.b	#BM24B_INTERLEAVED,_6thParam+3(a5)	; flags
+	beq.b	.nInt24
+;-------------------------------------------------------
+.Int24	ori.w	#BM24F_INTERLEAVED,bm24_Flags24(a2)
+	move.w	_3rdParam+2(a5),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addi.w	#15,d0
+	lsr.w	#4,d0
+	lsl.w	#1,d0
+	moveq.l	#0,d2
+	move.w	d0,d2
+	moveq.l	#0,d1
+	move.b	_2ndParam+3(a5),d1			; depth
+	move.b	d1,bm24_Depth(a2)
+	mulu.w	d1,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm24_Rows(a2)
+	mulu.w	d1,d0
+	move.l	_5thParam(a5),d1			; memType
+	move.l	d0,bm24_rasSize(a2)
+	CALLLIB	_LVOAllocMem
+	tst.l	d0
+	beq.b	.nInt24
+
+	moveq.l	#0,d1
+	move.b	bm24_Depth(a2),d1
+	subq.w	#1,d1
+	movea.l	d0,a1
+	lea.l	bm24_Planes(a2),a0
+.lp2_24	move.l	a1,(a0)+
+	adda.l	d2,a1
+	dbra	d1,.lp2_24
+	bra	.exit
+;-------------------------------------------------------
+.nInt24	andi.w	#~BM24F_INTERLEAVED,bm24_Flags24(a2)
+	move.w	_3rdParam+2(a5),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addi.w	#15,d0
+	lsr.w	#4,d0
+	lsl.w	#1,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm24_Rows(a2)
+	mulu.w	d1,d0
+	move.l	d0,bm24_rasSize(a2)
+	move.l	d0,d2
+
+	move.b	_2ndParam+3(a5),bm24_Depth(a2)		; depth
+
+	moveq.l	#0,d3
+	move.b	bm24_Depth(a2),d3
+	subq.w	#1,d3
+	lea.l	bm24_Planes(a2),a0
+
+.lp3_24	move.l	a0,-(sp)
+	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	(sp)+,a0
+	move.l	d0,(a0)+
+	beq.b	.free24
+	dbra	d3,.lp3_24
+	bra	.exit
+
+.free24	moveq.l	#23,d3
+	lea.l	bm24_Planes(a2),a0
+.lp4_24	move.l	a0,-(sp)
+	move.l	(a0)+,a1
+	cmpa.w	#0,a1
+	beq	.error
+	move.l	d2,d0
+	CALLLIB	_LVOFreeMem
+	move.l	(sp)+,a0
+	clr.l	(a0)+
+	dbra	d3,.lp4_24
+	bra	.error
+;-------------------------------------------------------
+.chunky24	move.b	_2ndParam+3(a5),bm24_Depth(a2)		; depth
+	ori.w	#BM24F_CHUNKY,bm24_Flags24(a2)
+
+	move.w	_3rdParam+2(a5),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addq.w	#7,d0
+	andi.w	#$FFF8,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm24_Rows(a2)
+	mulu.w	d1,d0
+	move.l	d0,bm24_rasSize(a2)
+	move.l	d0,d2
+
+	btst.b	#BM24B_TRUE_RGB,_6thParam+3(a5)
+	bne.b	.24bit
+
+.8bit	cmpi.b	#8,bm24_Depth(a2)
+	bls.b	.skip8
+	move.b	#8,bm24_Depth(a2)
+.skip8	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,bm24_Planes(a2)
+	beq	.error
+	bra	.exit
+
+.24bit	ori.w	#BM24F_TRUE_RGB,bm24_Flags24(a2)
+	move.b	#24,bm24_Depth(a2)
+	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,bm24_Planes+0(a2)
+	beq	.free24
+	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,bm24_Planes+4(a2)
+	beq	.free24
+	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,bm24_Planes+8(a2)
+	beq	.free24
+	bra	.exit
+;-------------------------------------------------------
+
+
+;-------------------------------------------------------
+.bm8	moveq.l	#7,d0
+	lea.l	bm_Planes(a2),a0
+.lp1_8	clr.l	(a0)+
+	dbra	d0,.lp1_8
+;-------------------------------------------------------
+	btst.b	#BM24B_CHUNKY,_6thParam+3(a5)
+	bne	.error
+	cmpi.b	#8,_2ndParam+3(a5)
+	bhi	.error
+
+	btst.b	#BM24B_FASTMEM,_6thParam+3(a5)
+	beq.b	.nFast8
+	andi.l	#~MEMF_CHIP,_5thParam(a5)
+.nFast8
+	btst.b	#BM24B_INTERLEAVED,_6thParam+3(a5)	; flags
+	beq.b	.nInt8
+;-------------------------------------------------------
+.Int8	moveq.l	#0,d0
+	move.w	_3rdParam+2(a5),d0			; width
+	addi.l	#15,d0
+	lsr.l	#4,d0
+	lsl.l	#1,d0
+	move.l	d0,d2
+	moveq.l	#0,d1
+	move.b	_2ndParam+3(a5),d1			; depth
+	move.b	d1,bm_Depth(a2)
+	mulu.w	d1,d0
+	move.w	d0,bm_BytesPerRow(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm_Rows(a2)
+	mulu.w	d1,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	tst.l	d0
+	beq.b	.nInt8
+
+	moveq.l	#0,d1
+	move.b	bm_Depth(a2),d1
+	subq.w	#1,d1
+	movea.l	d0,a1
+	lea.l	bm_Planes(a2),a0
+.lp3_8	move.l	a1,(a0)+
+	adda.l	d2,a1
+	dbra	d1,.lp3_8
+	bra.b	.exit
+;-------------------------------------------------------
+.nInt8	moveq.l	#0,d0
+	moveq.l	#0,d2
+	move.w	_3rdParam+2(a5),d0			; width
+	addi.l	#15,d0
+	lsr.l	#3,d0
+	bclr.l	#0,d0
+	move.w	d0,bm_BytesPerRow(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm_Rows(a2)
+	mulu.w	d1,d0
+	move.l	d0,d3
+	move.b	_2ndParam+3(a5),d2
+	move.b	d2,bm_Depth(a2)
+	subq.w	#1,d2
+	lea.l	bm_Planes(a2),a3
+
+.lp2_8	move.l	d3,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,(a3)+
+	beq.b	.free8
+	dbra	d2,.lp2_8
+	bra	.exit
+
+.free8	lea.l	bm_Planes(a2),a3
+	moveq.l	#7,d2
+.lp4_8	movea.l	(a3),a1
+	cmpa.w	#0,a1
+	beq.b	.isfr8
+	move.l	d3,d0
+	CALLLIB	_LVOFreeMem
+.isfr8	clr.l	(a3)+
+	dbra	d2,.lp4_8
+;-------------------------------------------------------
+
+.exit	moveq.l	#TRUE,d0
+.xit	movem.l	(sp)+,d2-d3/a2/a3/a6
+	unlk	a5
+	rts
+.error	moveq.l	#FALSE,d0
+	bra.b	.xit
+
+
+
+;-------------------------------------------------------------------------
+; VOID FreePlanes24( struct BitMap24 *bitmap );
+;-------------------------------------------------------------------------
+; If bitmap is available, free all memory associated with the bitmap,
+; except for the bitmap structure itself.
+;-------------------------------------------------------------------------
+_FreePlanes24
+	link	a5,#0
+	movem.l	d2-d3/a2-a3/a6,-(sp)
+
+	movea.l	_1stParam(a5),a2
+	cmpa.w	#0,a2
+	beq	.exit
+
+	movea.l	_GfxBase,a6
+	CALLLIB	_LVOWaitBlit
+
+	movea.l	_SysBase,a6
+
+	cmpi.l	#MAGIC_COOKIE_BM24,bm24_MagicCookie(a2)
+	bne	.bm8
+
+;-------------------------------------------------------
+.bm24	btst.b	#BM24B_CHUNKY,bm24_Flags24+1(a2)
+	bne.b	.chunky24
+	movea.l	bm24_Planes+4(a2),a0
+	suba.l	bm24_Planes+0(a2),a0
+	cmpa.w	bm24_Modulo(a2),a0
+	bhi.b	.noInt24
+;-------------------------------------------------------
+.Int24	move.l	bm_Planes+0(a2),d0
+	beq.b	.clr24
+	movea.l	d0,a1
+	move.l	bm24_rasSize(a2),d0
+	beq	.clr24
+	CALLLIB	_LVOFreeMem
+	bra.b	.clr24
+;-------------------------------------------------------
+.noInt24	moveq.l	#23,d3
+	lea.l	bm24_Planes(a2),a0
+.lp4_24	move.l	a0,-(sp)
+	move.l	(a0)+,a1
+	cmpa.w	#0,a1
+	beq.b	.sk4_24
+	move.l	bm24_rasSize(a2),d0
+	beq	.clr24
+	CALLLIB	_LVOFreeMem
+.sk4_24	move.l	(sp)+,a0
+	clr.l	(a0)+
+	dbra	d3,.lp4_24
+	bra.b	.clr24
+;-------------------------------------------------------
+.chunky24	moveq.l	#2,d3
+	lea.l	bm24_Planes(a2),a0
+.lp5_24	move.l	a0,-(sp)
+	move.l	(a0)+,a1
+	cmpa.w	#0,a1
+	beq.b	.sk5_24
+	move.l	bm24_rasSize(a2),d0
+	beq	.clr24
+	CALLLIB	_LVOFreeMem
+.sk5_24	move.l	(sp)+,a0
+	clr.l	(a0)+
+	dbra	d3,.lp5_24
+;-------------------------------------------------------
+.clr24	moveq.l	#23,d0
+	lea.l	bm24_Planes(a2),a0
+.lp1_24	clr.l	(a0)+
+	dbra	d0,.lp1_24
+	bra.b	.exit
+;-------------------------------------------------------
+
+
+;-------------------------------------------------------
+.bm8	movea.l	bm_Planes+4(a2),a0
+	suba.l	bm_Planes+0(a2),a0
+	cmpa.w	bm_BytesPerRow(a2),a0
+	bhi.b	.noInt8
+;-------------------------------------------------------
+.Int8	movea.l	bm_Planes+0(a2),a1
+	cmpa.w	#0,a1
+	beq	.clr8
+	move.w	bm_BytesPerRow(a2),d0
+	mulu.w	bm_Rows(a2),d0
+	CALLLIB	_LVOFreeMem
+	bra.b	.clr8
+;-------------------------------------------------------
+.noInt8	move.w	bm_BytesPerRow(a2),d3
+	mulu.w	bm_Rows(a2),d3
+
+	moveq.l	#7,d2
+	lea.l	bm_Planes(a2),a3
+.free8	movea.l	(a3)+,a1
+	cmpa.w	#0,a1
+	beq.b	.isfr8
+	move.l	d3,d0
+	CALLLIB	_LVOFreeMem
+.isfr8	dbra	d2,.free8
+;-------------------------------------------------------
+.clr8	moveq.l	#7,d0
+	lea.l	bm_Planes(a2),a0
+.lp1_8	clr.l	(a0)+
+	dbra	d0,.lp1_8
+;-------------------------------------------------------
+
+.exit	movem.l	(sp),d2-d3/a2-a3/a6
+	unlk	a5
+	rts
+
+
+;-- END OF FILE ----------------------------------------------------------

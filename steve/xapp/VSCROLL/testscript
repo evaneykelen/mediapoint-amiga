@@ -1,0 +1,14 @@
+SCRIPTTALK 3, 0
+
+STARTSER
+
+	STARTSER "Main"
+
+		START
+			XAPP "CreditRoll", "", "\"Work:SC/proj2/steve/xapp/VSCROLL/CrawlText\"", 1
+			DURATION 00:00:10:0
+		END
+
+	ENDSER
+
+ENDSER

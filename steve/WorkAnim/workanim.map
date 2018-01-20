@@ -1,0 +1,25 @@
+Animation               07-Jun-93 13:26:14  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         4058 lib:cres.o       c        code            0    0      2b4
+                       workanim.o       workanim code          2b4    0      670
+                       lib:/source/_mai _main.c  code          924    0      12c
+                       gp:general.o     general. code          a50    0       e4
+                       animplay.o       <noname> code          b34    0     332c
+                       lib:sc.lib       _fpinit. code         3e60    0       30
+                       lib:sc.lib       _MemClea code         3e90    0       80
+                       lib:sc.lib       _exit.c  code         3f10    0       5c
+                       lib:sc.lib       strcat   code         3f6c    0       18
+                       lib:sc.lib       DelPort. code         3f84    0       44
+                       lib:sc.lib       CrtPort. code         3fc8    0       90
+   1 __MERGED       54 workanim.o       workanim data            0    0       20
+                       gp:general.o     general. data           20    0        4
+                       lib:sc.lib       sigfunc. data           24    0       24
+                       lib:sc.lib       stack.c  data           48    0        4
+                       lib:sc.lib       _ufb.c   data           4c    0        8
+                       lib:cres.o       c        bss            54    0       50
+                       lib:/source/_mai _main.c  bss            a4    0       8c
+                       lib:sc.lib       memheap. bss           130    0        4
+                       lib:sc.lib       dosbase  bss           134    0        4
+                       lib:sc.lib       _top.c   bss           138    0        4
+                       lib:sc.lib       _exit.c  bss           13c    0        4

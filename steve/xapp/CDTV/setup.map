@@ -1,0 +1,77 @@
+setup                   08-Aug-93 13:40:40  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         4748 lib:cres.o       c        code            0    0      2b4
+                       setup.o          setup.c  code          2b4    0      b2c
+                       gen:support.o    support. code          de0    0      30c
+                       worker.o         worker.c code         10ec    0      2cc
+                       gen:geninit.o    geninit. code         13b8    0       28
+                       doit.o           doit.c   code         13e0    0      184
+                       serial.o         serial.c code         1564    0      8d4
+                       lib:/source/_mai _main.c  code         1e38    0      12c
+                       control.o        control. code         1f64    0      1fc
+                       lowlevel.o       lowlevel code         2160    0      c04
+                       lib:sc.lib       _fpinit. code         2d64    0       30
+                       lib:sc.lib       _MemClea code         2d94    0       80
+                       lib:sc.lib       _stcul_d code         2e14    0       30
+                       lib:sc.lib       _stcl_o  code         2e44    0       30
+                       lib:sc.lib       _stcl_h  code         2e74    0       3c
+                       lib:sc.lib       _stcd_i  code         2eb0    0       54
+                       lib:sc.lib       stccpy.c code         2f04    0       44
+                       lib:sc.lib       _stub.c  code         2f48    0       c0
+                       lib:sc.lib       _strupr. code         3008    0       3c
+                       lib:sc.lib       _write.c code         3044    0      100
+                       lib:sc.lib       _lseek.c code         3144    0       94
+                       lib:sc.lib       _cxd33   code         31d8    0       c4
+                       lib:sc.lib       _exit.c  code         329c    0       5c
+                       lib:sc.lib       _cxbrk.c code         32f8    0      14c
+                       lib:sc.lib       _chkufb. code         3444    0       4c
+                       lib:sc.lib       _chkabor code         3490    0       50
+                       lib:sc.lib       memchr   code         34e0    0       24
+                       lib:sc.lib       memmove  code         3504    0       2c
+                       lib:sc.lib       free     code         3530    0      16c
+                       lib:sc.lib       malloc   code         369c    0      174
+                       lib:sc.lib       exit.c   code         3810    0       54
+                       lib:sc.lib       sscanf.c code         3864    0       5c
+                       lib:sc.lib       sprintf. code         38c0    0       44
+                       lib:sc.lib       _sfmt.c  code         3904    0      618
+                       lib:sc.lib       _pfmt.c  code         3f1c    0      438
+                       lib:sc.lib       _sf.c    code         4354    0      168
+                       lib:sc.lib       _pf.c    code         44bc    0       7c
+                       lib:sc.lib       DelStdIO code         4538    0       28
+                       lib:sc.lib       DelPort. code         4560    0       44
+                       lib:sc.lib       DelExtIO code         45a4    0       2c
+                       lib:sc.lib       CrtStdIO code         45d0    0       40
+                       lib:sc.lib       CrtPort. code         4610    0       90
+                       lib:sc.lib       CrtExtIO code         46a0    0       48
+                       lib:sc.lib       io2errno code         46e8    0       60
+   1 __MERGED      e14 setup.o          setup.c  data            0    0      934
+                       gen:support.o    support. data          934    0       14
+                       doit.o           doit.c   data          948    0       48
+                       serial.o         serial.c data          990    0      19c
+                       control.o        control. data          b2c    0        8
+                       lowlevel.o       lowlevel data          b34    0       5c
+                       lib:sc.lib       mstep.c  data          b90    0        4
+                       lib:sc.lib       sigfunc. data          b94    0       24
+                       lib:sc.lib       ctype.c  data          bb8    0      104
+setup                   08-Aug-93 13:40:40  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       stack.c  data          cbc    0        4
+                       lib:sc.lib       _stub.c  data          cc0    0       50
+                       lib:sc.lib       _iob.c   data          d10    0       68
+                       lib:sc.lib       _ufb.c   data          d78    0        8
+                       lib:sc.lib       _cxbrk.c data          d80    0       50
+                       lib:sc.lib       exitfunc data          dd0    0        4
+                       lib:sc.lib       io2errno data          dd4    0       40
+                       lib:cres.o       c        bss           e14    0       50
+                       setup.o          setup.c  bss           e64    0        c
+                       gen:support.o    support. bss           e70    0      218
+                       lib:/source/_mai _main.c  bss          1088    0       8c
+                       lib:sc.lib       errno.c  bss          1114    0        4
+                       lib:sc.lib       memheap. bss          1118    0        4
+                       lib:sc.lib       memtype. bss          111c    0        4
+                       lib:sc.lib       dosbase  bss          1120    0        4
+                       lib:sc.lib       _top.c   bss          1124    0        4
+                       lib:sc.lib       _exit.c  bss          1128    0        4
+                       lib:sc.lib       sscanf.c bss          112c    0        8

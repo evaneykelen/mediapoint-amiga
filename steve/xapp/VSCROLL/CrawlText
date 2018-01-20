@@ -1,0 +1,28 @@
+^!^
+^cb000^
+^cffff^
+^cs888^
+^fCompact^
+^s40^
+^v1^
+^d3^
+^tf^
+Special formatting codes:
+
+^d10^Shadow depth is 10
+^d4^Shadow depth is 4
+^d2^Shadow depth is 2
+
+^fmediapoint^^s9^Font is now MediaPoint, 9 points
+^fmediapoint^^s10^Font is now MediaPoint, 10 points
+^fmediapoint^^s18^Font is now MediaPoint, 18 points
+^fmediapoint^^s20^Font is now MediaPoint, 20 points
+
+^al^Left justified text
+^ar^Right justified text
+
+^am^Special credit justification:
+
+William Shatner | Captain Kirk
+Leonard Nimoy | Dr. Spock
+DeForrest Kelley | Sucking Bitch

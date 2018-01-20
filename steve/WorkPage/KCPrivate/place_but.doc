@@ -1,0 +1,9 @@
+Arg 0	- Type					// 1 - invertbox, 2 - Normal box, 3 - Fat box ( with linesize )
+Arg 1 - X	
+Arg 2 - Y
+Arg 3 - Width
+Arg 4 - Height
+Arg 5 - Color
+Arg 6 - Linesize 
+Arg 7 - Delay					// delay beteen blinks
+Arg 8 - Blinks				// number off blinks

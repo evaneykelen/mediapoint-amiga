@@ -1,0 +1,51 @@
+input                   08-Nov-94 11:12:47  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         30b4 lib:cres.o       c        code            0    0      2b4
+                       input.o          input.c  code          2b4    0     1690
+                       lib:/source/_mai _main.c  code         1944    0      12c
+                       gen:GenInit.o    geninit. code         1a70    0       28
+                       gp:asm/place_but <noname> code         1a98    0      2a8
+                       inputasm.o       inputasm code         1d40    0       10
+                       beep.o           beep.c   code         1d50    0      27c
+                       functions.o      function code         1fcc    0      104
+                       vars.o           vars.c   code         20d0    0      1d8
+                       lib:sc.lib       _constru code         22a8    0       18
+                       lib:sc.lib       _fpinit. code         22c0    0       30
+                       lib:sc.lib       _MemClea code         22f0    0       80
+                       lib:sc.lib       stricmp  code         2370    0       3c
+                       lib:sc.lib       stccpy.c code         23ac    0       44
+                       lib:sc.lib       stcarg.c code         23f0    0       70
+                       lib:sc.lib       _cxd33   code         2460    0       c4
+                       lib:sc.lib       _exit.c  code         2524    0       5c
+                       lib:sc.lib       strchr   code         2580    0       18
+                       lib:sc.lib       memmove  code         2598    0       2c
+                       lib:sc.lib       sscanf.c code         25c4    0       5c
+                       lib:sc.lib       _sfmt.c  code         2620    0      618
+                       lib:sc.lib       _sf.c    code         2c38    0      168
+                       lib:sc.lib       newlist  code         2da0    0       14
+                       lib:sc.lib       DelStdIO code         2db4    0       28
+                       lib:sc.lib       DelPort. code         2ddc    0       44
+                       lib:sc.lib       CrtStdIO code         2e20    0       40
+                       lib:sc.lib       CrtPort. code         2e60    0       90
+                       lib:sc.lib       BeginIO. code         2ef0    0       14
+                       lib:sc.lib       autoopen code         2f04    0      154
+                       lib:sc.lib       intuitli code         3058    0       5c
+   1 __MERGED      1a8 input.o          input.c  data            0    0        c
+                       beep.o           beep.c   data            c    0       3c
+                       T:X02M4.0000     _ctdt.o  data           48    0       14
+                       lib:sc.lib       sigfunc. data           5c    0       24
+                       lib:sc.lib       ctype.c  data           80    0      104
+                       lib:sc.lib       _constru data          184    0        4
+                       lib:sc.lib       stack.c  data          188    0        4
+                       lib:sc.lib       _ufb.c   data          18c    0        8
+                       lib:sc.lib       _stdwin. data          194    0       14
+                       lib:cres.o       c        bss           1a8    0       50
+                       lib:/source/_mai _main.c  bss           1f8    0       8c
+                       lib:sc.lib       memheap. bss           284    0        4
+                       lib:sc.lib       dosbase  bss           288    0        4
+                       lib:sc.lib       _top.c   bss           28c    0        4
+                       lib:sc.lib       _exit.c  bss           290    0        4
+                       lib:sc.lib       sscanf.c bss           294    0        8
+                       lib:sc.lib       oslibver bss           29c    0        4
+                       lib:sc.lib       intuitli bss           2a0    0        8

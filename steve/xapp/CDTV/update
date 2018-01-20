@@ -1,0 +1,4 @@
+del doit.o
+del setup.o
+del serial.o
+del setup2.o

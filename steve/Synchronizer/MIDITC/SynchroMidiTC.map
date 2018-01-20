@@ -1,0 +1,41 @@
+SynchroMidiTC           14-Mar-94 13:54:23  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         27e0 lib:c.o          c        code            0    0      260
+                       SynchroMidiTC.o  synchrom code          260    0      8a4
+                       lib:/source/_mai _main.c  code          b04    0      12c
+                       tempoeditor.o    tempoedi code          c30    0      c2c
+                       inputevent.o     inputeve code         185c    0       10
+                       gen:GenInit.o    geninit. code         186c    0       28
+                       ph:functions.o   function code         1894    0      104
+                       itc.o            itc.c    code         1998    0      794
+                       etc.o            etc.c    code         212c    0      3bc
+                       lib:sc.lib       _fpinit. code         24e8    0       30
+                       lib:sc.lib       _MemClea code         2518    0       80
+                       lib:sc.lib       _exit.c  code         2598    0       5c
+                       lib:sc.lib       newlist  code         25f4    0       14
+                       lib:sc.lib       DelStdIO code         2608    0       28
+                       lib:sc.lib       DelPort. code         2630    0       44
+                       lib:sc.lib       CrtStdIO code         2674    0       40
+                       lib:sc.lib       CrtPort. code         26b4    0       90
+                       lib:amiga.lib    <noname> code         2744    0       14
+                       lib:amiga.lib    <noname> code         2758    0       18
+                       lib:amiga.lib    <noname> code         2770    0       14
+                       lib:amiga.lib    <noname> code         2784    0       14
+                       lib:amiga.lib    <noname> code         2798    0       18
+                       lib:amiga.lib    <noname> code         27b0    0       18
+                       lib:amiga.lib    <noname> code         27c8    0       18
+   1 __MERGED       34 SynchroMidiTC.o  synchrom data            0    0        4
+                       lib:sc.lib       sigfunc. data            4    0       24
+                       lib:sc.lib       stack.c  data           28    0        4
+                       lib:sc.lib       _ufb.c   data           2c    0        8
+                       lib:c.o          c        bss            34    0       54
+                       SynchroMidiTC.o  synchrom bss            88    0       58
+                       lib:/source/_mai _main.c  bss            e0    0       8c
+                       tempoeditor.o    tempoedi bss           16c    0       70
+                       itc.o            itc.c    bss           1dc    0       98
+                       etc.o            etc.c    bss           274    0       78
+                       lib:sc.lib       memheap. bss           2ec    0        4
+                       lib:sc.lib       dosbase  bss           2f0    0        4
+                       lib:sc.lib       _top.c   bss           2f4    0        4
+                       lib:sc.lib       _exit.c  bss           2f8    0        4

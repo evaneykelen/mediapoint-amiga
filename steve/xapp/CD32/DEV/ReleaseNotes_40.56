@@ -1,0 +1,414 @@
+
+   ************************************************************************
+   *									  *
+   *				COPYRIGHTS				  *
+   *									  *
+   *		   UNLESS OTHERWISE NOTED, ALL FILES ARE		  *
+   *									  *
+   *  Copyright (c) 1985-1993 Commodore-Amiga, Inc.  All Rights Reserved  *
+   *									  *
+   ************************************************************************
+
+
+   ************************************************************************
+   *									  *
+   *	    		CONFIDENTIAL DEVELOPER MATERIALS		  *
+   *									  *
+   ************************************************************************
+
+   THIS SOFTWARE AND INFORMATION IS PRELIMINARY AND/OR CONFIDENTIAL, AND
+   IS PROVIDED ONLY FOR INHOUSE TESTING AND/OR USE BY SPECIFIC REGISTERED
+   DEVELOPERS.
+
+   THIS SOFTWARE AND INFORMATION MAY NOT BE DISTRIBUTED, DISCLOSED,
+   OR DUPLICATED, IN WHOLE OR IN PART, IN ANY MANNER OTHER THAN AS
+   SPECIFIED IN A SIGNED NONDISCLOSURE AGREEMENT WITH COMMODORE.
+ 
+   THIS SOFTWARE AND INFORMATION MAY NOT BE RETRANSMITTED ELECTRONICALLY,
+   AND MAY NOT BE STORED ON MULTI-USER SYSTEMS.
+
+   
+   ************************************************************************
+   *									  *
+   *				DISCLAIMER				  *
+   *									  *
+   *   THIS SOFTWARE AND INFORMATION IS PROVIDED "AS IS".		  *
+   *   NO REPRESENTATIONS OR WARRANTIES ARE MADE WITH RESPECT TO THE	  *
+   *   ACCURACY, RELIABILITY, PERFORMANCE, CURRENTNESS, OR OPERATION	  *
+   *   OF THIS SOFTWARE AND INFORMATION, AND ALL USE IS AT YOUR OWN RISK. *
+   *   NEITHER COMMODORE NOR THE AUTHORS ASSUME ANY RESPONSIBILITY OR	  *
+   *   LIABILITY WHATSOEVER WITH RESPECT TO YOUR USE OF THIS SOFTWARE	  *
+   *   AND INFORMATION.							  *
+   *									  *
+   ************************************************************************
+
+
+                        AMIGA CDGS KICKSTART V40.56
+
+
+Building kickstart 40.56 from BuildList <CDGSDVL> : 24-May-93 15:40:54
+
+       expansion 40.2    @ $E00010-$E00AE8 Size:   2776  (9.3.93)
+           wbtag 39.1    @ $E00AE8-$E00BAC Size:    196  (20.4.92)
+       checkdisk 37.1    @ $E00BAC-$E00D08 Size:    348  (11.3.92)
+         cdstrap 40.13   @ $E00D08-$E03060 Size:   9048  (18.5.93)
+            cdui 40.20   @ $E03060-$E58424 Size: 349124  (14.5.93)
+       reqzapper 40.2    @ $E58424-$E58508 Size:    228  (12.5.93)
+              cd 40.21   @ $E58508-$E5B838 Size:  13104  (19.5.93)
+            cdfs 40.8    @ $E5B838-$E5FCF0 Size:  17592  ** WARNING **
+!!! Module has BSS hunks !!!
+
+   playerlibrary 40.12   @ $E5FCF0-$E61D60 Size:   8304  (19.5.93)
+     nonvolatile 40.31   @ $E61D60-$E637A0 Size:   6720  (21.5.93)
+        lowlevel 40.34   @ $E637A0-$E65110 Size:   6512  (24.5.93)
+        freeanim 40.2    @ $E65110-$E65300 Size:    496  (26.3.93)
+             cdg 40.1    @ $E65300-$E689C4 Size:  14020  (18.2.93)
+           debox 39.3    @ $E689C4-$E69D10 Size:   4940  (19.3.93)
+         kludges 40.8    @ $E69D10-$E6A844 Size:   2868  (13.4.93)
+            cdtv 40.16   @ $E6A844-$E6BFA4 Size:   5984  (21.5.93)
+            book 6.7     @ $E6BFA4-$E6C658 Size:   1716  (14.5.92)
+     playerprefs 40.12   @ $E6C658-$E79FC4 Size:  55660  (7.4.93)
+            exec 40.9    @ $F80000-$F83804 Size:  14340  (24.5.93)
+              wb 40.5    @ $F83804-$F94C0C Size:  70664  (24.5.93)
+ mathieeesingbas 40.4    @ $F94C0C-$F95AB0 Size:   3748  (16.3.93)
+     graphics_aa 40.24   @ $F95AB0-$FAEF8C Size: 103644  (18.5.93)
+             dos 40.3    @ $FAEF8C-$FB8B98 Size:  39948  (1.4.93)
+              fs 40.1    @ $FB8B98-$FBEB38 Size:  24480  (15.2.93)
+         console 40.2    @ $FBEB38-$FC27BC Size:  15492  (5.3.93)
+          layers 40.1    @ $FC27BC-$FC5970 Size:  12724  (15.2.93)
+        temp_ide 39.2    @ $FC5970-$FC8490 Size:  11040  (24.1.93)
+     con-handler 40.2    @ $FC8490-$FCAC54 Size:  10180  (12.5.93)
+        bootmenu 40.5    @ $FCAC54-$FCC264 Size:   5648  (17.3.93)
+           audio 37.10   @ $FCC264-$FCD304 Size:   4256  (26.4.91)
+         cardres 40.4    @ $FCD304-$FCDEE8 Size:   3044  (4.5.93)
+         utility 40.1    @ $FCDEE8-$FCE8A4 Size:   2492  (10.2.93)
+       battclock 39.3    @ $FCE8A4-$FCF210 Size:   2412  (20.4.92)
+        carddisk 40.1    @ $FCF210-$FCFB40 Size:   2352  (12.2.93)
+        ramdrive 39.35   @ $FCFB40-$FD0134 Size:   1524  (21.5.92)
+         mathffp 40.1    @ $FD0134-$FD05D0 Size:   1180  (16.3.93)
+             cia 39.1    @ $FD05D0-$FD09C0 Size:   1008  (10.3.92)
+         battmem 39.2    @ $FD09C0-$FD0BA4 Size:    484  (6.3.92)
+      filesysres 40.1    @ $FD0BA4-$FD0D44 Size:    416  (15.2.93)
+            misc 37.1    @ $FD0D44-$FD0DF4 Size:    176  (8.1.91)
+           potgo 37.4    @ $FD0DF4-$FD0F2C Size:    312  (28.1.91)
+            disk 37.2    @ $FD0F2C-$FD1274 Size:    840  (21.4.91)
+          ramlib 40.2    @ $FD1274-$FD1698 Size:   1060  (5.3.93)
+          keymap 40.4    @ $FD1698-$FD2318 Size:   3200  (12.3.93)
+           timer 39.4    @ $FD2318-$FD3104 Size:   3564  (29.7.92)
+           strap 40.1    @ $FD3104-$FD401C Size:   3864  (8.3.93)
+        rawinput 40.1    @ $FD401C-$FD5650 Size:   5684  (8.3.93)
+       trackdisk 40.1    @ $FD5650-$FD7358 Size:   7432  (12.3.93)
+            icon 40.1    @ $FD7358-$FD9788 Size:   9264  (15.2.93)
+             ram 39.4    @ $FD9788-$FDBC00 Size:   9336  (9.8.92)
+           shell 40.2    @ $FDBC00-$FE00E0 Size:  17632  (4.3.93)
+       intuition 40.85   @ $FE00E0-$FF9A80 Size: 104864  (5.5.93)
+        gadtools 40.4    @ $FF9A80-$FFF614 Size:  23444  (24.5.93)
+
+Build of kickstart 40.56 completed at : 24-May-93 15:42:10
+
+
+The following notes pertain to changes between this release and V40.38.
+
+New:
+
+	reqzapper 40.2
+
+Changed:
+
+	cd 40.21
+	wb 40.5
+	cdfs 40.8
+	cdtv 40.16
+	cdui 40.20
+	exec 40.9
+	cardres 40.4
+	cdstrap 40.13
+	gadtools 40.4
+	lowlevel 40.34
+	intuition 40.85
+	con-handler 40.2
+	graphics_aa 40.24
+	nonvolatile 40.31
+	playerlibrary 40.12
+
+
+
+Details:
+
+
+cd 40.21
+
+    -	Fixes a problem with the CD_SEARCH command turning on the attenuator
+	when the command is sent directly after (or during) a CD_READ command.
+	(40.17)
+
+    -	Fixes CD_SEARCH command messing up attenuator during a CD_READ.
+	(40.18)
+
+    -	No longer adds xl interrupt to server chain.  (40.18)
+
+    -	Fixed problem with order/timing of door-openned abort responses
+	from drive caused by a hardware modification to turn off laser
+	when the door is openned.  (40.19)
+
+    -	The last frame of the CD can now be accessed.  (40.20)
+
+    -	Makes sure CD drive light is turned off when CDGS is booted.
+	(40.21)
+
+
+wb 40.5
+
+    -	Saved 184 bytes.  (40.5)
+
+
+cdfs 40.8
+
+    -	Fixed a problem when used with a SCSI CDROM drive (it used to try to
+	start reading in the middle of a sector, which the CDTV driver
+	allowed).  (40.7)
+
+    -	Stopped spurious io_torture hits at boot/startup time.
+	Changed initializers for ln_Type to NT_REPLYMSG instead of
+	NT_MESSAGE.  (40.8)
+
+
+cdtv 40.16
+
+    -	No longer adds frame interrupt server to server chain.  (40.14)
+
+    -	Fixes TOCMSF's Lead-out time.  (40.14)
+
+    -	Fixes a bug where an IORequest was not properly being loaded
+	before calling OpenDevice() of timer.device when emulating frame
+	interrupts.  (40.16)
+
+
+cdui 40.20
+
+    -	Moved the TM on startup animation up to be flush with the top of
+	the 32.  (40.19)
+
+    -	Moved the order in which allocations occur during the startup
+	animation in order to reduce memory fragmentation. This made a big
+	difference in the size of the largest memory block available when
+	an application starts.  (40.19)
+
+    -	Added code to remove the AllocMem() patch from within the expunge
+	vector of the library. This will prevent the patch from staying
+	applied when booting off of disk or running CDTV titles.
+
+
+exec 40.9
+
+    -	The CDGS timeout is now set to 0 as a default...  (In other words,
+	no alerts.)  (40.8)
+
+
+cardres 40.4
+
+    -	As of the change to exec which disables the CC interface,
+	card.resource did not add SRAM cards as system RAM if inserted
+	on power-up.  Fixed.  (40.4)
+
+
+cdstrap 40.13
+
+    -	Adjusted to deal with new reqzapper module.  (40.12)
+
+    -	LastAlert[3] is set to zero when booting off of a CD.  Requesters
+	are zapped only when booting off of an AmigaCD title.  (40.13)
+
+    -	If the startup-sequence is disabled with bootmenu, then the
+	startup-animation is not started.  (40.13)
+                              
+
+gadtools 40.4
+
+    -	Fixed activation/deactivation problem with the arrows on scroller
+	gadgets.  Except for the initial creation of a scroller gadget,
+	the GA_Disabled tag was being ignored.  (40.3)
+
+    -	Unused items in a listview are now rendered using BACKGROUNDPEN
+	instead of being rendered with the window's backfill hook (via
+	EraseRect()). This is more appropriate.  (40.4)
+
+
+lowlevel 40.34
+
+    -	ReadJoyPort() speed was a real issue.  Reading a game controller was
+	taking about 300us per read attempt on the CDGS.  The time was spent
+	in two places:
+
+	*   Constantly autosensing which controller type was attached.
+	*   Serially clocking in the controller buttons.
+
+	The amount of time necessary to autosense the controller type,
+	combined with the known problem of the autosensing mechanism getting
+	confused by precise mouse movements provoked us to add the ability
+	to "lock in" a certain controller type.  Thus, a new LVO was added --
+	SetJoyPortAttrs().  The idea is that programmers can use ReadJoyPort()
+	in it's default auto-sensing manner -- say, on a title page, where
+	the user would need to use the controller to click on 'Start', or
+	something; note the controller type sensed, and then notify
+	ReadJoyPort() not to try autosensing from that point further.
+	This prevents mouse-->joystick confusion in critical areas, and
+	because it removes much of the overhead in reading the controller,
+	speeds things up.
+
+	By streamlining things a bit, utilizing several 'seperate' versions
+	of the code to read a joystick, mouse, or game controller,
+	and optimizing the single-controller code, we achieved the following
+	results:
+
+	(times are calculated with all versions of the code in Chip Ram.  Rom
+	speeds are a bit better.  All clocked on a CDGS.)
+
+	Controller        Old (Unlocked)          New (Locked)       %
+	   Type                                                   Speedup
+	-------------------------------------------------------------------
+	Game Controller       300us                   223us        25.7%
+	Mouse                 107us                    62us        42%
+	Joystick              146us                    65us        55%
+
+	Obviously, the speedup only applies when a certain controller type
+	has been "locked in".  (40.27)
+
+    -	Added multiple-controller support.  (40.27)
+
+    -	Added some code to set the left button qualifier when lowlevel
+	introduces fire button events on port 0.  (40.27)
+
+    -	Fixed repeat/hold delay for joystick to raw key conversion by
+	tweaking the constant slightly such that the default remainder is
+	small.  (40.28)
+
+    -	SystemControlA SCON_CDReboot had incorrect default and always
+	failed.  Was mistakenly doing move.l's into io_Command instead of
+	move.w's.  (40.28)
+
+    -	Added a tag to SetJoyPortAttrsA() to force lowlevel to relinquish
+	the resources it grabs with each port (like potgo bits), and return
+	the type of the selected port to 'autosense'.  (40.29)
+
+    -	The call to cd.device to find the default was happening before the
+	device had set up the current (or default, for us) behavior --
+	therefore, it was always getting a "0", or "don't reboot".  Fixed.
+	(40.32)
+
+    -	GetLanguageSelection() was doing a move.b  ...,d0, without ever
+	making sure the top 24 bits were cleared.  One instruction fix.
+	(40.33)
+
+    -	The same message port was being re-used, without any protection for 
+	multiple tasks using it at the same time.  Added a Semaphore to
+	protect the port.  (40.34)
+
+
+intuition 40.85
+
+    -	OpenScreen() now fails if AttachPalExtra() fails.  Otherwise,
+	Enforcer hits and awful death may result.  (40.85)
+
+    -	If sysiclass fails to allocate its TmpRas, it would fail to release
+	the semaphore which protects class-data, locking out subsequent
+	users.  Fixed.  (40.85)
+
+
+reqzapper 40.2
+
+    This is a new module for the game system ROM. It has two purposes:
+
+    *	It kills DOS requesters on all system processes by setting their
+	pr_WindowPtr field to -1. This prevents any DOS requesters from
+	showing up during the game system boot process.
+
+    *	It prevents DOS "Software Failure, Task Stopped" requesters from
+	ever being displayed.
+
+    -	Now also resets the TC_TRAPCODE vector of existing processes when it
+	runs in addition to setting their pr_WindowPtr field to -1.  This is
+	done by copying the pointer to the default Exec trap code address
+	into the task structure.  This prevents system processes from
+	bringing up DOS software failure requesters.  (40.2)
+
+
+con-handler 40.2
+
+    -	Fixes any possible remaining hole where a ^C could be sent to a
+	non-existant process, and removes any chance of an Enforcer hit
+	while trying to decide if the process still exists.
+
+	Note that this searches the exec task lists under Disable(), so on
+	a heavily-loaded (with tasks) system this might affect MIDI.
+	(40.2)
+
+
+graphics_aa 40.24
+
+    -	"GetColorMap fails under memoration" fixed.  (40.19)
+
+    -	Killed two never-used stubs, made on function __regargs that wasn't.
+
+    -	Some depths of ScanDoubled beam-sync modes required an odd number of
+	lines in the inter-viewport gap, but MrgCop() always doubled the
+	WAIT position in ScanDouble displays.  Now adds 1 to the WAIT
+	position if a flag in the CopList->Flags shows that this is a "half
+	line" gap; this flag is set in CalcIVG().  (40.20)
+
+    -	Check if the CopList being merged is vp->SprIns, vp->ClrIns or
+	vp->UCopIns before checking the STRADDLES_256 flag.  (40.20)
+
+    -	Fixed problem in previous release (graphics_aa 40.20) which was
+	caused by a compiler bug.
+
+    -	Removed check for SetDefaultMonitor failing and pulling an alert
+	in graphics library init.  (40.23)
+
+    -	When changing between PAL and NTSC views (and presumably between
+	other monitor types too), occasionally the machine could freeze.
+	The cause is unknown, but our current theory is that disabling
+	RASTER DMA in the middle of a fetch cycle could be dangerous. We
+	now try to ensure that we don't disable RASTER DMA in the middle
+	of a fetch cycle. This is an improvement, although tests show this
+	to not be perfect. Brings the crash interval from a few minutes to
+	many hours of continuous screen flipping.  (40.23)
+
+    -	ScrollVPort would fail to modify the FMODE value in the intermediate
+	copper list of an interlaced screen. This is because it was looking
+	for a DIWHIGH move followed by an FMODE move. The interlaced
+	intermediate copper lists have two DIWHIGH moves, and have LF/SHF
+	bits set in the opcodes.  Fix was to AND out the LF/SHF bits and to
+	make it skip as many DIWHIGH writes as appear.
+	one AND.L #immed + 1 bra.s.  (40.24)
+
+
+nonvolatile 40.31
+
+    -	App or Item names greater than allowed failed to be stored or
+	retrieved in NVRAM.  Fixed.  (40.29)
+
+    -	Speedup of SetProtection() function that allows locking screen to
+	exit noticeably faster.  (40.29)
+
+    -	Speed up GetNVList() function.  This allows the locking screen to
+	come up faster when the NVRAM is full of data items.  Prior to
+	fix screen could take up to 13 seconds to appear (if full).  After
+	fix it takes 3-4 seconds.  If there are only a few items in NVRAM,
+	the speedup is neglegable.  (40.30)
+
+    -	Now generates an error if StoreNV() is called with an app name or
+	an item name greater than 31 characters, instead of truncating the
+	name silently.    (40.31)
+
+
+playerlibrary 40.12
+
+    -	If you jar the CD player while it's near the beginning of track 1,
+	and the head skips to before the start of track 1, the play-command
+	IORequest will terminate with an error.  This error was basically
+	ignored, meaning that player.library never changed its state to
+	reflect the fact that the CD was no longer playing.  The internal
+	state is now changed to stopped when such an error occurs.  (40.12)
+
+

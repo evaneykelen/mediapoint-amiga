@@ -1,0 +1,30 @@
+Hi Erik
+
+- om de aanpassingen te maken:
+
+  zoeken op 'FastOpenIFF' en op 'iff_frame' (raadzaam om die files toch te schrijven
+  als er geen wijzigingen in de tekst zijn, ivm andere sizeof(iff))
+
+	FastOpenIFF wordt;
+
+	ULONG ID = FastOpenIFF( iff, <filename> );
+	if ( iff.Error || ( ID != ILBM && ID != ANIM ) )
+		fastparse...
+		etc.
+
+	alle items uit de bitmapheader worden nu:
+
+	iff.w          -> iff.BMH.w
+	iff->pageWidth -> iff->BMH.pageWidth
+	etc.
+
+	behalve natuurlijk iff.viewModes en iff.colorMap
+
+- ik heb in een aantal gevallen gezien dat na FastInitIFFFrame variabelen alsnog op nul
+  gezet worden. dit is geheel overbodig en kost bytes.
+
+- shift click selecteert van oude positie naar nieuwe position
+
+- Nieuwe returncode voor FastOpenIFF: IFF_ERROR_NOT_IFF
+
+- 'Nieuwe' returncode voor FastDecodeBody: IFF_ERROR_NO_MEMORY

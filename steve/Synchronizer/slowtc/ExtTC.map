@@ -1,0 +1,38 @@
+ExtTC                   14-Sep-93 20:30:47  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         22c4 lib:c.o          c        code            0    0      260
+                       ExtTC.o          exttc.c  code          260    0      95c
+                       lib:/source/_mai _main.c  code          bbc    0      12c
+                       tempoeditor.o    tempoedi code          ce8    0      c2c
+                       inputevent.o     inputeve code         1914    0       10
+                       gen:GenInit.o    geninit. code         1924    0       28
+                       ph:functions.o   function code         194c    0      124
+                       itc.o            itc.c    code         1a70    0      368
+                       etc.o            etc.c    code         1dd8    0      238
+                       lib:sc.lib       _fpinit. code         2010    0       30
+                       lib:sc.lib       _MemClea code         2040    0       80
+                       lib:sc.lib       _exit.c  code         20c0    0       5c
+                       lib:sc.lib       newlist  code         211c    0       14
+                       lib:sc.lib       DelStdIO code         2130    0       28
+                       lib:sc.lib       DelPort. code         2158    0       44
+                       lib:sc.lib       CrtStdIO code         219c    0       40
+                       lib:sc.lib       CrtPort. code         21dc    0       90
+                       lib:amiga.lib    <noname> code         226c    0       14
+                       lib:amiga.lib    <noname> code         2280    0       14
+                       lib:amiga.lib    <noname> code         2294    0       18
+                       lib:amiga.lib    <noname> code         22ac    0       18
+   1 __MERGED       34 ExtTC.o          exttc.c  data            0    0        4
+                       lib:sc.lib       sigfunc. data            4    0       24
+                       lib:sc.lib       stack.c  data           28    0        4
+                       lib:sc.lib       _ufb.c   data           2c    0        8
+                       lib:c.o          c        bss            34    0       54
+                       ExtTC.o          exttc.c  bss            88    0       64
+                       lib:/source/_mai _main.c  bss            ec    0       8c
+                       tempoeditor.o    tempoedi bss           178    0       5c
+                       itc.o            itc.c    bss           1d4    0       54
+                       etc.o            etc.c    bss           228    0       44
+                       lib:sc.lib       memheap. bss           26c    0        4
+                       lib:sc.lib       dosbase  bss           270    0        4
+                       lib:sc.lib       _top.c   bss           274    0        4
+                       lib:sc.lib       _exit.c  bss           278    0        4

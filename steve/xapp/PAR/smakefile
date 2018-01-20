@@ -1,0 +1,35 @@
+CC = sc
+				 
+#CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK DISASSEMBLE=ram:piet SAVEDS
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+AS = asm
+
+XAPPNAME = DPSPar
+
+# the modules needed by each application
+APP10 = doit.o setup.o\
+				demo:gen/_main.o demo:gen/general.o demo:gen/support.o demo:gen/worker.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(XAPPNAME)
+
+$(XAPPNAME): $(APP10) 
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib
+# lib:amiga.lib lib:debug.lib
+TO $(XAPPNAME) $(LFLAGS)
+MAP $(XAPPNAME).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

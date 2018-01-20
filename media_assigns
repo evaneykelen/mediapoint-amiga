@@ -1,0 +1,67 @@
+assign mlroot: sc:proj2
+
+; root assigns
+assign nb:			mlroot:main
+assign mllib:		mlroot:mllib
+assign pascal:	mlroot:pascal
+assign ml:			mlroot:steve
+assign tr:      nb:trans
+
+; mlroot:main/ assigns (nb:)
+assign ma:			nb:mod_about
+;assign mc:			nb:mod_conv
+assign mpag:		nb:mod_pagesetup
+assign mpre:		nb:mod_prefs
+assign mpri:		nb:mod_print
+assign msm:			nb:mod_scriptmanager
+assign mbgm:		nb:mod_bgm
+assign mra:			nb:mod_remoteaccess
+
+; mlroot:steve/ assigns (ml:)
+assign gen:			ml:general
+assign gp:			ml:geventproc
+assign minc:		ml:includes
+assign mlmmu:		ml:mlmmulib
+assign pg:			ml:parguide
+assign ph:			ml:processhandler
+assign sg:			ml:serguide
+assign sync:		ml:Synchronizer
+assign wa:			ml:workanim
+assign wd:			ml:workdos
+assign ws:			ml:workerskeleton
+assign wp:			ml:workpage
+;assign xal:			ml:xapploader
+assign wm:			ml:workmusic
+;assign vars:		ml:workvars
+
+; XAPPS
+
+assign pdev:		ml:xapp/pdev
+assign cdtv:		ml:xapp/cdtv
+assign iv24:		ml:xapp/iv24
+assign cdxl:		ml:xapp/cdxl
+assign ion:			ml:xapp/ion
+assign art:			ml:xapp/art
+assign s16:			ml:xapp/s16
+assign gvr:			ml:xapp/gvr-810
+assign midi:		ml:xapp/midi
+assign sample:  ml:xapp/ksample
+assign to:      ml:xapp/toaster
+assign toc:			ml:xapp/toc
+assign gl:			ml:xapp/genlock
+assign vu:			ml:xapp/vuport
+assign cd32:		ml:xapp/cd32
+assign vscroll:	ml:xapp/vscroll
+assign air:			ml:xapp/airlink
+assign nep:			ml:xapp/neptun
+assign res:			ml:xapp/resour
+assign seri:		ml:xapp/serial
+assign peggy:		ml:xapp/peggy
+assign lightp:	ml:xapp/lightpen
+assign newscr:	ml:xapp/newscript
+assign demo:		ml:xapp/demoxapp
+
+; CDF en ECP
+
+assign CDF:			nb:system/cdf_drawer/
+assign ECP:			nb:system/ecp_drawer/

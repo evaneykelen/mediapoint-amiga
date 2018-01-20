@@ -1,0 +1,25 @@
+Art                     04-Jun-93 11:05:16  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         1894 lib:cres.o       c        code            0    0      2b4
+                       WorkArt.o        workart. code          2b4    0      580
+                       lib:/source/_mai _main.c  code          834    0      12c
+                       gp:general.o     general. code          960    0       e4
+                       artgraph.o       <noname> code          a44    0      c58
+                       lib:sc.lib       _fpinit. code         169c    0       30
+                       lib:sc.lib       _MemClea code         16cc    0       80
+                       lib:sc.lib       _exit.c  code         174c    0       5c
+                       lib:sc.lib       strcat   code         17a8    0       18
+                       lib:sc.lib       DelPort. code         17c0    0       44
+                       lib:sc.lib       CrtPort. code         1804    0       90
+   1 __MERGED       54 WorkArt.o        workart. data            0    0       20
+                       gp:general.o     general. data           20    0        4
+                       lib:sc.lib       sigfunc. data           24    0       24
+                       lib:sc.lib       stack.c  data           48    0        4
+                       lib:sc.lib       _ufb.c   data           4c    0        8
+                       lib:cres.o       c        bss            54    0       50
+                       lib:/source/_mai _main.c  bss            a4    0       8c
+                       lib:sc.lib       memheap. bss           130    0        4
+                       lib:sc.lib       dosbase  bss           134    0        4
+                       lib:sc.lib       _top.c   bss           138    0        4
+                       lib:sc.lib       _exit.c  bss           13c    0        4

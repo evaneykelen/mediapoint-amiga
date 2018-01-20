@@ -1,0 +1,34 @@
+CC = sc
+
+CFLAGS = DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK NOICONS
+AFLAGS = 
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+AS = asm
+
+XAPPNAME = Interlude
+
+# these are my applications
+APP1 = WorkArt
+
+# the modules needed by each application
+APP10 = $(APP1).o lib:/source/_main.o gen:general.o artgraph.o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(XAPPNAME)
+
+$(XAPPNAME): $(APP10) 
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib
+TO $(XAPPNAME) $(LFLAGS)
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

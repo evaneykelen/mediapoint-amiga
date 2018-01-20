@@ -1,0 +1,39 @@
+workvars                26-Oct-94 13:45:08  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         17a4 lib:cres.o       c        code            0    0      2b4
+                       workvars.o       workvars code          2b4    0      2b8
+                       var.o            var.c    code          56c    0      6b0
+                       lib:/source/_mai _main.c  code          c1c    0      12c
+                       gen:geninit.o    geninit. code          d48    0       28
+                       lib:sc.lib       _fpinit. code          d70    0       30
+                       lib:sc.lib       _MemClea code          da0    0       80
+                       lib:sc.lib       strnicmp code          e20    0       88
+                       lib:sc.lib       stricmp  code          ea8    0       3c
+                       lib:sc.lib       _stcul_d code          ee4    0       30
+                       lib:sc.lib       _stcl_o  code          f14    0       30
+                       lib:sc.lib       _stcl_h  code          f44    0       3c
+                       lib:sc.lib       _stcd_i  code          f80    0       54
+                       lib:sc.lib       stccpy.c code          fd4    0       44
+                       lib:sc.lib       _strupr. code         1018    0       3c
+                       lib:sc.lib       _cxd33   code         1054    0       c4
+                       lib:sc.lib       _cxm33   code         1118    0       20
+                       lib:sc.lib       _exit.c  code         1138    0       5c
+                       lib:sc.lib       strcat   code         1194    0       18
+                       lib:sc.lib       memmove  code         11ac    0       2c
+                       lib:sc.lib       sprintf. code         11d8    0       44
+                       lib:sc.lib       _pfmt.c  code         121c    0      438
+                       lib:sc.lib       _pf.c    code         1654    0       7c
+                       lib:sc.lib       DelPort. code         16d0    0       44
+                       lib:sc.lib       CrtPort. code         1714    0       90
+   1 __MERGED      138 workvars.o       workvars data            0    0        4
+                       lib:sc.lib       sigfunc. data            4    0       24
+                       lib:sc.lib       ctype.c  data           28    0      104
+                       lib:sc.lib       stack.c  data          12c    0        4
+                       lib:sc.lib       _ufb.c   data          130    0        8
+                       lib:cres.o       c        bss           138    0       50
+                       lib:/source/_mai _main.c  bss           188    0       8c
+                       lib:sc.lib       memheap. bss           214    0        4
+                       lib:sc.lib       dosbase  bss           218    0        4
+                       lib:sc.lib       _top.c   bss           21c    0        4
+                       lib:sc.lib       _exit.c  bss           220    0        4

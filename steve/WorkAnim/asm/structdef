@@ -1,0 +1,47 @@
+
+struct animlist
+{
+	long FORM_pointer;		; points to the FORM in memory if exists
+	long size_mem;				; the size of the FORM in memory ( allocmem )
+	long filepos;				; position in the file absolute
+	
+	word	info;
+
+	union							; the BODY info
+	{
+		word	lenx;
+		word	leny;
+		word	planes;
+		byte	masking;
+		byte	compression;
+	},
+	{								; the DLTA info
+		long	reltime;
+		byte	operation;
+		byte	mask;
+		byte	interleave;
+		byte	bits;
+	}
+
+	own_CMAP_struct *CMAP_pointer;
+
+	long pos;					; where is the DLTA or BODY chunk
+	long size;					; the size of the DLTA or BODY chunk
+
+	long CAMG_info;			; the actual bits
+	
+	animlist *next;
+}
+
+struct own_CMAP_struct
+{
+	word	num_colors;
+	word	colors[ num_colors ];
+}
+
+struct own_CMAP_struct_AA
+{
+	word	num_colors;
+	long	colors[ num_colors * 3 ];
+}
+

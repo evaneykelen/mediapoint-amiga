@@ -1,0 +1,286 @@
+// CD32 xapp options - long line! see also to the right!
+
+1  "Fade in slow|      Fade in fast|      Fade out slow|     Fade out fast|     Mute on|           Mute off|          Pause|             Stop play|         Single step|       1/2 speed|         1/4 speed|         Video/no audio|    Slow motion off|   "
+2  "Fade in langz.|    Fade in snel|      Fade uit langz.|   Fade uit snel|     Geluid uit|        Geluid aan|        Pauze|             Stop spelen|       Stap voor stap|    1/2 snelheid|      1/4 snelheid|      Video/geen audio|  Slow motion uit|   "
+3  "Fade in langsam|   Fade in schnell|   Fade out langsam|  Fade out schnell|  Mute an|           Mute aus|          Pause|             Stop|              Einzelschritt|     1/2 Geschw.|       1/4 Geschw.|       Video/kein Audio|  Einzelbid aus|     "
+4  "Fondu in lent|     Fondu in rapide|   Fondu out lent|    Fondu out rapide|  Sourdine active|   Sourdine inactive| Pause|             Stopper écoute|    <!>|               <!>|               <!>|               <!>|               <!>|               "
+  /*-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------*/
+
+// Read button names from AirLink project
+
+1  "Get button names"
+2  "Lees knop namen"
+3  "Lese Schalternamen"
+4  ""
+
+/* 'Do' is followed by a button name of an AirLink application */
+/* E.g. Do 'Power Off' or Do 'Play track' */
+
+1  "Do:"
+2  "Doe:"
+3  "Befehl:"
+4  ""
+
+/* Neptun */
+
+1  "Modes|      Fade 1|     Fade 2|     "
+2  "Modes|      Fade 1|     Fade 2|     "
+3  "Modi|       Blende 1|    Blende 2|  "
+4  ""
+  /*------------++++++++++++------------*/
+
+1  "Fade in"
+2  "Fade in"
+3  "Einblenden"
+4  ""
+
+1  "Fade out"
+2  "Fade uit"
+3  "Ausblenden"
+4  ""
+
+1  "From:"
+2  "Van:"
+3  "Von:"
+4  ""
+
+1  "To:"
+2  "Naar:"
+3  "Nach:"
+4  ""
+
+1  "Get"
+2  "Lees"
+3  "Liste"
+4  ""
+
+1  "Click mouse or hit key to stop preview."
+2  "Klik muis of druk toets om preview te stoppen."
+3  "Taste oder Maustaste drücken um Vorschau zu beenden."
+4  ""
+
+1  "Can't find an AirLink application."
+2  "Er draait geen AirLink programma."
+3  "Finde keine AirLink-Applikation"
+4  ""
+
+1  "The port '%s' doesn't exist."
+2  "De poort '%s' bestaat niet."
+3  "Der Port '%s' existiert nicht.""
+4  ""
+
+1  "File size:"
+2  "Bestandsgrootte:"
+3  "Dateigröße:"
+4  ""
+
+/* New anim settings in extras menu in Page Layout */
+
+1  "  Anim settings..."
+2  "  Anim instellingen..."
+3  "  Anim Einstellungen..."
+4  ""
+
+1  "This is not an animation."
+2  "Dit is geen animatie."
+3  "Das ist keine Animation."
+4  ""
+
+/* New warning during startup */
+
+1  "There is less than 1 MB left on this hard drive."
+2  "Er is minder dan 1 MB vrij op deze hard disk."
+3  "Weniger als 1 MB Platz auf dieser Festplatte verfügbar."
+4  ""
+
+1  "Black|    White|    Red|      Green|    Blue|     Yellow|   Cyan|     Purple|   Grey|     "
+2  "Zwart|    Wit|      Rood|     Groen|    Blauw|    Geel|     Cyaan|    Paars|    Grijs|    "
+3  "Schwarz|  Weiß|     Rot|      Grün|     Blau|     Gelb|     Cyan|     Lila|     Grau|     "
+4  ""
+  /*----------++++++++++----------++++++++++----------++++++++++----------++++++++++----------*/
+
+// Shadow type
+
+1  "Solid|  Cast|   "
+2  "Vast|   Los|    "
+3  "Solide| Getrennt"
+4  ""
+  /*--------++++++++*/
+
+1  "Save this credit roll as:"
+2  "Bewaar credit roll als:"
+3  "Speichere diesen Abspann als:"
+4  ""
+
+1  "Select a credit roll:"
+2  "Kies een credit roll:"
+3  "Wählen Sie einen Abspann:"
+4  ""
+
+1  "The file couldn't be saved."
+2  "Het bestand kon niet worden bewaard."
+3  "Diese Datei konnte nicht gespeichert werden."
+4  ""
+
+1  "You need to save your work first."
+2  "U moet eerst uw werk bewaren."
+3  "Sie müssen Ihre Daten erst speichern."
+4  ""
+
+1  "Help will replace your current text! Continue?"
+2  "Hulp vervangt huidige tekst! Doorgaan?"
+3  "Hilfe wird Ihren aktuellen Text ersetzen! Weiter ?"
+4  ""
+
+// The following lines are part of a help text in the credit roll xapp
+
+1  "Special formatting codes:"
+2  "Speciale opmaak codes:"
+3  "Spezielle Formatiercodes:"
+4  ""
+
+1  "^d10^Shadow depth is 10"
+2  "^d10^Schaduw diepte is 10"
+3  "^d10^Schattentiefe ist 10"
+4  ""
+
+1  "^d4^Shadow depth is 4"
+2  "^d4^Schaduw diepte is 4"
+3  "^d4^Schattentiefe ist 4"
+4  ""
+
+1  "^d2^Shadow depth is 2"
+2  "^d2^Schaduw diepte is 2"
+3  "^d2^Schattentiefe ist 2"
+4  ""
+
+1  "^fmediapoint^^s9^MediaPoint, 9 points"
+2  "^fmediapoint^^s9^MediaPoint, 9 punts"
+3  "^fmediapoint^^s9^MediaPoint, 9 Punkte"
+4  ""
+
+1  "^fmediapoint^^s10^MediaPoint, 10 points"
+2  "^fmediapoint^^s10^MediaPoint, 10 punts"
+3  "^fmediapoint^^s10^MediaPoint, 10 Punkte"
+4  ""
+
+1  "^fmediapoint^^s18^MediaPoint, 18 points"
+2  "^fmediapoint^^s18^MediaPoint, 18 punts"
+3  "^fmediapoint^^s10^MediaPoint, 18 Punkte"
+4  ""
+
+1  "^fmediapoint^^s20^MediaPoint, 20 points"
+2  "^fmediapoint^^s20^MediaPoint, 20 punts"
+3  "^fmediapoint^^s10^MediaPoint, 20 Punkte"
+4  ""
+
+1  "<Left justified text"
+2  "<Links opgelijnde tekst"
+3  "<Text linksbündig"
+4  ""
+
+1  ">Right justified text"
+2  ">Rechts opgelijnde tekst"
+3  ">Text rechtsbündig"
+4  ""
+
+1  "Special credit roll justification:"
+2  "Speciale credit roll oplijning:"
+3  "Spezielle Abspann-Einstellungen:"
+4  ""
+
+1  "Clear text?"
+2  "Wis tekst?"
+3  "Text löschen?"
+4  ""
+
+/* serial xapp */
+
+1  "Anim brushes can't be scaled or remapped."
+2  "Anim brushes kunnen niet worden geschaald of geremapped."
+3  "Anim-Pinsel kann nicht skaliert oder remapped werden."
+4  ""
+
+/* For anim brushes */
+
+1  "Transparent"
+2  "Transparant"
+3  "Transparent"
+4  ""
+
+1  "Picture, anim or anim brush"
+2  "Plaatje, anim of anim brush"
+3  "Grafik,Animation oder Anim-Pinsel"
+4  "Image, "
+
+/* Xapp Info */
+
+1  "Last changed:"
+2  "Laatste aanpassing:"
+3  "Letzte Änderung:"
+4  ""
+
+1  "Author:"
+2  "Auteur:"
+3  "Autor"
+4  ""
+
+/* Variable Paths */
+
+// A fixed path is e.g. 'work:pics/jupiter'
+// A variable path is e.g. @(path) where path is a variable containing the filename
+
+1  "Convert fixed path to variable path"
+2  "Verander vast pad in variabel pad"
+3  "Kovertiere direkte in variable Pfadangabe"
+4  ""
+
+1  "Variable path:"
+2  "Variabel pad:"
+3  "Variabler Pfad:"
+4  ""
+
+1  "Fixed path"
+2  "Vast pad"
+3  "Direkter Pfad"
+4  ""
+
+1  "The Script Manager can't find and copy variable paths."
+2  "De Script Manager kan geen variabele paden vinden en kopiëren."
+3  "Der Skript-Manager findet keine variablen Pfade und kann nicht diese nicht kopieren."
+4  ""
+
+1  "< Variable Path >"
+2  "< Variabel Pad >"
+3  "< Variabler Pfad >"
+4  ""
+
+/* new script menu (misc) item */
+
+1  "Variable path"
+2  "Variabel pad"
+3  "Variabler Pfad"
+4  ""
+
+/* new for color palette */
+/* color ramp is a requester in which all colors can be made more red, green or blue */
+
+1  "Color ramp"
+2  "Kleuren ophogen"
+3  "Farbtablett"
+4  ""
+
+/* new for buttons screen in page editor */
+// Example: Set a=1
+
+1  "Set:"
+2  "Maak:"
+3  "Setze:"
+4  ""
+
+/* new in script editor */
+
+1  "First save the script because this script loads other scripts."
+2  "Bewaar eerst het script want dit script laadt andere scripts."
+3  "Skript erst speichern, da dieser Skript weitere Skripts einliest."
+4  ""

@@ -1,0 +1,39 @@
+Music                   26-Oct-94 13:43:18  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         2368 lib:cres.o       c        code            0    0      2b4
+                       WorkMusic.o      workmusi code          2b4    0      ae4
+                       demo:gen/general general. code          d98    0       e4
+                       mlp.o            MLP2.ASM code          e7c    0      a34
+                       lib:/source/_mai _main.c  code         18b0    0      12c
+                       lib:sc.lib       _fpinit. code         19dc    0       30
+                       lib:sc.lib       _MemClea code         1a0c    0       80
+                       lib:sc.lib       stricmp  code         1a8c    0       3c
+                       lib:sc.lib       _stcul_d code         1ac8    0       30
+                       lib:sc.lib       _stcl_o  code         1af8    0       30
+                       lib:sc.lib       _stcl_h  code         1b28    0       3c
+                       lib:sc.lib       _stcd_i  code         1b64    0       54
+                       lib:sc.lib       stccpy.c code         1bb8    0       44
+                       lib:sc.lib       _strupr. code         1bfc    0       3c
+                       lib:sc.lib       _cxd33   code         1c38    0       c4
+                       lib:sc.lib       _exit.c  code         1cfc    0       5c
+                       lib:sc.lib       strcat   code         1d58    0       18
+                       lib:sc.lib       memmove  code         1d70    0       2c
+                       lib:sc.lib       sprintf. code         1d9c    0       44
+                       lib:sc.lib       _pfmt.c  code         1de0    0      438
+                       lib:sc.lib       _pf.c    code         2218    0       7c
+                       lib:sc.lib       DelPort. code         2294    0       44
+                       lib:sc.lib       CrtPort. code         22d8    0       90
+   1 players      4c78 mlp.o            MLP2.ASM codechip        0    0     4c78
+   2 __MERGED      194 WorkMusic.o      workmusi data            0    0       5c
+                       demo:gen/general general. data           5c    0        4
+                       lib:sc.lib       sigfunc. data           60    0       24
+                       lib:sc.lib       ctype.c  data           84    0      104
+                       lib:sc.lib       stack.c  data          188    0        4
+                       lib:sc.lib       _ufb.c   data          18c    0        8
+                       lib:cres.o       c        bss           194    0       50
+                       lib:/source/_mai _main.c  bss           1e4    0       8c
+                       lib:sc.lib       memheap. bss           270    0        4
+                       lib:sc.lib       dosbase  bss           274    0        4
+                       lib:sc.lib       _top.c   bss           278    0        4
+                       lib:sc.lib       _exit.c  bss           27c    0        4

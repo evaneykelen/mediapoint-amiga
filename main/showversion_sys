@@ -1,0 +1,113 @@
+failat 100
+
+; modules
+
+echo Print
+version Print
+
+echo About
+version About
+
+echo BarGraphicsMaker
+version BarGraphicsMaker
+
+echo PageSetUp
+version PageSetUp
+
+echo Prefs
+version Prefs
+
+echo ScriptManager
+version ScriptManager
+
+; timers
+
+echo HHMMSST_Timer
+version HHMMSST_Timer
+
+echo MIDI_Timer
+version MIDI_Timer
+
+echo HHMMSSFF_Timer
+version HHMMSSFF_Timer
+
+; gp
+
+echo Input
+version Input
+
+; pg
+
+echo Parallel
+version Parallel
+
+; sg
+
+echo Serial
+version Serial
+
+; wa
+
+echo Animation
+version Animation
+
+; wd
+
+echo DOS
+version DOS
+
+; wm
+
+echo Music
+version Music
+
+; ml:workarexx
+
+echo ARexx
+version ARexx
+
+; wp
+
+echo transitions
+version transitions
+
+; vars
+
+echo Variables
+version Variables
+
+; libs
+
+echo mediapoint.library
+version mediapoint.library
+
+echo mpmmu.library
+version mpmmu.library
+
+; texts
+
+echo texts.English
+version texts.English
+
+echo texts.Nederlands
+version texts.Nederlands
+
+echo texts.Deutsch
+version texts.Deutsch
+
+echo texts.Français
+version texts.Français
+
+; icons
+
+echo Goto
+version Goto
+
+echo TimeCode
+version TimeCode
+
+echo NOP
+version NOP
+
+echo Label
+version Label

@@ -1,0 +1,4 @@
+FROM LIB:c.o "patchalloc1.o"+"setfuncs.o"
+TO "patchalloc1"
+LIB LIB:sc.lib LIB:amiga.lib
+

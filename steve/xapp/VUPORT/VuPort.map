@@ -1,0 +1,63 @@
+VuPort                  29-Mar-94 10:36:17  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         2e70 lib:cres.o       c        code            0    0      2b4
+                       setup.o          setup.c  code          2b4    0      574
+                       worker.o         worker.c code          828    0      2cc
+                       control.o        control. code          af4    0      3a0
+                       doit.o           doit.c   code          e94    0       d8
+                       serial.o         serial.c code          f6c    0      338
+                       lib:/source/_mai _main.c  code         12a4    0      12c
+                       gen:general.o    general. code         13d0    0      1dc
+                       gen:support.o    support. code         15ac    0      30c
+                       gen:asm/wait50hz <noname> code         18b8    0      118
+                       lib:sc.lib       _fpinit. code         19d0    0       30
+                       lib:sc.lib       _MemClea code         1a00    0       80
+                       lib:sc.lib       _stcul_d code         1a80    0       30
+                       lib:sc.lib       _stcl_o  code         1ab0    0       30
+                       lib:sc.lib       _stcl_h  code         1ae0    0       3c
+                       lib:sc.lib       _stcd_i  code         1b1c    0       54
+                       lib:sc.lib       stccpy.c code         1b70    0       44
+                       lib:sc.lib       _strupr. code         1bb4    0       3c
+                       lib:sc.lib       _cxd33   code         1bf0    0       c4
+                       lib:sc.lib       _cxm33   code         1cb4    0       20
+                       lib:sc.lib       _exit.c  code         1cd4    0       5c
+                       lib:sc.lib       strcat   code         1d30    0       18
+                       lib:sc.lib       memmove  code         1d48    0       2c
+                       lib:sc.lib       free     code         1d74    0      16c
+                       lib:sc.lib       malloc   code         1ee0    0      174
+                       lib:sc.lib       sscanf.c code         2054    0       5c
+                       lib:sc.lib       sprintf. code         20b0    0       44
+                       lib:sc.lib       _sfmt.c  code         20f4    0      618
+                       lib:sc.lib       _pfmt.c  code         270c    0      438
+                       lib:sc.lib       _sf.c    code         2b44    0      168
+                       lib:sc.lib       _pf.c    code         2cac    0       7c
+                       lib:sc.lib       DelPort. code         2d28    0       44
+                       lib:sc.lib       DelExtIO code         2d6c    0       2c
+                       lib:sc.lib       CrtPort. code         2d98    0       90
+                       lib:sc.lib       CrtExtIO code         2e28    0       48
+   1 __MERGED      45c setup.o          setup.c  data            0    0      208
+                       control.o        control. data          208    0       80
+                       doit.o           doit.c   data          288    0       20
+                       serial.o         serial.c data          2a8    0       64
+                       gen:general.o    general. data          30c    0        4
+                       gen:support.o    support. data          310    0       14
+                       lib:sc.lib       mstep.c  data          324    0        4
+                       lib:sc.lib       sigfunc. data          328    0       24
+                       lib:sc.lib       ctype.c  data          34c    0      104
+                       lib:sc.lib       stack.c  data          450    0        4
+                       lib:sc.lib       _ufb.c   data          454    0        8
+                       lib:cres.o       c        bss           45c    0       50
+                       setup.o          setup.c  bss           4ac    0        c
+                       lib:/source/_mai _main.c  bss           4b8    0       8c
+                       gen:support.o    support. bss           544    0      218
+                       lib:sc.lib       errno.c  bss           75c    0        4
+                       lib:sc.lib       memheap. bss           760    0        4
+                       lib:sc.lib       memtype. bss           764    0        4
+VuPort                  29-Mar-94 10:36:17  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       dosbase  bss           768    0        4
+                       lib:sc.lib       _top.c   bss           76c    0        4
+                       lib:sc.lib       _exit.c  bss           770    0        4
+                       lib:sc.lib       sscanf.c bss           774    0        8

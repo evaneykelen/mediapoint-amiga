@@ -1,0 +1,11 @@
+	section code
+
+	XDEF	_Int_IEServer
+	XREF	_Int_IEHandler
+		
+_Int_IEServer:
+	movem.l	a0/a1,-(a7)
+	jsr		_Int_IEHandler
+	addq.l	#8,a7
+	rts
+	END

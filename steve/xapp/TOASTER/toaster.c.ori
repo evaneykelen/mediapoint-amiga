@@ -1,0 +1,145 @@
+#include "includes/includes.h"     
+#include "includes/includes2.h"    
+#include "includes/types.h"        
+#include "includes/Errors.h"       
+#include "includes/process.h"
+#include "structs.h"
+
+#include <rexx/storage.h>
+#include <rexx/rxslib.h>
+#include <rexx/errors.h>
+#include <libraries/dosextens.h>
+
+#include "ph:rexx_pragma.h"
+#include "ph:rexx_proto.h"
+#include "ph:rexx.h"
+
+/**** extern functions ****/
+
+extern int GetARexxMsg(AREXXCONTEXT *RexxContext, ULONG *err, STRPTR arg);
+extern void ReplyARexxMsg(AREXXCONTEXT *, struct RexxMsg *, char *, LONG);
+extern struct RexxMsg *SendARexxMsg(AREXXCONTEXT *, char *, BOOL);
+extern void FreeARexx(AREXXCONTEXT *);
+extern AREXXCONTEXT *InitARexx(char *);
+extern AREXXCONTEXT *PerformRexxCmd(char *);
+extern BOOL ProcessArexxError(LONG RC, LONG errorCode, STRPTR errorStr);
+
+/**** function declaration ****/
+
+BOOL IssueArexxCmd(STRPTR cmdStr, STRPTR errorStr);
+
+/**** functions ****/
+
+/******** PerformActions() ********/
+
+BOOL PerformActions(struct Toaster_record *trec, STRPTR errorStr)
+{
+BOOL retval=TRUE;
+
+	//retval = IssueArexxCmd("ADDRESS BAUD baud 2400", errorStr);
+
+	switch( trec->cmd )
+	{
+		case 0:	// Perform transition
+			/**************************************************************
+			 *
+			 * trec->previewSource: 	0...6 (1,2,3,4,DV1,DV2,DV3)
+			 * trec->transitionBank:	0 (use 1 of the 8 standard transitions) or
+			 *												1...9 (Bank A,B,C,D,E,F,G,H,I)
+			 * trec->transitionSpeed:	0...2 (Slow, Med, Fast)
+			 * trec->transitionCol:		0...7
+			 * trec->transitionRow:		0...3
+			 * trec->transitionOwn:		0...7	(1 of the 8 standard transitions)
+			 *												Use this when transitionBank==0
+			 *
+			 **************************************************************/
+
+#if 0
+{	// O N L Y   F O R   T E S T I N G
+char temp[100];
+
+	if ( trec->transitionBank==0 )
+		sprintf(temp, "Source=%d, Bank=%d, Speed=%d, Transition=%d\n",
+						trec->previewSource, trec->transitionBank,
+						trec->transitionSpeed, trec->transitionOwn);
+	else
+		sprintf(temp, "Source=%d, Bank=%d, Speed=%d, Col=%d, Row=%d\n",
+						trec->previewSource, trec->transitionBank,
+						trec->transitionSpeed, trec->transitionCol,
+						trec->transitionRow);
+	KPrintF(temp);
+}
+#endif
+
+			break;
+
+		case 1:	// Load framestore
+			/**************************************************************
+			 *
+			 * trec->Into_Number:			integer (001...999)
+			 * trec->loadFrameStore:	if [0] != '\0' then this contains a filename
+			 *
+			 **************************************************************/
+
+#if 0
+{	// O N L Y   F O R   T E S T I N G
+char temp[100];
+	sprintf(temp, "Load frame [%s] into framestore %d\n",
+					trec->loadFrameStore, trec->Into_Number);
+	KPrintF(temp);
+}
+#endif
+
+			break;
+
+		case 2:	// Save framestore
+			/**************************************************************
+			 *
+			 * trec->from:						0...1 (DV1, DV2)
+			 * trec->FS_Number:				integer (001...999)
+			 * trec->saveFrameStore:	if [0] != '\0' then this contains a filename
+			 *
+			 **************************************************************/
+
+#if 0
+{	// O N L Y   F O R   T E S T I N G
+char temp[100];
+	sprintf(temp, "Save from %d frame [%s]\n", trec->from, trec->saveFrameStore);
+	KPrintF(temp);
+}
+#endif
+
+			break;
+	}
+
+	return( retval );
+}
+
+/******** IssueArexxCmd() ********/
+
+BOOL IssueArexxCmd(STRPTR cmdStr, STRPTR errorStr)
+{
+ULONG rexxSignal, SigRecvd;
+AREXXCONTEXT *RexxContext;
+LONG rexxError, RC;
+TEXT Arg[256];
+BOOL retval=TRUE;
+
+	RexxContext = PerformRexxCmd(cmdStr);
+	if ( RexxContext )
+	{
+		rexxSignal = 1<<RexxContext->ARexxPort->mp_SigBit;
+		SigRecvd = Wait( rexxSignal );
+		if( SigRecvd & rexxSignal )
+		{
+			RC = GetARexxMsg(RexxContext, &rexxError, Arg);
+			if ( errorStr )
+				retval = ProcessArexxError(RC, rexxError, errorStr);
+			FreeARexx(RexxContext);
+		}
+	}
+
+	return( retval );
+}
+
+/******** E O F ********/

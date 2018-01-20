@@ -1,0 +1,53 @@
+Neptun                  26-Oct-94 14:42:41  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         3bf0 lib:cres.o       c        code            0    0      2b4
+                       setup.o          setup.c  code          2b4    0     12a0
+                       worker.o         worker.c code         1554    0      2cc
+                       doit.o           doit.c   code         1820    0      a6c
+                       lib:/source/_mai _main.c  code         228c    0      12c
+                       demo:gen/general general. code         23b8    0       e4
+                       demo:gen/support support. code         249c    0      30c
+                       lib:sc.lib       _fpinit. code         27a8    0       30
+                       lib:sc.lib       _MemClea code         27d8    0       80
+                       lib:sc.lib       stricmp  code         2858    0       3c
+                       lib:sc.lib       _stcul_d code         2894    0       30
+                       lib:sc.lib       _stcl_o  code         28c4    0       30
+                       lib:sc.lib       _stcl_h  code         28f4    0       3c
+                       lib:sc.lib       _stcd_i  code         2930    0       54
+                       lib:sc.lib       stccpy.c code         2984    0       44
+                       lib:sc.lib       _strupr. code         29c8    0       3c
+                       lib:sc.lib       _cxd33   code         2a04    0       c4
+                       lib:sc.lib       _exit.c  code         2ac8    0       5c
+                       lib:sc.lib       strcat   code         2b24    0       18
+                       lib:sc.lib       memmove  code         2b3c    0       2c
+                       lib:sc.lib       free     code         2b68    0      16c
+                       lib:sc.lib       malloc   code         2cd4    0      174
+                       lib:sc.lib       sscanf.c code         2e48    0       5c
+                       lib:sc.lib       sprintf. code         2ea4    0       44
+                       lib:sc.lib       _sfmt.c  code         2ee8    0      618
+                       lib:sc.lib       _pfmt.c  code         3500    0      438
+                       lib:sc.lib       _sf.c    code         3938    0      168
+                       lib:sc.lib       _pf.c    code         3aa0    0       7c
+                       lib:sc.lib       DelPort. code         3b1c    0       44
+                       lib:sc.lib       CrtPort. code         3b60    0       90
+   1 __MERGED      bb8 setup.o          setup.c  data            0    0      5d8
+                       doit.o           doit.c   data          5d8    0      490
+                       demo:gen/general general. data          a68    0        4
+                       demo:gen/support support. data          a6c    0       14
+                       lib:sc.lib       mstep.c  data          a80    0        4
+                       lib:sc.lib       sigfunc. data          a84    0       24
+                       lib:sc.lib       ctype.c  data          aa8    0      104
+                       lib:sc.lib       stack.c  data          bac    0        4
+                       lib:sc.lib       _ufb.c   data          bb0    0        8
+                       lib:cres.o       c        bss           bb8    0       50
+                       setup.o          setup.c  bss           c08    0        c
+                       lib:/source/_mai _main.c  bss           c14    0       8c
+                       demo:gen/support support. bss           ca0    0      218
+                       lib:sc.lib       errno.c  bss           eb8    0        4
+                       lib:sc.lib       memheap. bss           ebc    0        4
+                       lib:sc.lib       memtype. bss           ec0    0        4
+                       lib:sc.lib       dosbase  bss           ec4    0        4
+                       lib:sc.lib       _top.c   bss           ec8    0        4
+                       lib:sc.lib       _exit.c  bss           ecc    0        4
+                       lib:sc.lib       sscanf.c bss           ed0    0        8

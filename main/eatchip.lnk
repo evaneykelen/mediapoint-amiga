@@ -1,0 +1,4 @@
+FROM LIB:c.o "eatchip.o"
+TO "eatchip"
+LIB LIB:sc.lib LIB:amiga.lib
+

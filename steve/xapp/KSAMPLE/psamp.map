@@ -1,0 +1,85 @@
+psamp                   16-Nov-94 14:30:57  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         3cd4 lib:c.o          c        code            0    0      260
+                       psamp.o          psamp.c  code          260    0      3bc
+                       loadsamp.o       loadsamp code          61c    0     1134
+                       diskplay.o       <noname> code         1750    0      580
+                       lib:sc.lib       newlist  code         1cd0    0       14
+                       lib:sc.lib       createpo code         1ce4    0       b8
+                       lib:sc.lib       _constru code         1d9c    0       34
+                       lib:sc.lib       _fpinit. code         1dd0    0       3c
+                       lib:sc.lib       writes.c code         1e0c    0       30
+                       lib:sc.lib       tinyprin code         1e3c    0       b8
+                       lib:sc.lib       _memclea code         1ef4    0       2c
+                       lib:sc.lib       setmem.o code         1f20    0       18
+                       lib:sc.lib       _stpcpy. code         1f38    0       14
+                       lib:sc.lib       _stcul_d code         1f4c    0       30
+                       lib:sc.lib       _stcl_o. code         1f7c    0       30
+                       lib:sc.lib       _stcl_h. code         1fac    0       3c
+                       lib:sc.lib       stcl_d.o code         1fe8    0       3c
+                       lib:sc.lib       _stcd_i. code         2024    0       54
+                       lib:sc.lib       _iob.c   code         2078    0      224
+                       lib:sc.lib       _getbuff code         229c    0       48
+                       lib:sc.lib       _strupr. code         22e4    0       38
+                       lib:sc.lib       _ufb.c   code         231c    0       7c
+                       lib:sc.lib       _write.c code         2398    0      108
+                       lib:sc.lib       _lseek.c code         24a0    0       98
+                       lib:sc.lib       _CXD33.o code         2538    0       c4
+                       lib:sc.lib       _CXM33.o code         25fc    0       20
+                       lib:sc.lib       _exit.c  code         261c    0       10
+                       lib:sc.lib       _main.c  code         262c    0      188
+                       lib:sc.lib       _cxbrk.c code         27b4    0      14c
+                       lib:sc.lib       _chkufb. code         2900    0       48
+                       lib:sc.lib       _chkabor code         2948    0       44
+                       lib:sc.lib       memchr.o code         298c    0       24
+                       lib:sc.lib       memmove. code         29b0    0       2c
+                       lib:sc.lib       free.o   code         29dc    0      16c
+                       lib:sc.lib       malloc.o code         2b48    0      174
+                       lib:sc.lib       exit.c   code         2cbc    0       28
+                       lib:sc.lib       sscanf.c code         2ce4    0       5c
+                       lib:sc.lib       sprintf. code         2d40    0       44
+                       lib:sc.lib       fputc.c  code         2d84    0      184
+                       lib:sc.lib       fflush.c code         2f08    0       d8
+                       lib:sc.lib       _sfmt.c  code         2fe0    0      620
+                       lib:sc.lib       _pfmt.c  code         3600    0      47c
+                       lib:sc.lib       _sf.c    code         3a7c    0      178
+                       lib:sc.lib       _pf.c    code         3bf4    0       70
+                       lib:sc.lib       io2errno code         3c64    0       60
+                       lib:sc.lib       UNKNOWN  code         3cc4    0       10
+   1 __MERGED      298 loadsamp.o       loadsamp data            0    0       10
+                       T:XN0H4.0000     _ctdt.o  data           10    0       1c
+                       lib:sc.lib       mstep.c  data           2c    0        4
+                       lib:sc.lib       sigfunc. data           30    0       24
+                       lib:sc.lib       ctype.c  data           54    0      104
+                       lib:sc.lib       _constru data          158    0        4
+                       lib:sc.lib       stack.c  data          15c    0        4
+psamp                   16-Nov-94 14:30:57  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       _iob.c   data          160    0       68
+                       lib:sc.lib       _buffsiz data          1c8    0        4
+                       lib:sc.lib       _ufb.c   data          1cc    0        8
+                       lib:sc.lib       _fmode.c data          1d4    0        8
+                       lib:sc.lib       _cxbrk.c data          1dc    0       50
+                       lib:sc.lib       exitfunc data          22c    0        4
+                       lib:sc.lib       _stdv36. data          230    0       14
+                       lib:sc.lib       _stdwin. data          244    0       14
+                       lib:sc.lib       io2errno data          258    0       40
+                       lib:c.o          c        bss           298    0       28
+                       lib:sc.lib       base.c   bss           2c0    0        4
+                       lib:sc.lib       stkptr.c bss           2c4    0        4
+                       lib:sc.lib       prgname. bss           2c8    0        4
+                       lib:sc.lib       _onexit. bss           2cc    0        4
+                       lib:sc.lib       oserr.c  bss           2d0    0        4
+                       lib:sc.lib       curdir.c bss           2d4    0        4
+                       lib:sc.lib       wbmsg.c  bss           2d8    0        4
+                       lib:sc.lib       errno.c  bss           2dc    0        4
+                       lib:sc.lib       memtype. bss           2e0    0        4
+                       lib:sc.lib       _constru bss           2e4    0        4
+                       lib:sc.lib       _memclea bss           2e8    0        4
+                       lib:sc.lib       _iob.c   bss           2ec    0       30
+                       lib:sc.lib       _ufb.c   bss           31c    0        8
+                       lib:sc.lib       _main.c  bss           324    0        c
+                       lib:sc.lib       sscanf.c bss           330    0        8
+                       lib:sc.lib       stdioptr bss           338    0        8

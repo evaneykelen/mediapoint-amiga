@@ -1,0 +1,5 @@
+del Work:SC/proj2/main/stwrite.o
+del Work:SC/proj2/main/textedit.o
+del Work:SC/proj2/main/demomsg.o
+del Work:SC/proj2/main/script.o
+del Work:SC/proj2/main/scriptmisc.o

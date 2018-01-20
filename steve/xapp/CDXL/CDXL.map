@@ -1,0 +1,54 @@
+CDXL                    26-Oct-94 14:35:51  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         4314 lib:cres.o       c        code            0    0      2b4
+                       WorkCDXL.o       workcdxl code          2b4    0      560
+                       lib:/source/_mai _main.c  code          814    0      12c
+                       demo:gen/general general. code          940    0       e4
+                       playcdxl.o       <noname> code          a24    0     1934
+                       setup.o          setup.c  code         2358    0      81c
+                       demo:gen/support support. code         2b74    0      30c
+                       lib:sc.lib       _fpinit. code         2e80    0       30
+                       lib:sc.lib       _MemClea code         2eb0    0       80
+                       lib:sc.lib       _stcul_d code         2f30    0       30
+                       lib:sc.lib       _stcl_o  code         2f60    0       30
+                       lib:sc.lib       _stcl_h  code         2f90    0       3c
+                       lib:sc.lib       _stcd_i  code         2fcc    0       54
+                       lib:sc.lib       stccpy.c code         3020    0       44
+                       lib:sc.lib       stcarg.c code         3064    0       70
+                       lib:sc.lib       _strupr. code         30d4    0       3c
+                       lib:sc.lib       _cxd33   code         3110    0       c4
+                       lib:sc.lib       _exit.c  code         31d4    0       5c
+                       lib:sc.lib       strchr   code         3230    0       18
+                       lib:sc.lib       strcat   code         3248    0       18
+                       lib:sc.lib       memmove  code         3260    0       2c
+                       lib:sc.lib       free     code         328c    0      16c
+                       lib:sc.lib       malloc   code         33f8    0      174
+                       lib:sc.lib       sscanf.c code         356c    0       5c
+                       lib:sc.lib       sprintf. code         35c8    0       44
+                       lib:sc.lib       _sfmt.c  code         360c    0      618
+                       lib:sc.lib       _pfmt.c  code         3c24    0      438
+                       lib:sc.lib       _sf.c    code         405c    0      168
+                       lib:sc.lib       _pf.c    code         41c4    0       7c
+                       lib:sc.lib       DelPort. code         4240    0       44
+                       lib:sc.lib       CrtPort. code         4284    0       90
+   1 __MERGED      4b0 WorkCDXL.o       workcdxl data            0    0       10
+                       demo:gen/general general. data           10    0        4
+                       setup.o          setup.c  data           14    0      350
+                       demo:gen/support support. data          364    0       14
+                       lib:sc.lib       mstep.c  data          378    0        4
+                       lib:sc.lib       sigfunc. data          37c    0       24
+                       lib:sc.lib       ctype.c  data          3a0    0      104
+                       lib:sc.lib       stack.c  data          4a4    0        4
+                       lib:sc.lib       _ufb.c   data          4a8    0        8
+                       lib:cres.o       c        bss           4b0    0       50
+                       lib:/source/_mai _main.c  bss           500    0       8c
+                       setup.o          setup.c  bss           58c    0        c
+                       demo:gen/support support. bss           598    0      218
+                       lib:sc.lib       errno.c  bss           7b0    0        4
+                       lib:sc.lib       memheap. bss           7b4    0        4
+                       lib:sc.lib       memtype. bss           7b8    0        4
+                       lib:sc.lib       dosbase  bss           7bc    0        4
+                       lib:sc.lib       _top.c   bss           7c0    0        4
+                       lib:sc.lib       _exit.c  bss           7c4    0        4
+                       lib:sc.lib       sscanf.c bss           7c8    0        8

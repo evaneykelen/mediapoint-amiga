@@ -1,0 +1,1 @@
+list ALL P=#?.tmp lformat="delete %s%s"

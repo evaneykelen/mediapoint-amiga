@@ -1,0 +1,4 @@
+del ph:functions.o
+del ph:addguide.o
+del ph:addworker.o
+del ph:loadsegment.o

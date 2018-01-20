@@ -1,0 +1,50 @@
+all:	nb:system/mediapoint.library errors.c events.c fonts.c fr.c gadgsliders.c\
+			init.c medialinklib.c newlist.c popup.c rexx1.c rexx2.c sprites.c strgad.c stdlist.c vectors.c winreq.c
+
+errors.o: errors.c
+   sc DEBUG=LINE  libcode nostackcheck errors.c
+events.o: events.c
+   sc DEBUG=LINE  libcode nostackcheck events.c
+fonts.o: fonts.c
+   sc DEBUG=LINE  libcode nostackcheck fonts.c
+fr.o: fr.c
+   sc DEBUG=LINE  libcode nostackcheck fr.c
+gadgsliders.o: gadgsliders.c
+   sc DEBUG=LINE  libcode nostackcheck gadgsliders.c
+init.o: init.c
+   sc DEBUG=LINE  libcode nostackcheck init.c
+medialinklib.o: medialinklib.c
+   sc DEBUG=LINE  libcode nostackcheck medialinklib.c
+newlist.o: newlist.c
+   sc DEBUG=LINE  libcode nostackcheck newlist.c
+popup.o: popup.c
+   sc DEBUG=LINE  libcode nostackcheck popup.c
+rexx1.o: rexx1.c
+   sc DEBUG=LINE  libcode nostackcheck rexx1.c
+rexx2.o: rexx2.c
+   sc DEBUG=LINE  libcode nostackcheck rexx2.c
+sprites.o: sprites.c
+   sc DEBUG=LINE  libcode nostackcheck sprites.c
+strgad.o: strgad.c
+   sc DEBUG=LINE  libcode nostackcheck strgad.c
+stdlist.o: stdlist.c
+   sc DEBUG=LINE  libcode nostackcheck stdlist.c
+vectors.o: vectors.c
+   sc DEBUG=LINE  libcode nostackcheck vectors.c
+winreq.o: winreq.c
+   sc DEBUG=LINE  libcode nostackcheck winreq.c
+
+nb:system/mediapoint.library: errors.o events.o fonts.o fr.o gadgsliders.o init.o medialinklib.o newlist.o popup.o rexx1.o rexx2.o sprites.o strgad.o stdlist.o vectors.o winreq.o
+      slink with <<
+LIBPREFIX _LIB 
+LIBFD medialinklib_lib.fd 
+to mediapoint.library 
+MAP mapje.map H
+FROM lib:libent.o lib:libinit.o errors.o events.o fonts.o fr.o gadgsliders.o init.o medialinklib.o newlist.o popup.o rexx1.o rexx2.o sprites.o strgad.o stdlist.o vectors.o winreq.o
+lib lib:sc.lib LIB:AMIGA.LIB
+# LIB:DEBUG.LIB
+noicons
+smalldata 
+libversion 1 librevision 3
+<
+   slink from mediapoint.library to nb:system/mediapoint.library nodebug noicons

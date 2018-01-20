@@ -1,0 +1,20 @@
+##base _MLMMULibBase
+##bias 30
+MLMMU_AllocMem(ByteSize,Attributes,Name) (D0/D1/A1)
+MLMMU_FreeMem(MemoryBlock) (A1)
+MLMMU_FindMemBlk(Name) (A1)
+MLMMU_FindMem(Name) (A1)
+MLMMU_PleaseFree(ReqSize) (D0)
+MLMMU_AvailMem(Attr) (D1)
+MLMMU_GetMemList()
+MLMMU_GetMemStat(MemoryBlock) (A1)
+MLMMU_SetMemStat(NewStatus,MemoryBlock) (D0/A1)
+MLMMU_OwnMemBlk(MemoryBlock) (A1)
+MLMMU_DisOwnMemBlk(MemoryBlock) (A1)
+MLMMU_FlushMem(Attributes) (D1)
+MLMMU_OpenMsgQueue()
+MLMMU_CloseMsgQueue()
+MLMMU_AddMsgToQueue(a,b) (A0/D0/)
+MLMMU_GetQueueList()
+MLMMU_ReallyFlushMem(Attributes) (D1)
+##end

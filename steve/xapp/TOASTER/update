@@ -1,0 +1,5 @@
+del doit.o      
+del setup.o     
+del worker.o
+del toaster.o
+del arexx/rexx.o

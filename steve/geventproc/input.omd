@@ -1,0 +1,3028 @@
+SAS AMIGA 680x0OBJ Module Disassembler V6.01
+Copyright © 1992 SAS Institute, Inc.
+
+
+Amiga Object File Loader V1.00
+68000 Instruction Set
+
+EXTERNAL DEFINITIONS
+
+_FindScreenButton 0000-00    _KillScreenButtons 02C0-00    
+_FindKeyButton 0304-00    _SendButtonHilight 03C4-00    _ASCIIToRawKey 04D6-00
+_MakeJumpList 0524-00    _main 0696-00    _Int_GlobEProcHandler 0E38-00    
+_RemapKeyPad 1310-00    _TestJoystick 13C6-00    _FollowMouse 1568-00    
+_emptySprite 0004-01
+
+SECTION 00 "text" 000015B0 BYTES
+;   1: /********************************************************
+;   2: *File : input.c
+;   3: */
+;   4: #include "nb:pre.h"
+;   5: 
+;   6: #include <workbench/startup.h>
+;   7: #include <exec/types.h>
+;   8: #include <libraries/dosextens.h>
+;   9: #include <intuition/intuitionbase.h>
+;  10: #include <hardware/custom.h>
+;  11: #include <hardware/dmabits.h>
+;  12: #include <graphics/gfx.h>
+;  13: #include <graphics/gfxbase.h>
+;  14: #include <devices/input.h>
+;  15: #include <devices/inputevent.h>
+;  16: #include <resources/potgo.h>
+;  17: #include <hardware/custom.h>
+;  18: 
+;  19: #include <clib/exec_protos.h>
+;  20: #include <clib/dos_protos.h>
+;  21: #include <clib/keymap_protos.h>
+;  22: #include <clib/potgo_protos.h>
+;  23: #include <pragmas/exec_pragmas.h>
+;  24: #include <pragmas/dos_pragmas.h>
+;  25: 
+;  26: #include "minc:types.h"
+;  27: #include "minc:defs.h"
+;  28: #include "minc:errors.h"
+;  29: #include "minc:process.h"
+;  30: #include "minc:ge.h"
+;  31: #include "minc:system.h"
+;  32: #include "external.h"
+;  33: #include "nb:capsstructs.h"
+;  34: 
+;  35: #define LIGHTPEN_ON FALSE
+;  36: 
+;  37: #define VERSI0N "\0$VER: 1.3"
+;  38: static UBYTE *vers = VERSI0N;
+;  39: 
+;  40: #define MILLION 1000000
+;  41: 
+;  42: // currently, the highest key on the keyboard is 0x67 
+;  43: #define	MAX_RAWKEYS 0x68
+;  44: 
+;  45: #define _PRINTF FALSE
+;  46: 
+;  47: extern void *Int_GlobEProcServer();
+;  48: 
+;  49: #define _ON_ 	TRUE
+;  50: #define _OFF_	FALSE
+;  51: 
+;  52: #define OUTRY 1L << 15
+;  53: #define DATRY 1L << 14
+;  54: #define OUTRX 1L << 13
+;  55: #define DATRX 1L << 12
+;  56: extern struct Custom far custom;
+;  57: 
+;  58: UWORD *emptySprite=NULL;
+;  59: STATIC void SwitchSprite(EVENTDATA *GEventData, BOOL state);
+;  60: extern BYTE CreateBeep(void);
+;  61: extern VOID DeleteBeep(void);
+;  62: extern VOID Beep(int,int);
+;  63: extern void InterpretAssignment(STRPTR, MLSYSTEM *);
+;  64: 
+;  65: void place_button( WORD *arguments, MLSYSTEM *mlsystem );
+;  66: 
+;  67: void RemapKeyPad(UWORD *);
+;  68: MOUSEJUMPREC *FollowMouse(EVENTDATA *GEventData, struct InputEvent *ie, BOOL *immediate);
+;  69: void KillScreenButtons(EVENTDATA *GED);
+;  70: 
+;  71: /******************************************************
+;  72: *Func : See if the mouse pointer is currently on a screen 
+;  73: *		button
+;  74: *int  : GED
+;  75: *out  : NULL -> There is no screen button under
+;  76: *				the mouse pointer.
+;  77: *		else -> ptr to mouse jump rec
+;  78: */
+;  79: MOUSEJUMPREC *FindScreenButton(EVENTDATA *GED, BOOL ForFollowMouse, BOOL *immediate)
+;  80: {
+       | 0000  9EFC 0018                      SUBA.W      #0018,A7
+       | 0004  48E7 0716                      MOVEM.L     D5-D7/A3/A5-A6,-(A7)
+       | 0008  3E2F 003A                      MOVE.W      003A(A7),D7
+       | 000C  266F 003C                      MOVEA.L     003C(A7),A3
+       | 0010  2A6F 0034                      MOVEA.L     0034(A7),A5
+;  81:   int i;
+;  82:   MOUSEJUMPREC *ME_JumpList;
+;  83:   WORD MouseX, MouseY;
+;  84:   struct View *view;
+;  85:   struct ViewPort *vp;
+;  86:   struct Screen *screen;
+;  87:   struct RendezVousRecord *rvrec;
+;  88: 
+;  89: 	// NEW -- DO NOT ACCEPT MOUSE/KEY EVENTS UNTIL PAGE IS DONE WITH RENDERING
+;  90: 	rvrec = (struct RendezVousRecord *)GED->miscPtr;
+       | 0014  2F6D 003A 001C                 MOVE.L      003A(A5),001C(A7)
+;  91: 	if ( rvrec->capsprefs->mousePointer & 128 )
+       | 001A  226F 001C                      MOVEA.L     001C(A7),A1
+       | 001E  2069 000C                      MOVEA.L     000C(A1),A0
+       | 0022  0828 0007 0681                 BTST        #0007,0681(A0)
+       | 0028  672A                           BEQ.B       0054
+;  92: 	{
+;  93: 		if ( !AttemptSemaphore( &GED->mlsystem->ms_Sema_Transition ) )
+       | 002A  206D 003E                      MOVEA.L     003E(A5),A0
+       | 002E  43E8 02EE                      LEA         02EE(A0),A1
+       | 0032  2049                           MOVEA.L     A1,A0
+       | 0034  2C78 0004                      MOVEA.L     0004,A6
+       | 0038  4EAE FDC0                      JSR         FDC0(A6)
+       | 003C  4A80                           TST.L       D0
+       | 003E  6606                           BNE.B       0046
+;  94: 			return(NULL);
+       | 0040  7000                           MOVEQ       #00,D0
+       | 0042  6000 0198                      BRA.W       01DC
+;  95: 		else
+;  96: 			ReleaseSemaphore( &GED->mlsystem->ms_Sema_Transition );
+       | 0046  206D 003E                      MOVEA.L     003E(A5),A0
+       | 004A  43E8 02EE                      LEA         02EE(A0),A1
+       | 004E  2049                           MOVEA.L     A1,A0
+       | 0050  4EAE FDC6                      JSR         FDC6(A6)
+;  97: 	}
+;  98: 	// NEW -- DO NOT ACCEPT MOUSE/KEY EVENTS UNTIL PAGE IS DONE WITH RENDERING
+;  99: 
+; 100: 	i = 0;
+       | 0054  7C00                           MOVEQ       #00,D6
+; 101: 	ME_JumpList = GED->ed_ME_LocJumpList;
+       | 0056  2F6D 0010 002C                 MOVE.L      0010(A5),002C(A7)
+; 102: 	screen = (struct Screen *)GED->temp2;
+       | 005C  2F6D 0046 0020                 MOVE.L      0046(A5),0020(A7)
+; 103: 	MouseX = screen->MouseX;
+       | 0062  206F 0020                      MOVEA.L     0020(A7),A0
+       | 0066  3A28 0012                      MOVE.W      0012(A0),D5
+; 104: 	MouseY = screen->MouseY;
+       | 006A  3F68 0010 001A                 MOVE.W      0010(A0),001A(A7)
+; 105: 
+; 106: 	Forbid();
+       | 0070  2C78 0004                      MOVEA.L     0004,A6
+       | 0074  4EAE FF7C                      JSR         FF7C(A6)
+; 107: 	view = GED->ed_GfxBase->ActiView;
+       | 0078  206D 0032                      MOVEA.L     0032(A5),A0
+       | 007C  2F68 0022 0028                 MOVE.L      0022(A0),0028(A7)
+; 108: 	Permit();
+       | 0082  4EAE FF76                      JSR         FF76(A6)
+; 109: 	vp = view->ViewPort;
+       | 0086  206F 0028                      MOVEA.L     0028(A7),A0
+       | 008A  2F50 0024                      MOVE.L      (A0),0024(A7)
+; 110: 
+; 111: 	if ( ((screen->Width >= 400) || vp->Modes & HIRES) && (screen->Width < 640) )
+       | 008E  206F 0020                      MOVEA.L     0020(A7),A0
+       | 0092  3028 000C                      MOVE.W      000C(A0),D0
+       | 0096  0C40 0190                      CMPI.W      #0190,D0
+       | 009A  6C0C                           BGE.B       00A8
+       | 009C  226F 0024                      MOVEA.L     0024(A7),A1
+       | 00A0  0829 000F 0020                 BTST        #000F,0020(A1)
+       | 00A6  670E                           BEQ.B       00B6
+       | 00A8  0C40 0280                      CMPI.W      #0280,D0
+       | 00AC  6C08                           BGE.B       00B6
+; 112: 		MouseX *= 2;
+       | 00AE  48C5                           EXT.L       D5
+       | 00B0  2005                           MOVE.L      D5,D0
+       | 00B2  D080                           ADD.L       D0,D0
+       | 00B4  2A00                           MOVE.L      D0,D5
+; 113: 
+; 114: 	if ( (screen->Height < 400) && ( vp->Modes & LACE || vp->DHeight>=400 ) )
+       | 00B6  0C68 0190 000E                 CMPI.W      #0190,000E(A0)
+       | 00BC  6C22                           BGE.B       00E0
+       | 00BE  206F 0024                      MOVEA.L     0024(A7),A0
+       | 00C2  0828 0002 0021                 BTST        #0002,0021(A0)
+       | 00C8  6608                           BNE.B       00D2
+       | 00CA  0C68 0190 001A                 CMPI.W      #0190,001A(A0)
+       | 00D0  6D0E                           BLT.B       00E0
+; 115: 		MouseY *= 2;
+       | 00D2  302F 001A                      MOVE.W      001A(A7),D0
+       | 00D6  48C0                           EXT.L       D0
+       | 00D8  2200                           MOVE.L      D0,D1
+       | 00DA  D281                           ADD.L       D1,D1
+       | 00DC  3F41 001A                      MOVE.W      D1,001A(A7)
+; 116: 
+; 117: 	MouseX -= vp->DxOffset;
+       | 00E0  206F 0024                      MOVEA.L     0024(A7),A0
+       | 00E4  9A68 001C                      SUB.W       001C(A0),D5
+; 118: 	MouseY -= vp->DyOffset;
+       | 00E8  3028 001E                      MOVE.W      001E(A0),D0
+       | 00EC  916F 001A                      SUB.W       D0,001A(A7)
+; 119: 
+; 120: 	while(ME_JumpList[i].mj_Width)
+       | 00F0  2006                           MOVE.L      D6,D0
+       | 00F2  E980                           ASL.L       #4,D0
+       | 00F4  9086                           SUB.L       D6,D0
+       | 00F6  2200                           MOVE.L      D0,D1
+       | 00F8  E581                           ASL.L       #2,D1
+       | 00FA  9280                           SUB.L       D0,D1
+       | 00FC  D281                           ADD.L       D1,D1
+       | 00FE  206F 002C                      MOVEA.L     002C(A7),A0
+       | 0102  4AB0 180E                      TST.L       0E(A0,D1.L)
+       | 0106  6700 00D2                      BEQ.W       01DA
+; 121: 	{
+; 122: 		if( ME_JumpList[i].mj_B_Used &&
+       | 010A  4A70 181C                      TST.W       1C(A0,D1.L)
+       | 010E  6700 00C4                      BEQ.W       01D4
+; 123: 			(MouseX >= ME_JumpList[i].mj_X) && 
+       | 0112  3005                           MOVE.W      D5,D0
+       | 0114  48C0                           EXT.L       D0
+       | 0116  B0B0 1806                      CMP.L       06(A0,D1.L),D0
+       | 011A  6D00 00B8                      BLT.W       01D4
+; 124: 			(MouseX <= (ME_JumpList[i].mj_X + ME_JumpList[i].mj_Width)) && 
+       | 011E  2006                           MOVE.L      D6,D0
+       | 0120  E980                           ASL.L       #4,D0
+       | 0122  9086                           SUB.L       D6,D0
+       | 0124  2200                           MOVE.L      D0,D1
+       | 0126  E581                           ASL.L       #2,D1
+       | 0128  9280                           SUB.L       D0,D1
+       | 012A  D281                           ADD.L       D1,D1
+       | 012C  2030 1806                      MOVE.L      06(A0,D1.L),D0
+       | 0130  D0B0 180E                      ADD.L       0E(A0,D1.L),D0
+       | 0134  3205                           MOVE.W      D5,D1
+       | 0136  48C1                           EXT.L       D1
+       | 0138  B280                           CMP.L       D0,D1
+       | 013A  6E00 0098                      BGT.W       01D4
+; 125: 			(MouseY >= ME_JumpList[i].mj_Y) &&
+       | 013E  2006                           MOVE.L      D6,D0
+       | 0140  E980                           ASL.L       #4,D0
+       | 0142  9086                           SUB.L       D6,D0
+       | 0144  2200                           MOVE.L      D0,D1
+       | 0146  E581                           ASL.L       #2,D1
+       | 0148  9280                           SUB.L       D0,D1
+       | 014A  D281                           ADD.L       D1,D1
+       | 014C  302F 001A                      MOVE.W      001A(A7),D0
+       | 0150  48C0                           EXT.L       D0
+       | 0152  B0B0 180A                      CMP.L       0A(A0,D1.L),D0
+       | 0156  6D7C                           BLT.B       01D4
+; 126: 			(MouseY <= (ME_JumpList[i].mj_Y + ME_JumpList[i].mj_Height)) 
+       | 0158  2006                           MOVE.L      D6,D0
+       | 015A  E980                           ASL.L       #4,D0
+       | 015C  9086                           SUB.L       D6,D0
+       | 015E  2200                           MOVE.L      D0,D1
+       | 0160  E581                           ASL.L       #2,D1
+       | 0162  9280                           SUB.L       D0,D1
+       | 0164  D281                           ADD.L       D1,D1
+       | 0166  2030 180A                      MOVE.L      0A(A0,D1.L),D0
+       | 016A  D0B0 1812                      ADD.L       12(A0,D1.L),D0
+       | 016E  322F 001A                      MOVE.W      001A(A7),D1
+       | 0172  48C1                           EXT.L       D1
+       | 0174  B280                           CMP.L       D0,D1
+       | 0176  6E5C                           BGT.B       01D4
+; 127: 		  )
+; 128: 		{
+; 129: 			// button found - now see if auto select is on (only for mouse follow func)
+; 130: 
+; 131: 			if (ForFollowMouse)
+       | 0178  4A47                           TST.W       D7
+       | 017A  6738                           BEQ.B       01B4
+; 132: 			{
+; 133: 				if ( immediate && (ME_JumpList[i].mj_RenderType & RENDERTYPE_IMMEDIATE) )
+       | 017C  200B                           MOVE.L      A3,D0
+       | 017E  671A                           BEQ.B       019A
+       | 0180  2006                           MOVE.L      D6,D0
+       | 0182  E980                           ASL.L       #4,D0
+       | 0184  9086                           SUB.L       D6,D0
+       | 0186  2200                           MOVE.L      D0,D1
+       | 0188  E581                           ASL.L       #2,D1
+       | 018A  9280                           SUB.L       D0,D1
+       | 018C  D281                           ADD.L       D1,D1
+       | 018E  0830 0005 1816                 BTST        #0005,16(A0,D1.L)
+       | 0194  6704                           BEQ.B       019A
+; 134: 					*immediate = TRUE;
+       | 0196  36BC 0001                      MOVE.W      #0001,(A3)
+; 135: 
+; 136: 				if ( !(ME_JumpList[i].mj_RenderType & RENDERTYPE_AUTO) )	// auto == follow
+       | 019A  2006                           MOVE.L      D6,D0
+       | 019C  E980                           ASL.L       #4,D0
+       | 019E  9086                           SUB.L       D6,D0
+       | 01A0  2200                           MOVE.L      D0,D1
+       | 01A2  E581                           ASL.L       #2,D1
+       | 01A4  9280                           SUB.L       D0,D1
+       | 01A6  D281                           ADD.L       D1,D1
+       | 01A8  0830 0004 1816                 BTST        #0004,16(A0,D1.L)
+       | 01AE  660C                           BNE.B       01BC
+; 137: 					return(NULL);
+       | 01B0  7000                           MOVEQ       #00,D0
+       | 01B2  6028                           BRA.B       01DC
+; 138: 			}
+; 139: 			else
+; 140: 				KillScreenButtons(GED);
+       | 01B4  2F0D                           MOVE.L      A5,-(A7)
+       | 01B6  6100 0108                      BSR.W       02C0
+       | 01BA  584F                           ADDQ.W      #4,A7
+; 141: 
+; 142: 			return(&ME_JumpList[i]);
+       | 01BC  2006                           MOVE.L      D6,D0
+       | 01BE  E980                           ASL.L       #4,D0
+       | 01C0  9086                           SUB.L       D6,D0
+       | 01C2  2200                           MOVE.L      D0,D1
+       | 01C4  E581                           ASL.L       #2,D1
+       | 01C6  9280                           SUB.L       D0,D1
+       | 01C8  D281                           ADD.L       D1,D1
+       | 01CA  206F 002C                      MOVEA.L     002C(A7),A0
+       | 01CE  D1C1                           ADDA.L      D1,A0
+       | 01D0  2008                           MOVE.L      A0,D0
+       | 01D2  6008                           BRA.B       01DC
+; 143: 		}	
+; 144: 
+; 145: 		i++;
+       | 01D4  5286                           ADDQ.L      #1,D6
+; 146: 	}
+       | 01D6  6000 FF18                      BRA.W       00F0
+; 147: 
+; 148: 	return(NULL);
+       | 01DA  7000                           MOVEQ       #00,D0
+; 149: }
+       | 01DC  4CDF 68E0                      MOVEM.L     (A7)+,D5-D7/A3/A5-A6
+       | 01E0  DEFC 0018                      ADDA.W      #0018,A7
+       | 01E4  4E75                           RTS
+       | 01E6  0024 5645                      ORI.B       #45,-(A4)
+       | 01EA  523A 2031                      ADDQ.B      #1,2031(PC)
+       | 01EE  2E33 0000                      MOVE.L      00(A3,D0.W),D7
+       | 01F2  4D50                           PEA         (A0)
+       | 01F4  2072 656E 6465 7A2D            MOVEA.L     ([6465,A2],7A2D),A0
+       | 01FC  766F                           MOVEQ       #6F,D3
+       | 01FE  7573                           
+       | 0200  0000 696E                      ORI.B       #6E,D0
+       | 0204  7475                           MOVEQ       #75,D2
+       | 0206  6974                           BVS.B       027C
+       | 0208  696F                           BVS.B       0279
+       | 020A  6E2E                           BGT.B       023A
+       | 020C  6C69                           BGE.B       0277
+       | 020E  6272                           BHI.B       0282
+       | 0210  6172                           BSR.B       0284
+       | 0212  7900                           
+       | 0214  6772                           BEQ.B       0288
+       | 0216  6170                           BSR.B       0288
+       | 0218  6869                           BVC.B       0283
+       | 021A  6373                           BLS.B       028F
+       | 021C  2E6C 6962                      MOVEA.L     6962(A4),A7
+       | 0220  7261                           MOVEQ       #61,D1
+       | 0222  7279                           MOVEQ       #79,D1
+       | 0224  0000 6B65                      ORI.B       #65,D0
+       | 0228  796D                           
+       | 022A  6170                           BSR.B       029C
+       | 022C  2E6C 6962                      MOVEA.L     6962(A4),A7
+       | 0230  7261                           MOVEQ       #61,D1
+       | 0232  7279                           MOVEQ       #79,D1
+       | 0234  0000 506F                      ORI.B       #6F,D0
+       | 0238  7274                           MOVEQ       #74,D1
+       | 023A  5F47                           SUBQ.W      #7,D7
+       | 023C  6C6F                           BGE.B       02AD
+       | 023E  6245                           BHI.B       0285
+       | 0240  5072 6F63 0000 506F 7274       ADDQ.W      #8,([0000,A2],506F7274)
+       | 024A  5F47                           SUBQ.W      #7,D7
+       | 024C  4574                           
+       | 024E  6F50                           BLE.B       02A0
+       | 0250  4300                           CHK.L       D0,D1
+       | 0252  506F 7274                      ADDQ.W      #8,7274(A7)
+       | 0256  5F49                           SUBQ.W      #7,A1
+       | 0258  4474 6F49                      NEG.W       ([A4])
+       | 025C  4549                           
+       | 025E  0000 696E                      ORI.B       #6E,D0
+       | 0262  7075                           MOVEQ       #75,D0
+       | 0264  742E                           MOVEQ       #2E,D2
+       | 0266  6465                           BCC.B       02CD
+       | 0268  7669                           MOVEQ       #69,D3
+       | 026A  6365                           BLS.B       02D1
+       | 026C  0000 496E                      ORI.B       #6E,D0
+       | 0270  745F                           MOVEQ       #5F,D2
+       | 0272  476C                           
+       | 0274  6F62                           BLE.B       02D8
+       | 0276  4550                           
+       | 0278  726F                           MOVEQ       #6F,D1
+       | 027A  6300 706F                      BLS.W       72EB
+       | 027E  7467                           MOVEQ       #67,D2
+       | 0280  6F2E                           BLE.B       02B0
+       | 0282  7265                           MOVEQ       #65,D1
+       | 0284  736F                           
+       | 0286  7572                           
+       | 0288  6365                           BLS.B       02EF
+       | 028A  0000 6D65                      ORI.B       #65,D0
+       | 028E  6469                           BCC.B       02F9
+       | 0290  6170                           BSR.B       0302
+       | 0292  6F69                           BLE.B       02FD
+       | 0294  6E74                           BGT.B       030A
+       | 0296  2E6C 6962                      MOVEA.L     6962(A4),A7
+       | 029A  7261                           MOVEQ       #61,D1
+       | 029C  7279                           MOVEQ       #79,D1
+       | 029E  0000 4444                      ORI.B       #44,D0
+       | 02A2  5200                           ADDQ.B      #1,D0
+       | 02A4  4D50                           PEA         (A0)
+       | 02A6  5F49                           SUBQ.W      #7,A1
+       | 02A8  6E70                           BGT.B       031A
+       | 02AA  7574                           
+       | 02AC  0000 6164                      ORI.B       #64,D0
+       | 02B0  6472                           BCC.B       0324
+       | 02B2  6573                           BCS.B       0327
+       | 02B4  7320                           
+       | 02B6  4444                           NEG.W       D4
+       | 02B8  5220                           ADDQ.B      #1,-(A0)
+       | 02BA  5354                           SUBQ.W      #1,(A4)
+       | 02BC  4F50 0000                      LINK        A0,#0000
+; 150: 
+; 151: /******************************************************
+; 152: *Func : Kill button list
+; 153: *int  :
+; 154: *out  :
+; 155: *		
+; 156: */
+; 157: void KillScreenButtons(EVENTDATA *GED)
+; 158: {
+       | 02C0  48E7 0116                      MOVEM.L     D7/A3/A5-A6,-(A7)
+       | 02C4  2A6F 0014                      MOVEA.L     0014(A7),A5
+; 159:   int i;
+; 160:   MOUSEJUMPREC *ME_JumpList;
+; 161: 
+; 162: 	Forbid();
+       | 02C8  2C78 0004                      MOVEA.L     0004,A6
+       | 02CC  4EAE FF7C                      JSR         FF7C(A6)
+; 163: 	i = 0;
+       | 02D0  7E00                           MOVEQ       #00,D7
+; 164: 	ME_JumpList = GED->ed_ME_LocJumpList;
+       | 02D2  266D 0010                      MOVEA.L     0010(A5),A3
+; 165: 	if ( ME_JumpList )
+       | 02D6  200B                           MOVE.L      A3,D0
+       | 02D8  671C                           BEQ.B       02F6
+; 166: 	{
+; 167: 		while(ME_JumpList[i].mj_Width)
+       | 02DA  2007                           MOVE.L      D7,D0
+       | 02DC  E980                           ASL.L       #4,D0
+       | 02DE  9087                           SUB.L       D7,D0
+       | 02E0  2200                           MOVE.L      D0,D1
+       | 02E2  E581                           ASL.L       #2,D1
+       | 02E4  9280                           SUB.L       D0,D1
+       | 02E6  D281                           ADD.L       D1,D1
+       | 02E8  4AB3 180E                      TST.L       0E(A3,D1.L)
+       | 02EC  6708                           BEQ.B       02F6
+; 168: 		{
+; 169: 			ME_JumpList[i].mj_B_Used = FALSE;
+       | 02EE  4273 181C                      CLR.W       1C(A3,D1.L)
+; 170: 			i++;
+       | 02F2  5287                           ADDQ.L      #1,D7
+; 171: 		}
+       | 02F4  60E4                           BRA.B       02DA
+; 172: /*
+; 173: 		while(ME_JumpList[i].mj_Width)
+; 174: 		{
+; 175: 			ME_JumpList[i].mj_Width = 0;
+; 176: 			i++;
+; 177: 		}
+; 178: */
+; 179: 	}
+; 180: 	Permit();
+       | 02F6  2C78 0004                      MOVEA.L     0004,A6
+       | 02FA  4EAE FF76                      JSR         FF76(A6)
+; 181: }
+       | 02FE  4CDF 6880                      MOVEM.L     (A7)+,D7/A3/A5-A6
+       | 0302  4E75                           RTS
+; 182: 
+; 183: /******************************************************
+; 184: *Func : Look up which MOUSEJUMPREC is associated with this key
+; 185: *int  : GED
+; 186: *out  : NULL -> This key is not in the list
+; 187: *		else -> ptr to mouse jump rec
+; 188: */
+; 189: MOUSEJUMPREC *FindKeyButton(EVENTDATA *GED, int rawkeyCode)
+; 190: {
+       | 0304  594F                           SUBQ.W      #4,A7
+       | 0306  48E7 2716                      MOVEM.L     D2/D5-D7/A3/A5-A6,-(A7)
+       | 030A  2E2F 0028                      MOVE.L      0028(A7),D7
+       | 030E  2A6F 0024                      MOVEA.L     0024(A7),A5
+; 191:   int i;
+; 192:   MOUSEJUMPREC *ME_JumpList;
+; 193:   int raw;
+; 194:   struct RendezVousRecord *rvrec;
+; 195: 
+; 196: 	// NEW -- DO NOT ACCEPT MOUSE/KEY EVENTS UNTIL PAGE IS DONE WITH RENDERING
+; 197: 	rvrec = (struct RendezVousRecord *)GED->miscPtr;
+       | 0312  2F6D 003A 001C                 MOVE.L      003A(A5),001C(A7)
+; 198: 	if ( rvrec->capsprefs->mousePointer & 128 )
+       | 0318  226F 001C                      MOVEA.L     001C(A7),A1
+       | 031C  2069 000C                      MOVEA.L     000C(A1),A0
+       | 0320  0828 0007 0681                 BTST        #0007,0681(A0)
+       | 0326  6728                           BEQ.B       0350
+; 199: 	{
+; 200: 		if ( !AttemptSemaphore( &GED->mlsystem->ms_Sema_Transition ) )
+       | 0328  206D 003E                      MOVEA.L     003E(A5),A0
+       | 032C  43E8 02EE                      LEA         02EE(A0),A1
+       | 0330  2049                           MOVEA.L     A1,A0
+       | 0332  2C78 0004                      MOVEA.L     0004,A6
+       | 0336  4EAE FDC0                      JSR         FDC0(A6)
+       | 033A  4A80                           TST.L       D0
+       | 033C  6604                           BNE.B       0342
+; 201: 			return(NULL);
+       | 033E  7000                           MOVEQ       #00,D0
+       | 0340  607A                           BRA.B       03BC
+; 202: 		else
+; 203: 			ReleaseSemaphore( &GED->mlsystem->ms_Sema_Transition );
+       | 0342  206D 003E                      MOVEA.L     003E(A5),A0
+       | 0346  43E8 02EE                      LEA         02EE(A0),A1
+       | 034A  2049                           MOVEA.L     A1,A0
+       | 034C  4EAE FDC6                      JSR         FDC6(A6)
+; 204: 	}
+; 205: 	// NEW -- DO NOT ACCEPT MOUSE/KEY EVENTS UNTIL PAGE IS DONE WITH RENDERING
+; 206: 
+; 207: 	i = 0;
+       | 0350  7C00                           MOVEQ       #00,D6
+; 208: 	ME_JumpList = GED->ed_ME_LocJumpList;
+       | 0352  266D 0010                      MOVEA.L     0010(A5),A3
+; 209: 
+; 210: 	while(ME_JumpList[i].mj_Width)
+       | 0356  2006                           MOVE.L      D6,D0
+       | 0358  E980                           ASL.L       #4,D0
+       | 035A  9086                           SUB.L       D6,D0
+       | 035C  2200                           MOVE.L      D0,D1
+       | 035E  E581                           ASL.L       #2,D1
+       | 0360  9280                           SUB.L       D0,D1
+       | 0362  D281                           ADD.L       D1,D1
+       | 0364  4AB3 180E                      TST.L       0E(A3,D1.L)
+       | 0368  6750                           BEQ.B       03BA
+; 211: 	{
+; 212: 		if ( ME_JumpList[i].mj_keyCode != -1 )
+       | 036A  2033 1820                      MOVE.L      20(A3,D1.L),D0
+       | 036E  74FF                           MOVEQ       #FF,D2
+       | 0370  B082                           CMP.L       D2,D0
+       | 0372  670E                           BEQ.B       0382
+; 213: 			raw = ASCIIToRawKey( GED, ME_JumpList[i].mj_keyCode );
+       | 0374  2F00                           MOVE.L      D0,-(A7)
+       | 0376  2F0D                           MOVE.L      A5,-(A7)
+       | 0378  6100 015C                      BSR.W       04D6
+       | 037C  504F                           ADDQ.W      #8,A7
+       | 037E  2A00                           MOVE.L      D0,D5
+       | 0380  6012                           BRA.B       0394
+; 214: 		else
+; 215: 			raw = ME_JumpList[i].mj_rawkeyCode;
+       | 0382  2006                           MOVE.L      D6,D0
+       | 0384  E980                           ASL.L       #4,D0
+       | 0386  9086                           SUB.L       D6,D0
+       | 0388  2200                           MOVE.L      D0,D1
+       | 038A  E581                           ASL.L       #2,D1
+       | 038C  9280                           SUB.L       D0,D1
+       | 038E  D281                           ADD.L       D1,D1
+       | 0390  2A33 1824                      MOVE.L      24(A3,D1.L),D5
+; 216: 
+; 217: 		if ( raw == rawkeyCode )
+       | 0394  BA87                           CMP.L       D7,D5
+       | 0396  661E                           BNE.B       03B6
+; 218: 		{
+; 219: 			KillScreenButtons(GED);
+       | 0398  2F0D                           MOVE.L      A5,-(A7)
+       | 039A  6100 FF24                      BSR.W       02C0
+; 220: 
+; 221: 			return(&ME_JumpList[i]);
+       | 039E  2006                           MOVE.L      D6,D0
+       | 03A0  E980                           ASL.L       #4,D0
+       | 03A2  9086                           SUB.L       D6,D0
+       | 03A4  2200                           MOVE.L      D0,D1
+       | 03A6  E581                           ASL.L       #2,D1
+       | 03A8  9280                           SUB.L       D0,D1
+       | 03AA  D281                           ADD.L       D1,D1
+       | 03AC  204B                           MOVEA.L     A3,A0
+       | 03AE  D1C1                           ADDA.L      D1,A0
+       | 03B0  584F                           ADDQ.W      #4,A7
+       | 03B2  2008                           MOVE.L      A0,D0
+       | 03B4  6006                           BRA.B       03BC
+; 222: 		}
+; 223: 
+; 224: 		i++;
+       | 03B6  5286                           ADDQ.L      #1,D6
+; 225: 	}
+       | 03B8  609C                           BRA.B       0356
+; 226: 
+; 227: 	return(NULL);
+       | 03BA  7000                           MOVEQ       #00,D0
+; 228: }
+       | 03BC  4CDF 68E4                      MOVEM.L     (A7)+,D2/D5-D7/A3/A5-A6
+       | 03C0  584F                           ADDQ.W      #4,A7
+       | 03C2  4E75                           RTS
+; 229: 
+; 230: /******************************************************
+; 231: *Func : 
+; 232: *int  : 
+; 233: *out  : 
+; 234: *		
+; 235: */
+; 236: void SendButtonHilight( MLSYSTEM *mlsystem, MOUSEJUMPREC *mj, BOOL forFollow )
+; 237: {
+       | 03C4  9EFC 0014                      SUBA.W      #0014,A7
+       | 03C8  48E7 0106                      MOVEM.L     D7/A5-A6,-(A7)
+       | 03CC  3E2F 002E                      MOVE.W      002E(A7),D7
+       | 03D0  2A6F 0028                      MOVEA.L     0028(A7),A5
+; 238: WORD numericalArgs[10];
+; 239: 
+; 240: 	// MAKE SOUND...
+; 241: 
+; 242: 	if ( forFollow && mj->mj_AudioCue>=1 )
+       | 03D4  4A47                           TST.W       D7
+       | 03D6  671A                           BEQ.B       03F2
+       | 03D8  0CAD 0000 0001 0018            CMPI.L      #00000001,0018(A5)
+       | 03E0  6D10                           BLT.B       03F2
+; 243: 		Beep(20000,2);
+       | 03E2  4878 0002                      PEA         0002
+       | 03E6  4878 4E20                      PEA         4E20
+       | 03EA  4EBA  0000-XX.1                JSR         _Beep(PC)
+       | 03EE  504F                           ADDQ.W      #8,A7
+       | 03F0  6040                           BRA.B       0432
+; 244: 	else
+; 245: 	{
+; 246: 		if ( mj->mj_AudioCue == 1)		// beep
+       | 03F2  7001                           MOVEQ       #01,D0
+       | 03F4  B0AD 0018                      CMP.L       0018(A5),D0
+       | 03F8  660E                           BNE.B       0408
+; 247: 			Beep(25000,1);
+       | 03FA  2F00                           MOVE.L      D0,-(A7)
+       | 03FC  4878 61A8                      PEA         61A8
+       | 0400  4EBA  0000-XX.1                JSR         _Beep(PC)
+       | 0404  504F                           ADDQ.W      #8,A7
+       | 0406  602A                           BRA.B       0432
+; 248: 		else if ( mj->mj_AudioCue == 2)	// true
+       | 0408  7202                           MOVEQ       #02,D1
+       | 040A  B2AD 0018                      CMP.L       0018(A5),D1
+       | 040E  660E                           BNE.B       041E
+; 249: 			Beep(20000,1);
+       | 0410  2F00                           MOVE.L      D0,-(A7)
+       | 0412  4878 4E20                      PEA         4E20
+       | 0416  4EBA  0000-XX.1                JSR         _Beep(PC)
+       | 041A  504F                           ADDQ.W      #8,A7
+       | 041C  6014                           BRA.B       0432
+; 250: 		else if ( mj->mj_AudioCue == 3)	// false
+       | 041E  7203                           MOVEQ       #03,D1
+       | 0420  B2AD 0018                      CMP.L       0018(A5),D1
+       | 0424  660C                           BNE.B       0432
+; 251: 			Beep(7000,1);
+       | 0426  2F00                           MOVE.L      D0,-(A7)
+       | 0428  4878 1B58                      PEA         1B58
+       | 042C  4EBA  0000-XX.1                JSR         _Beep(PC)
+       | 0430  504F                           ADDQ.W      #8,A7
+; 252: 	}
+; 253: 
+; 254: 	// ...AND RENDER THINGS ON SCREEN...
+; 255: 
+; 256: 	if (	( mj->mj_RenderType & RENDERTYPE_INVERT ) ||
+       | 0432  082D 0001 0016                 BTST        #0001,0016(A5)
+       | 0438  6612                           BNE.B       044C
+; 257: 				( mj->mj_RenderType & RENDERTYPE_BOX ) ||
+       | 043A  082D 0002 0016                 BTST        #0002,0016(A5)
+       | 0440  660A                           BNE.B       044C
+; 258: 				( mj->mj_RenderType & RENDERTYPE_FATBOX ) )
+       | 0442  082D 0003 0016                 BTST        #0003,0016(A5)
+       | 0448  6700 0082                      BEQ.W       04CC
+; 259: 	{
+; 260: 		numericalArgs[0] = mj->mj_RenderType;
+       | 044C  102D 0016                      MOVE.B      0016(A5),D0
+       | 0450  4880                           EXT.W       D0
+       | 0452  3F40 000C                      MOVE.W      D0,000C(A7)
+; 261: 		numericalArgs[1] = mj->mj_X;
+       | 0456  202D 0006                      MOVE.L      0006(A5),D0
+       | 045A  3F40 000E                      MOVE.W      D0,000E(A7)
+; 262: 		numericalArgs[2] = mj->mj_Y;
+       | 045E  202D 000A                      MOVE.L      000A(A5),D0
+       | 0462  3F40 0010                      MOVE.W      D0,0010(A7)
+; 263: 		numericalArgs[3] = mj->mj_Width;
+       | 0466  202D 000E                      MOVE.L      000E(A5),D0
+       | 046A  3F40 0012                      MOVE.W      D0,0012(A7)
+; 264: 		numericalArgs[4] = mj->mj_Height;
+       | 046E  202D 0012                      MOVE.L      0012(A5),D0
+       | 0472  3F40 0014                      MOVE.W      D0,0014(A7)
+; 265: 		numericalArgs[5] = 0;	// color
+       | 0476  426F 0016                      CLR.W       0016(A7)
+; 266: 		numericalArgs[6] = 5;	// fat line weight
+       | 047A  3F7C 0005 0018                 MOVE.W      #0005,0018(A7)
+; 267: 		numericalArgs[7] = 3;	// delay
+       | 0480  3F7C 0003 001A                 MOVE.W      #0003,001A(A7)
+; 268: 		numericalArgs[8] = 0;	// # blinks
+       | 0486  426F 001C                      CLR.W       001C(A7)
+; 269: 		if ( mj->mj_RenderType & RENDERTYPE_STAY )
+       | 048A  082D 0006 0016                 BTST        #0006,0016(A5)
+       | 0490  6706                           BEQ.B       0498
+; 270: 			numericalArgs[9] = FALSE;
+       | 0492  426F 001E                      CLR.W       001E(A7)
+       | 0496  6006                           BRA.B       049E
+; 271: 		else
+; 272: 			numericalArgs[9] = TRUE;
+       | 0498  3F7C 0001 001E                 MOVE.W      #0001,001E(A7)
+; 273: 
+; 274: 		// attempt to get screen semaphore
+; 275: 		if ( AttemptSemaphore( &mlsystem->ms_Sema_Transition ) )
+       | 049E  206F 0024                      MOVEA.L     0024(A7),A0
+       | 04A2  D0FC 02EE                      ADDA.W      #02EE,A0
+       | 04A6  2C78 0004                      MOVEA.L     0004,A6
+       | 04AA  4EAE FDC0                      JSR         FDC0(A6)
+       | 04AE  4A80                           TST.L       D0
+       | 04B0  671A                           BEQ.B       04CC
+; 276: 		{
+; 277: 			place_button( numericalArgs, mlsystem );
+       | 04B2  2F2F 0024                      MOVE.L      0024(A7),-(A7)
+       | 04B6  486F 0010                      PEA         0010(A7)
+       | 04BA  4EBA  0000-XX.1                JSR         _place_button(PC)
+       | 04BE  504F                           ADDQ.W      #8,A7
+; 278: 			ReleaseSemaphore( &mlsystem->ms_Sema_Transition );
+       | 04C0  206F 0024                      MOVEA.L     0024(A7),A0
+       | 04C4  D0FC 02EE                      ADDA.W      #02EE,A0
+       | 04C8  4EAE FDC6                      JSR         FDC6(A6)
+; 279: 		}
+; 280: 	}
+; 281: }
+       | 04CC  4CDF 6080                      MOVEM.L     (A7)+,D7/A5-A6
+       | 04D0  DEFC 0014                      ADDA.W      #0014,A7
+       | 04D4  4E75                           RTS
+; 282: 
+; 283: /**************************************************
+; 284: *Func : Convert a ASCII code into a rawkey code
+; 285: *in   : ASCIICode -> 8 bit ascii code in integer format 
+; 286: *out  : RawKey -> rawkey code, as from the keyboard
+; 287: */
+; 288: int ASCIIToRawKey(EVENTDATA *GED, int ASCIICode)
+; 289: {
+       | 04D6  9EFC 0010                      SUBA.W      #0010,A7
+       | 04DA  48E7 0136                      MOVEM.L     D7/A2-A3/A5-A6,-(A7)
+       | 04DE  2E2F 002C                      MOVE.L      002C(A7),D7
+       | 04E2  2A6F 0028                      MOVEA.L     0028(A7),A5
+; 290: UBYTE src_buffer[3];
+; 291: UBYTE dst_buffer[10];
+; 292: struct Library *KeymapBase;
+; 293: 
+; 294: 	KeymapBase = (struct Library *)GED->ed_KeymapBase;
+       | 04E6  266D 0036                      MOVEA.L     0036(A5),A3
+; 295: 	if ( !KeymapBase )
+       | 04EA  200B                           MOVE.L      A3,D0
+       | 04EC  672C                           BEQ.B       051A
+; 296: 		return(0);
+; 297: 	
+; 298: 	src_buffer[0] = (UBYTE)ASCIICode,
+       | 04EE  2207                           MOVE.L      D7,D1
+       | 04F0  1F41 0017                      MOVE.B      D1,0017(A7)
+; 299: 	src_buffer[1] = '\0';
+       | 04F4  422F 0018                      CLR.B       0018(A7)
+; 300: 
+; 301: 	if ( MapANSI(src_buffer,1, dst_buffer,3, NULL)==1 )
+       | 04F8  2C40                           MOVEA.L     D0,A6
+       | 04FA  41EF 0017                      LEA         0017(A7),A0
+       | 04FE  43EF 001A                      LEA         001A(A7),A1
+       | 0502  7001                           MOVEQ       #01,D0
+       | 0504  7203                           MOVEQ       #03,D1
+       | 0506  95CA                           SUBA.L      A2,A2
+       | 0508  4EAE FFD0                      JSR         FFD0(A6)
+       | 050C  5380                           SUBQ.L      #1,D0
+       | 050E  6608                           BNE.B       0518
+; 302: 		return( dst_buffer[0] );
+       | 0510  7000                           MOVEQ       #00,D0
+       | 0512  102F 001A                      MOVE.B      001A(A7),D0
+       | 0516  6002                           BRA.B       051A
+; 303: 	else
+; 304: 		return( 0 );
+       | 0518  7000                           MOVEQ       #00,D0
+; 305: }
+       | 051A  4CDF 6C80                      MOVEM.L     (A7)+,D7/A2-A3/A5-A6
+       | 051E  DEFC 0010                      ADDA.W      #0010,A7
+       | 0522  4E75                           RTS
+; 306: 
+; 307: /*****************************************************
+; 308: *Func : Set up a jumptable with SNRs for each key
+; 309: *in   : EvList -> ptr to eentlist (either global or local)
+; 310: *		IE_JumpList -> Ptr to rawkey to SNR conversion table 
+; 311: *		ME_JumpList -> Ptr to coords to SNR converion table
+; 312: *out  : TRUE -> Mouse coord Events are part of the eventlist
+; 313: *		FALSE -> No mouse coord events
+; 314: */
+; 315: BOOL MakeJumpList(GED, EvList, IE_JumpList, ME_JumpList)
+; 316: EVENTDATA *GED;
+; 317: struct ScriptEventRecord **EvList;
+; 318: EVENTJUMPREC *IE_JumpList;
+; 319: MOUSEJUMPREC *ME_JumpList;
+; 320: { 
+       | 0524  594F                           SUBQ.W      #4,A7
+       | 0526  48E7 3334                      MOVEM.L     D2-D3/D6-D7/A2-A3/A5,-(A7)
+       | 052A  266F 0028                      MOVEA.L     0028(A7),A3
+       | 052E  2A6F 0024                      MOVEA.L     0024(A7),A5
+; 321:   BOOL B_MouseOn;
+; 322:   int i;
+; 323:   struct ScriptEventRecord 	*CurSER;
+; 324: 
+; 325: 	for(i = 0; i < MAX_RAWKEYS; i++)
+       | 0532  7C00                           MOVEQ       #00,D6
+       | 0534  7068                           MOVEQ       #68,D0
+       | 0536  BC80                           CMP.L       D0,D6
+       | 0538  6C14                           BGE.B       054E
+; 326: 		IE_JumpList[i].ej_LabelSNR = NULL;
+       | 053A  2006                           MOVE.L      D6,D0
+       | 053C  E580                           ASL.L       #2,D0
+       | 053E  9086                           SUB.L       D6,D0
+       | 0540  D080                           ADD.L       D0,D0
+       | 0542  206F 002C                      MOVEA.L     002C(A7),A0
+       | 0546  42B0 0800                      CLR.L       00(A0,D0.L)
+       | 054A  5286                           ADDQ.L      #1,D6
+       | 054C  60E6                           BRA.B       0534
+; 327: 
+; 328: 	if(ME_JumpList)
+       | 054E  4AAF 0030                      TST.L       0030(A7)
+       | 0552  6722                           BEQ.B       0576
+; 329: 		for(i = 0; i < MAX_GLOBAL_EVENTS; i++)
+       | 0554  7C00                           MOVEQ       #00,D6
+       | 0556  7064                           MOVEQ       #64,D0
+       | 0558  BC80                           CMP.L       D0,D6
+       | 055A  6C1A                           BGE.B       0576
+; 330: 			ME_JumpList[i].mj_B_Used = FALSE;
+       | 055C  2006                           MOVE.L      D6,D0
+       | 055E  E980                           ASL.L       #4,D0
+       | 0560  9086                           SUB.L       D6,D0
+       | 0562  2200                           MOVE.L      D0,D1
+       | 0564  E581                           ASL.L       #2,D1
+       | 0566  9280                           SUB.L       D0,D1
+       | 0568  D281                           ADD.L       D1,D1
+       | 056A  206F 0030                      MOVEA.L     0030(A7),A0
+       | 056E  4270 181C                      CLR.W       1C(A0,D1.L)
+       | 0572  5286                           ADDQ.L      #1,D6
+       | 0574  60E0                           BRA.B       0556
+; 331: 
+; 332: 	CurSER = *EvList;
+       | 0576  2F53 001C                      MOVE.L      (A3),001C(A7)
+; 333: 	B_MouseOn = FALSE;	
+       | 057A  7E00                           MOVEQ       #00,D7
+; 334: 	i = 0;
+       | 057C  7C00                           MOVEQ       #00,D6
+; 335: 	while(CurSER != NULL)
+       | 057E  4AAF 001C                      TST.L       001C(A7)
+       | 0582  6700 00EE                      BEQ.W       0672
+; 336: 	{
+; 337: 		if(CurSER->keyCode != -1)
+       | 0586  206F 001C                      MOVEA.L     001C(A7),A0
+       | 058A  2010                           MOVE.L      (A0),D0
+       | 058C  72FF                           MOVEQ       #FF,D1
+       | 058E  B081                           CMP.L       D1,D0
+       | 0590  673C                           BEQ.B       05CE
+; 338: 		{
+; 339: 			// in case of a ascii represented key, convert it to rawkey
+; 340: 			
+; 341: 			// copy its ScriptNodeRecord ptr
+; 342: 			IE_JumpList[ASCIIToRawKey(GED,CurSER->keyCode)].ej_LabelSNR = 
+       | 0592  2F00                           MOVE.L      D0,-(A7)
+       | 0594  2F0D                           MOVE.L      A5,-(A7)
+       | 0596  6100 FF3E                      BSR.W       04D6
+       | 059A  2200                           MOVE.L      D0,D1
+       | 059C  E581                           ASL.L       #2,D1
+       | 059E  9280                           SUB.L       D0,D1
+       | 05A0  D281                           ADD.L       D1,D1
+; 343: 			 CurSER->labelSNR;
+       | 05A2  206F 0024                      MOVEA.L     0024(A7),A0
+       | 05A6  226F 0034                      MOVEA.L     0034(A7),A1
+       | 05AA  23A8 011E 1800                 MOVE.L      011E(A0),00(A1,D1.L)
+; 344: 			IE_JumpList[ASCIIToRawKey(GED,CurSER->keyCode)].ej_JumpRecType = JRT_KEYEVENT;
+       | 05B0  2E90                           MOVE.L      (A0),(A7)
+       | 05B2  2F0D                           MOVE.L      A5,-(A7)
+       | 05B4  6100 FF20                      BSR.W       04D6
+       | 05B8  4FEF 000C                      LEA         000C(A7),A7
+       | 05BC  2200                           MOVE.L      D0,D1
+       | 05BE  E581                           ASL.L       #2,D1
+       | 05C0  9280                           SUB.L       D0,D1
+       | 05C2  D281                           ADD.L       D1,D1
+       | 05C4  206F 002C                      MOVEA.L     002C(A7),A0
+       | 05C8  4270 1804                      CLR.W       04(A0,D1.L)
+       | 05CC  6020                           BRA.B       05EE
+; 345: 		}
+; 346: 		else
+; 347: 		{
+; 348: 			if(CurSER->rawkeyCode != -1)
+       | 05CE  2028 0004                      MOVE.L      0004(A0),D0
+       | 05D2  B081                           CMP.L       D1,D0
+       | 05D4  6718                           BEQ.B       05EE
+; 349: 			{
+; 350: 				IE_JumpList[CurSER->rawkeyCode].ej_LabelSNR = CurSER->labelSNR;
+       | 05D6  2200                           MOVE.L      D0,D1
+       | 05D8  E581                           ASL.L       #2,D1
+       | 05DA  9280                           SUB.L       D0,D1
+       | 05DC  D281                           ADD.L       D1,D1
+       | 05DE  2268 011E                      MOVEA.L     011E(A0),A1
+       | 05E2  246F 002C                      MOVEA.L     002C(A7),A2
+       | 05E6  2589 1800                      MOVE.L      A1,00(A2,D1.L)
+; 351: 				IE_JumpList[CurSER->rawkeyCode].ej_JumpRecType = JRT_KEYEVENT;
+       | 05EA  4272 1804                      CLR.W       04(A2,D1.L)
+; 352: 			}
+; 353: 		}	
+; 354: 
+; 355: 		if(ME_JumpList)	
+       | 05EE  202F 0030                      MOVE.L      0030(A7),D0
+       | 05F2  6774                           BEQ.B       0668
+; 356: 		{
+; 357: 			if(CurSER->width)
+       | 05F4  206F 001C                      MOVEA.L     001C(A7),A0
+       | 05F8  2228 0110                      MOVE.L      0110(A0),D1
+       | 05FC  676A                           BEQ.B       0668
+; 358: 			{	
+; 359: 				B_MouseOn = TRUE;
+       | 05FE  7E01                           MOVEQ       #01,D7
+; 360: 				ME_JumpList[i].mj_X = CurSER->x;
+       | 0600  2406                           MOVE.L      D6,D2
+       | 0602  E982                           ASL.L       #4,D2
+       | 0604  9486                           SUB.L       D6,D2
+       | 0606  2602                           MOVE.L      D2,D3
+       | 0608  E583                           ASL.L       #2,D3
+       | 060A  9682                           SUB.L       D2,D3
+       | 060C  D683                           ADD.L       D3,D3
+       | 060E  2240                           MOVEA.L     D0,A1
+       | 0610  D3C3                           ADDA.L      D3,A1
+       | 0612  2368 0108 0006                 MOVE.L      0108(A0),0006(A1)
+; 361: 				ME_JumpList[i].mj_Y = CurSER->y;
+       | 0618  2368 010C 000A                 MOVE.L      010C(A0),000A(A1)
+; 362: 				ME_JumpList[i].mj_Width = CurSER->width;
+       | 061E  2368 0110 000E                 MOVE.L      0110(A0),000E(A1)
+; 363: 				ME_JumpList[i].mj_Height = CurSER->height;
+       | 0624  2368 0114 0012                 MOVE.L      0114(A0),0012(A1)
+; 364: 				ME_JumpList[i].mj_RenderType = CurSER->renderType;
+       | 062A  1368 0118 0016                 MOVE.B      0118(A0),0016(A1)
+; 365: 				ME_JumpList[i].mj_AudioCue = CurSER->audioCue;
+       | 0630  2368 011A 0018                 MOVE.L      011A(A0),0018(A1)
+; 366: 				ME_JumpList[i].mj_LabelSNR = CurSER->labelSNR;
+       | 0636  22A8 011E                      MOVE.L      011E(A0),(A1)
+; 367: 				ME_JumpList[i].mj_TypeBits = CurSER->typeBits;
+       | 063A  3368 0122 001E                 MOVE.W      0122(A0),001E(A1)
+; 368: 				ME_JumpList[i].mj_JumpRecType = JRT_SCREENBUTTON;
+       | 0640  7001                           MOVEQ       #01,D0
+       | 0642  3340 0004                      MOVE.W      D0,0004(A1)
+; 369: 				ME_JumpList[i].mj_B_Used = TRUE;
+       | 0646  3340 001C                      MOVE.W      D0,001C(A1)
+; 370: 
+; 371: 				ME_JumpList[i].mj_keyCode = CurSER->keyCode;	// ADDED ERIK
+       | 064A  2350 0020                      MOVE.L      (A0),0020(A1)
+; 372: 				ME_JumpList[i].mj_rawkeyCode = CurSER->rawkeyCode;	// ADDED ERIK
+       | 064E  2368 0004 0024                 MOVE.L      0004(A0),0024(A1)
+; 373: 				if ( CurSER->assignment[0] )								// ADDED ERIK
+       | 0654  4A28 0156                      TST.B       0156(A0)
+       | 0658  670C                           BEQ.B       0666
+; 374: 					strcpy(ME_JumpList[i].mj_assignment, CurSER->assignment);	// ADDED ERIK
+       | 065A  45E9 0028                      LEA         0028(A1),A2
+       | 065E  43E8 0156                      LEA         0156(A0),A1
+       | 0662  14D9                           MOVE.B      (A1)+,(A2)+
+       | 0664  66FC                           BNE.B       0662
+; 375: 
+; 376: 				i++;
+       | 0666  5286                           ADDQ.L      #1,D6
+; 377: 			}
+; 378: 		}
+; 379: 		EvList++;		// next  event
+       | 0668  588B                           ADDQ.L      #4,A3
+; 380: 		CurSER = *EvList;
+       | 066A  2F53 001C                      MOVE.L      (A3),001C(A7)
+; 381: 	}
+       | 066E  6000 FF0E                      BRA.W       057E
+; 382: 
+; 383: 	if(ME_JumpList)	
+       | 0672  202F 0030                      MOVE.L      0030(A7),D0
+       | 0676  6714                           BEQ.B       068C
+; 384: 		ME_JumpList[i].mj_Width = 0;
+       | 0678  2206                           MOVE.L      D6,D1
+       | 067A  E981                           ASL.L       #4,D1
+       | 067C  9286                           SUB.L       D6,D1
+       | 067E  2401                           MOVE.L      D1,D2
+       | 0680  E582                           ASL.L       #2,D2
+       | 0682  9481                           SUB.L       D1,D2
+       | 0684  D482                           ADD.L       D2,D2
+       | 0686  2040                           MOVEA.L     D0,A0
+       | 0688  42B0 280E                      CLR.L       0E(A0,D2.L)
+; 385: 
+; 386: 	return(B_MouseOn);
+       | 068C  3007                           MOVE.W      D7,D0
+; 387: }
+       | 068E  4CDF 2CCC                      MOVEM.L     (A7)+,D2-D3/D6-D7/A2-A3/A5
+       | 0692  584F                           ADDQ.W      #4,A7
+       | 0694  4E75                           RTS
+; 388: 
+; 389: /**************************************************
+; 390: *Func : main entry for the global event processor
+; 391: *		InputEvent handling is set up here
+; 392: *		The jumplist is initialised
+; 393: *in   : -
+; 394: *out  : Error in PI->ar_Argument.ag_RetErr
+; 395: */
+; 396: void main( argc, argv)
+; 397: int argc;
+; 398: char **argv;
+; 399: {
+       | 0696  9EFC 00D0                      SUBA.W      #00D0,A7
+       | 069A  48E7 3F36                      MOVEM.L     D2-D7/A2-A3/A5-A6,-(A7)
+       | 069E  2E2F 00FC                      MOVE.L      00FC(A7),D7
+       | 06A2  2A6F 0100                      MOVEA.L     0100(A7),A5
+; 400:   int				Err_InputDev;
+; 401:   PROCESSINFO		*ThisPI;
+; 402:   MLSYSTEM			*MLSystem;
+; 403:   GEVENTDIALOGUE 	*Msg_GEDial;	// used to send commands to the processcontroller
+; 404:   GEDIALOGUE		*Msg_RGEDial;	// an message from a guide/pc
+; 405:   BOOL 				GEventEnabled;	// if TRUE, events from the inputevent. 
+; 406: 									// interrupt are passed on to the proccontroller 
+; 407: 									// else they will be flushed.
+; 408:   struct MsgPort	*Port_IDtoIEI,	// Port for input device
+; 409: 					*Port_GEtoPC,	// Port through which the global event handler
+; 410: 									// can reach the processcontroller.
+; 411: 					*RepP_GEtoPC,	// Replyport for the processcontroller after
+; 412: 									// it has received a message on its Port_GEtoPC.
+; 413: 					*Port_toGE;		// Public global event port which may be used
+; 414: 									// future. e.g. for global event data refresh etc 	
+; 415:   ULONG 			SigR_GEtoPC,	// Signal, reply from PC 
+; 416: 					Sig_toGE,		// Signal, message from PC
+; 417:   					SigRecvd;		// signals received
+; 418:   int				SigNum_ItoGE;
+; 419:   struct ScriptInfoRecord	*SIR;
+; 420:   MOUSEJUMPREC		*ME_LocJumpList;
+; 421:   EVENTJUMPREC		*IE_GlobJumpList,// the rawkeycode is the index for this array 
+; 422: 					*IE_LocJumpList;
+; 423:   EVENTDATA 		GEventData; 	// Data field for both the Int_GlobEProc and 
+; 424: 									// the GEventTask
+; 425:   struct IOStdReq 	*InputRequestBlock;
+; 426:   struct Interrupt 	Int_GlobEProc;
+; 427:   struct Custom 	*ge_Custom;
+; 428:   /**** access to MP public port ****/
+; 429:   struct MsgPort *port;
+; 430:   struct Node *node;
+; 431:   struct List *list;
+; 432:   struct RendezVousRecord *rvrec;
+; 433:   struct PotgoBase *PotgoBase;
+; 434:   ULONG potbits;
+; 435:   struct Library *medialinkLibBase;
+; 436: 
+; 437: 	ge_Custom = (struct Custom *)0xdff000;
+       | 06A6  2F7C 00DF F000 00B4            MOVE.L      #00DFF000,00B4(A7)
+; 438: 
+; 439: 	if( (ThisPI = (PROCESSINFO *)ml_FindBaseAddr( argc, argv)) == NULL)
+       | 06AE  2F0D                           MOVE.L      A5,-(A7)
+       | 06B0  2F07                           MOVE.L      D7,-(A7)
+       | 06B2  4EBA  0000-XX.1                JSR         _ml_FindBaseAddr(PC)
+       | 06B6  504F                           ADDQ.W      #8,A7
+       | 06B8  2640                           MOVEA.L     D0,A3
+       | 06BA  200B                           MOVE.L      A3,D0
+       | 06BC  6700 0770                      BEQ.W       0E2E
+; 440: 		return;
+; 441: 
+; 442: 	/**** find the mother ship ****/
+; 443: 
+; 444: 	port = (struct MsgPort *)FindPort(ML_RENDEZ_VOUS);
+       | 06C0  43FA FB30                      LEA         FB30(PC),A1
+       | 06C4  2C78 0004                      MOVEA.L     0004,A6
+       | 06C8  4EAE FE7A                      JSR         FE7A(A6)
+; 445: 	if (port == NULL)
+       | 06CC  2F40 00B0                      MOVE.L      D0,00B0(A7)
+       | 06D0  4A80                           TST.L       D0
+       | 06D2  6700 075A                      BEQ.W       0E2E
+; 446: 		return;
+; 447: 	list = &(port->mp_MsgList);
+       | 06D6  2040                           MOVEA.L     D0,A0
+       | 06D8  D0FC 0014                      ADDA.W      #0014,A0
+; 448: 	node = list->lh_Head;
+       | 06DC  2F50 00AC                      MOVE.L      (A0),00AC(A7)
+; 449: 	rvrec = (struct RendezVousRecord *)node->ln_Name;
+       | 06E0  226F 00AC                      MOVEA.L     00AC(A7),A1
+       | 06E4  2F69 000A 00A4                 MOVE.L      000A(A1),00A4(A7)
+; 450: 
+; 451: 	GEventData.temp1 = NULL;	// NEW - used to store last followed window
+       | 06EA  42AF 0080                      CLR.L       0080(A7)
+; 452: 	GEventData.temp2 = (LONG)rvrec->pagescreen;	// NEW - used to store pointer to playScreen
+       | 06EE  226F 00A4                      MOVEA.L     00A4(A7),A1
+       | 06F2  2F69 0020 0084                 MOVE.L      0020(A1),0084(A7)
+; 453: 
+; 454: 	GEventData.miscPtr = rvrec;	// NEW
+       | 06F8  2F49 0078                      MOVE.L      A1,0078(A7)
+; 455: 
+; 456: 	SIR = ThisPI->pi_Arguments.ar_Module.am_SIR;
+       | 06FC  2F6B 0070 00C8                 MOVE.L      0070(A3),00C8(A7)
+; 457:     MLSystem = ThisPI->pi_Arguments.ar_Module.am_MLSystem;
+       | 0702  246B 0078                      MOVEA.L     0078(A3),A2
+; 458: 
+; 459: 	GEventData.mlsystem = MLSystem;	// NEW
+       | 0706  2F4A 007C                      MOVE.L      A2,007C(A7)
+; 460: 
+; 461: 	GEventData.ed_JumpRec = NULL;
+       | 070A  42AF 0052                      CLR.L       0052(A7)
+; 462: 	GEventData.ed_Task = ThisPI->pi_Process;
+       | 070E  2F6B 0038 003E                 MOVE.L      0038(A3),003E(A7)
+; 463: 
+; 464: 	GEventData.ed_IntuitionBase = NULL;
+       | 0714  42AF 006C                      CLR.L       006C(A7)
+; 465: 	GEventData.ed_GfxBase = NULL;
+       | 0718  42AF 0070                      CLR.L       0070(A7)
+; 466: 	Msg_GEDial = NULL;
+       | 071C  42AF 00F0                      CLR.L       00F0(A7)
+; 467: 	IE_GlobJumpList = NULL;
+       | 0720  42AF 00C0                      CLR.L       00C0(A7)
+; 468: 	ME_LocJumpList = NULL;
+       | 0724  42AF 00C4                      CLR.L       00C4(A7)
+; 469: 	IE_LocJumpList = NULL;
+       | 0728  42AF 00BC                      CLR.L       00BC(A7)
+; 470: 	Port_toGE = NULL;
+       | 072C  42AF 00DC                      CLR.L       00DC(A7)
+; 471: 	RepP_GEtoPC = NULL;
+       | 0730  42AF 00E0                      CLR.L       00E0(A7)
+; 472: 	SigNum_ItoGE = -1;
+       | 0734  70FF                           MOVEQ       #FF,D0
+       | 0736  2F40 00CC                      MOVE.L      D0,00CC(A7)
+; 473: 	Port_GEtoPC = NULL;
+       | 073A  42AF 00E4                      CLR.L       00E4(A7)
+; 474: 	Port_IDtoIEI = NULL;
+       | 073E  42AF 00E8                      CLR.L       00E8(A7)
+; 475: 	InputRequestBlock = NULL;
+       | 0742  42AF 00B8                      CLR.L       00B8(A7)
+; 476: 	Err_InputDev = TRUE;
+       | 0746  7C01                           MOVEQ       #01,D6
+; 477: 
+; 478: 	if( 
+; 479: 		((GEventData.ed_IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library",0)) == NULL) ||	
+       | 0748  2F48 00A8                      MOVE.L      A0,00A8(A7)
+       | 074C  43FA FAB4                      LEA         FAB4(PC),A1
+       | 0750  7000                           MOVEQ       #00,D0
+       | 0752  4EAE FDD8                      JSR         FDD8(A6)
+       | 0756  2F40 006C                      MOVE.L      D0,006C(A7)
+       | 075A  2F4A 00F4                      MOVE.L      A2,00F4(A7)
+       | 075E  4A80                           TST.L       D0
+       | 0760  6700 010E                      BEQ.W       0870
+; 480: 		((GEventData.ed_GfxBase = (struct GfxBase *)OpenLibrary("graphics.library",0)) == NULL) ||	
+       | 0764  43FA FAAE                      LEA         FAAE(PC),A1
+       | 0768  7000                           MOVEQ       #00,D0
+       | 076A  4EAE FDD8                      JSR         FDD8(A6)
+       | 076E  2F40 0070                      MOVE.L      D0,0070(A7)
+       | 0772  6700 00FC                      BEQ.W       0870
+; 481: 		((GEventData.ed_KeymapBase = (struct Library *)OpenLibrary("keymap.library",0)) == NULL) ||	
+       | 0776  43FA FAAE                      LEA         FAAE(PC),A1
+       | 077A  7000                           MOVEQ       #00,D0
+       | 077C  4EAE FDD8                      JSR         FDD8(A6)
+       | 0780  2F40 0074                      MOVE.L      D0,0074(A7)
+       | 0784  6700 00EA                      BEQ.W       0870
+; 482: 		((Msg_GEDial = (GEVENTDIALOGUE *)AllocMem(sizeof(GEVENTDIALOGUE),MEMF_PUBLIC|MEMF_CLEAR)) == NULL) ||
+       | 0788  701C                           MOVEQ       #1C,D0
+       | 078A  223C 0001 0001                 MOVE.L      #00010001,D1
+       | 0790  4EAE FF3A                      JSR         FF3A(A6)
+       | 0794  2F40 00F0                      MOVE.L      D0,00F0(A7)
+       | 0798  4A80                           TST.L       D0
+       | 079A  6700 00D4                      BEQ.W       0870
+; 483: 		((IE_GlobJumpList = (EVENTJUMPREC *)AllocMem(MAX_RAWKEYS * sizeof(EVENTJUMPREC),MEMF_PUBLIC|MEMF_CLEAR)) == NULL) ||
+       | 079E  704E                           MOVEQ       #4E,D0
+       | 07A0  E788                           LSL.L       #3,D0
+       | 07A2  223C 0001 0001                 MOVE.L      #00010001,D1
+       | 07A8  4EAE FF3A                      JSR         FF3A(A6)
+       | 07AC  2F40 00C0                      MOVE.L      D0,00C0(A7)
+       | 07B0  4A80                           TST.L       D0
+       | 07B2  6700 00BC                      BEQ.W       0870
+; 484: 		((ME_LocJumpList = (MOUSEJUMPREC *)AllocMem(MAX_GLOBAL_EVENTS * sizeof(MOUSEJUMPREC),MEMF_PUBLIC|MEMF_CLEAR)) == NULL) ||
+       | 07B6  203C 0000 2328                 MOVE.L      #00002328,D0
+       | 07BC  223C 0001 0001                 MOVE.L      #00010001,D1
+       | 07C2  4EAE FF3A                      JSR         FF3A(A6)
+       | 07C6  2F40 00C4                      MOVE.L      D0,00C4(A7)
+       | 07CA  4A80                           TST.L       D0
+       | 07CC  6700 00A2                      BEQ.W       0870
+; 485: 		((IE_LocJumpList = (EVENTJUMPREC *)AllocMem(MAX_RAWKEYS * sizeof(EVENTJUMPREC),MEMF_PUBLIC|MEMF_CLEAR)) == NULL) ||
+       | 07D0  704E                           MOVEQ       #4E,D0
+       | 07D2  E788                           LSL.L       #3,D0
+       | 07D4  223C 0001 0001                 MOVE.L      #00010001,D1
+       | 07DA  4EAE FF3A                      JSR         FF3A(A6)
+       | 07DE  2F40 00BC                      MOVE.L      D0,00BC(A7)
+       | 07E2  4A80                           TST.L       D0
+       | 07E4  6700 008A                      BEQ.W       0870
+; 486: 		((Port_toGE = (struct MsgPort *)CreatePort("Port_GlobEProc",0)) == NULL) ||
+       | 07E8  42A7                           CLR.L       -(A7)
+       | 07EA  487A FA4A                      PEA         FA4A(PC)
+       | 07EE  4EBA  0000-XX.1                JSR         _CreatePort(PC)
+       | 07F2  504F                           ADDQ.W      #8,A7
+       | 07F4  2F40 00DC                      MOVE.L      D0,00DC(A7)
+       | 07F8  4A80                           TST.L       D0
+       | 07FA  6774                           BEQ.B       0870
+; 487: 		((RepP_GEtoPC = (struct MsgPort *)CreatePort(0,0)) == NULL) ||
+       | 07FC  42A7                           CLR.L       -(A7)
+       | 07FE  42A7                           CLR.L       -(A7)
+       | 0800  4EBA  0000-XX.1                JSR         _CreatePort(PC)
+       | 0804  504F                           ADDQ.W      #8,A7
+       | 0806  2F40 00E0                      MOVE.L      D0,00E0(A7)
+       | 080A  4A80                           TST.L       D0
+       | 080C  6762                           BEQ.B       0870
+; 488: 		((SigNum_ItoGE = AllocSignal(-1)) == -1) ||
+       | 080E  70FF                           MOVEQ       #FF,D0
+       | 0810  4EAE FEB6                      JSR         FEB6(A6)
+       | 0814  4880                           EXT.W       D0
+       | 0816  48C0                           EXT.L       D0
+       | 0818  48EF 0001 00CC                 MOVEM.L     D0,00CC(A7)
+       | 081E  5280                           ADDQ.L      #1,D0
+       | 0820  674E                           BEQ.B       0870
+; 489: 		((Port_GEtoPC = (struct MsgPort *)FindPort("Port_GEtoPC")) == NULL) ||
+       | 0822  43FA FA22                      LEA         FA22(PC),A1
+       | 0826  4EAE FE7A                      JSR         FE7A(A6)
+       | 082A  2F40 00E4                      MOVE.L      D0,00E4(A7)
+       | 082E  4A80                           TST.L       D0
+       | 0830  673E                           BEQ.B       0870
+; 490:     	((Port_IDtoIEI = CreatePort("Port_IDtoIEI",0)) == NULL) ||
+       | 0832  42A7                           CLR.L       -(A7)
+       | 0834  487A FA1C                      PEA         FA1C(PC)
+       | 0838  4EBA  0000-XX.1                JSR         _CreatePort(PC)
+       | 083C  504F                           ADDQ.W      #8,A7
+       | 083E  2F40 00E8                      MOVE.L      D0,00E8(A7)
+       | 0842  4A80                           TST.L       D0
+       | 0844  672A                           BEQ.B       0870
+; 491:     	((InputRequestBlock = (struct IOStdReq *)CreateStdIO(Port_IDtoIEI)) == NULL) ||
+       | 0846  2F00                           MOVE.L      D0,-(A7)
+       | 0848  4EBA  0000-XX.1                JSR         _CreateStdIO(PC)
+       | 084C  584F                           ADDQ.W      #4,A7
+       | 084E  2F40 00B8                      MOVE.L      D0,00B8(A7)
+       | 0852  4A80                           TST.L       D0
+       | 0854  671A                           BEQ.B       0870
+; 492: 	    ((Err_InputDev = OpenDevice("input.device",0,InputRequestBlock,0)) != 0) 
+       | 0856  2240                           MOVEA.L     D0,A1
+       | 0858  41FA FA06                      LEA         FA06(PC),A0
+       | 085C  7000                           MOVEQ       #00,D0
+       | 085E  2200                           MOVE.L      D0,D1
+       | 0860  4EAE FE44                      JSR         FE44(A6)
+       | 0864  1C00                           MOVE.B      D0,D6
+       | 0866  4886                           EXT.W       D6
+       | 0868  48C6                           EXT.L       D6
+       | 086A  4A86                           TST.L       D6
+       | 086C  6700 00C4                      BEQ.W       0932
+; 493: 	  )
+; 494: 	{
+; 495: 		if(Err_InputDev == 0)
+       | 0870  4A86                           TST.L       D6
+       | 0872  6608                           BNE.B       087C
+; 496: 			CloseDevice(InputRequestBlock);
+       | 0874  226F 00B8                      MOVEA.L     00B8(A7),A1
+       | 0878  4EAE FE3E                      JSR         FE3E(A6)
+; 497: 		if(InputRequestBlock)
+       | 087C  202F 00B8                      MOVE.L      00B8(A7),D0
+       | 0880  6708                           BEQ.B       088A
+; 498: 			DeleteStdIO(InputRequestBlock);
+       | 0882  2F00                           MOVE.L      D0,-(A7)
+       | 0884  4EBA  0000-XX.1                JSR         _DeleteStdIO(PC)
+       | 0888  584F                           ADDQ.W      #4,A7
+; 499: 		if(Port_IDtoIEI)
+       | 088A  202F 00E8                      MOVE.L      00E8(A7),D0
+       | 088E  6708                           BEQ.B       0898
+; 500: 			DeletePort(Port_IDtoIEI);
+       | 0890  2F00                           MOVE.L      D0,-(A7)
+       | 0892  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 0896  584F                           ADDQ.W      #4,A7
+; 501: 		if(SigNum_ItoGE != -1)
+       | 0898  202F 00CC                      MOVE.L      00CC(A7),D0
+       | 089C  72FF                           MOVEQ       #FF,D1
+       | 089E  B081                           CMP.L       D1,D0
+       | 08A0  6704                           BEQ.B       08A6
+; 502: 			FreeSignal(SigNum_ItoGE);
+       | 08A2  4EAE FEB0                      JSR         FEB0(A6)
+; 503: 		if(RepP_GEtoPC)
+       | 08A6  202F 00E0                      MOVE.L      00E0(A7),D0
+       | 08AA  6708                           BEQ.B       08B4
+; 504: 			DeletePort(RepP_GEtoPC);
+       | 08AC  2F00                           MOVE.L      D0,-(A7)
+       | 08AE  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 08B2  584F                           ADDQ.W      #4,A7
+; 505: 		if(Port_toGE)
+       | 08B4  202F 00DC                      MOVE.L      00DC(A7),D0
+       | 08B8  6708                           BEQ.B       08C2
+; 506: 			DeletePort(Port_toGE);
+       | 08BA  2F00                           MOVE.L      D0,-(A7)
+       | 08BC  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 08C0  584F                           ADDQ.W      #4,A7
+; 507: 		if(IE_LocJumpList)
+       | 08C2  202F 00BC                      MOVE.L      00BC(A7),D0
+       | 08C6  670A                           BEQ.B       08D2
+; 508: 			FreeMem(IE_LocJumpList, MAX_RAWKEYS * sizeof(EVENTJUMPREC));
+       | 08C8  2240                           MOVEA.L     D0,A1
+       | 08CA  704E                           MOVEQ       #4E,D0
+       | 08CC  E788                           LSL.L       #3,D0
+       | 08CE  4EAE FF2E                      JSR         FF2E(A6)
+; 509: 		if(ME_LocJumpList)
+       | 08D2  202F 00C4                      MOVE.L      00C4(A7),D0
+       | 08D6  670C                           BEQ.B       08E4
+; 510: 			FreeMem(ME_LocJumpList, MAX_GLOBAL_EVENTS * sizeof(MOUSEJUMPREC));
+       | 08D8  2240                           MOVEA.L     D0,A1
+       | 08DA  203C 0000 2328                 MOVE.L      #00002328,D0
+       | 08E0  4EAE FF2E                      JSR         FF2E(A6)
+; 511: 		if(IE_GlobJumpList)
+       | 08E4  202F 00C0                      MOVE.L      00C0(A7),D0
+       | 08E8  670A                           BEQ.B       08F4
+; 512: 			FreeMem(IE_GlobJumpList, MAX_RAWKEYS * sizeof(EVENTJUMPREC));
+       | 08EA  2240                           MOVEA.L     D0,A1
+       | 08EC  704E                           MOVEQ       #4E,D0
+       | 08EE  E788                           LSL.L       #3,D0
+       | 08F0  4EAE FF2E                      JSR         FF2E(A6)
+; 513: 		if(Msg_GEDial)
+       | 08F4  202F 00F0                      MOVE.L      00F0(A7),D0
+       | 08F8  6708                           BEQ.B       0902
+; 514: 			FreeMem(Msg_GEDial,sizeof(GEVENTDIALOGUE));
+       | 08FA  2240                           MOVEA.L     D0,A1
+       | 08FC  701C                           MOVEQ       #1C,D0
+       | 08FE  4EAE FF2E                      JSR         FF2E(A6)
+; 515: 		if(GEventData.ed_IntuitionBase)
+       | 0902  202F 006C                      MOVE.L      006C(A7),D0
+       | 0906  6706                           BEQ.B       090E
+; 516: 			CloseLibrary(GEventData.ed_IntuitionBase);
+       | 0908  2240                           MOVEA.L     D0,A1
+       | 090A  4EAE FE62                      JSR         FE62(A6)
+; 517: 		if(GEventData.ed_GfxBase)
+       | 090E  202F 0070                      MOVE.L      0070(A7),D0
+       | 0912  6706                           BEQ.B       091A
+; 518: 			CloseLibrary(GEventData.ed_GfxBase);
+       | 0914  2240                           MOVEA.L     D0,A1
+       | 0916  4EAE FE62                      JSR         FE62(A6)
+; 519: 		if(GEventData.ed_KeymapBase)
+       | 091A  202F 0074                      MOVE.L      0074(A7),D0
+       | 091E  6706                           BEQ.B       0926
+; 520: 			CloseLibrary(GEventData.ed_KeymapBase);
+       | 0920  2240                           MOVEA.L     D0,A1
+       | 0922  4EAE FE62                      JSR         FE62(A6)
+; 521:  		ThisPI->pi_Arguments.ar_RetErr = ERR_INPUTHANDLER;
+       | 0926  277C 0000 0195 0070            MOVE.L      #00000195,0070(A3)
+; 522: 		return;
+       | 092E  6000 04FE                      BRA.W       0E2E
+; 523: 	}
+; 524: 
+; 525: 	// set system signals
+; 526: 	Sig_toGE = 1 << Port_toGE->mp_SigBit;			// from outer world to us
+       | 0932  7000                           MOVEQ       #00,D0
+       | 0934  206F 00DC                      MOVEA.L     00DC(A7),A0
+       | 0938  1028 000F                      MOVE.B      000F(A0),D0
+       | 093C  7201                           MOVEQ       #01,D1
+       | 093E  2401                           MOVE.L      D1,D2
+       | 0940  E1A2                           ASL.L       D0,D2
+; 527: 	SigR_GEtoPC = 1 << RepP_GEtoPC->mp_SigBit;		// replyport to us
+       | 0942  7000                           MOVEQ       #00,D0
+       | 0944  206F 00E0                      MOVEA.L     00E0(A7),A0
+       | 0948  1028 000F                      MOVE.B      000F(A0),D0
+       | 094C  2601                           MOVE.L      D1,D3
+       | 094E  E1A3                           ASL.L       D0,D3
+; 528: 	GEventData.ed_Sig_ItoGE = 1 << SigNum_ItoGE;	// event inputhandler to main
+       | 0950  2001                           MOVE.L      D1,D0
+       | 0952  282F 00CC                      MOVE.L      00CC(A7),D4
+       | 0956  E9A0                           ASL.L       D4,D0
+       | 0958  2F40 0042                      MOVE.L      D0,0042(A7)
+; 529: 
+; 530: 	// set jumplist data
+; 531: 	GEventData.ed_IE_GlobJumpList = IE_GlobJumpList;
+       | 095C  2F6F 00C0 0046                 MOVE.L      00C0(A7),0046(A7)
+; 532:     GEventData.ed_ME_LocJumpList = ME_LocJumpList;
+       | 0962  2F6F 00C4 004E                 MOVE.L      00C4(A7),004E(A7)
+; 533: 	GEventData.ed_IE_LocJumpList = IE_LocJumpList;
+       | 0968  2F6F 00BC 004A                 MOVE.L      00BC(A7),004A(A7)
+; 534: 
+; 535: 	// mouse/ keyboard check flags
+; 536: 
+; 537: 	GEventData.ed_ControlBits = CBB_ESCAPE;
+       | 096E  7004                           MOVEQ       #04,D0
+       | 0970  2F40 005A                      MOVE.L      D0,005A(A7)
+; 538: 	if ( rvrec->capsprefs->mousePointer & 1 )		// cursor
+       | 0974  226F 00A4                      MOVEA.L     00A4(A7),A1
+       | 0978  2069 000C                      MOVEA.L     000C(A1),A0
+       | 097C  2F42 00D4                      MOVE.L      D2,00D4(A7)
+       | 0980  2F43 00D8                      MOVE.L      D3,00D8(A7)
+       | 0984  0828 0000 0681                 BTST        #0000,0681(A0)
+       | 098A  6708                           BEQ.B       0994
+; 539: 		GEventData.ed_ControlBits |= CBB_CURSOR;
+       | 098C  08C0 0001                      BSET        #0001,D0
+       | 0990  2F40 005A                      MOVE.L      D0,005A(A7)
+; 540: 	if ( rvrec->capsprefs->mousePointer & 2 )		// mouse
+       | 0994  2069 000C                      MOVEA.L     000C(A1),A0
+       | 0998  0828 0001 0681                 BTST        #0001,0681(A0)
+       | 099E  6708                           BEQ.B       09A8
+; 541: 		GEventData.ed_ControlBits |= CBB_MOUSE;
+       | 09A0  08C0 0000                      BSET        #0000,D0
+       | 09A4  2F40 005A                      MOVE.L      D0,005A(A7)
+; 542: 	if ( rvrec->capsprefs->mousePointer & 4 )		// cursor+mouse
+       | 09A8  2069 000C                      MOVEA.L     000C(A1),A0
+       | 09AC  0828 0002 0681                 BTST        #0002,0681(A0)
+       | 09B2  6706                           BEQ.B       09BA
+; 543: 		GEventData.ed_ControlBits |= (CBB_CURSOR|CBB_MOUSE);
+       | 09B4  7403                           MOVEQ       #03,D2
+       | 09B6  85AF 005A                      OR.L        D2,005A(A7)
+; 544: 
+; 545: 	GEventData.ed_B_LJLUsed = FALSE;
+       | 09BA  426F 005E                      CLR.W       005E(A7)
+; 546: 	GEventData.ed_B_ProcessEvent = FALSE;
+       | 09BE  426F 0060                      CLR.W       0060(A7)
+; 547: 	GEventData.ed_B_MouseOn = FALSE;
+       | 09C2  426F 0062                      CLR.W       0062(A7)
+; 548: 
+; 549: 	GEventData.temp3[0] = 0L;
+       | 09C6  42AF 0088                      CLR.L       0088(A7)
+; 550: 	GEventData.temp3[1] = TRUE;
+       | 09CA  2F41 008C                      MOVE.L      D1,008C(A7)
+; 551: 
+; 552: 	emptySprite = (UWORD *)AllocMem(20L,MEMF_CHIP|MEMF_CLEAR);
+       | 09CE  7014                           MOVEQ       #14,D0
+       | 09D0  223C 0001 0002                 MOVE.L      #00010002,D1
+       | 09D6  4EAE FF3A                      JSR         FF3A(A6)
+       | 09DA  2940  0004-01.2                MOVE.L      D0,01.00000004(A4)
+; 553: 	if ( !emptySprite )
+       | 09DE  6700 044E                      BEQ.W       0E2E
+; 554: 		return;
+; 555: 
+; 556: 	if ( rvrec->capsprefs->mousePointer & 16 )
+       | 09E2  226F 00A4                      MOVEA.L     00A4(A7),A1
+       | 09E6  2069 000C                      MOVEA.L     000C(A1),A0
+       | 09EA  0828 0004 0681                 BTST        #0004,0681(A0)
+       | 09F0  670E                           BEQ.B       0A00
+; 557: 		SwitchSprite(&GEventData,_ON_);
+       | 09F2  4878 0001                      PEA         0001
+       | 09F6  486F 0042                      PEA         0042(A7)
+       | 09FA  6100 08C0                      BSR.W       12BC
+       | 09FE  504F                           ADDQ.W      #8,A7
+; 558: 
+; 559: 	//if ( (rvrec->capsprefs->mousePointer & 16) || (rvrec->capsprefs->mousePointer & 64) )	// show sprite
+; 560: 	//	SwitchSprite(&GEventData,_ON_);
+; 561: 	//else
+; 562: 	//	SwitchSprite(&GEventData,_OFF_);
+; 563: 
+; 564: 	// INIT AUDIO - START ADDED ERIK
+; 565: 	if ( !CreateBeep() )
+       | 0A00  4EBA  0000-XX.1                JSR         _CreateBeep(PC)
+       | 0A04  4A00                           TST.B       D0
+       | 0A06  6700 0426                      BEQ.W       0E2E
+; 566: 		return;
+; 567: 	// INIT AUDIO - END ADDED ERIK
+; 568: 
+; 569: 	MakeJumpList(&GEventData, SIR->globallocalEvents, IE_GlobJumpList, NULL);
+       | 0A0A  206F 00C8                      MOVEA.L     00C8(A7),A0
+       | 0A0E  D0FC 0018                      ADDA.W      #0018,A0
+       | 0A12  42A7                           CLR.L       -(A7)
+       | 0A14  2F2F 00C4                      MOVE.L      00C4(A7),-(A7)
+       | 0A18  2F08                           MOVE.L      A0,-(A7)
+       | 0A1A  486F 004A                      PEA         004A(A7)
+       | 0A1E  6100 FB04                      BSR.W       0524
+       | 0A22  4FEF 0010                      LEA         0010(A7),A7
+; 570: 
+; 571: 	// set up input event server interrupt
+; 572:     Int_GlobEProc.is_Data = (APTR)&GEventData;
+       | 0A26  41EF 003E                      LEA         003E(A7),A0
+       | 0A2A  2F48 0036                      MOVE.L      A0,0036(A7)
+; 573:     Int_GlobEProc.is_Code = (void *)Int_GlobEProcServer;
+       | 0A2E  41FA  0000-XX.1                LEA         _Int_GlobEProcServer(PC),A0
+       | 0A32  2F48 003A                      MOVE.L      A0,003A(A7)
+; 574:     Int_GlobEProc.is_Node.ln_Pri = 52;
+       | 0A36  1F7C 0034 0031                 MOVE.B      #34,0031(A7)
+; 575:     Int_GlobEProc.is_Node.ln_Name = "Int_GlobEProc";
+       | 0A3C  41FA F830                      LEA         F830(PC),A0
+       | 0A40  2F48 0032                      MOVE.L      A0,0032(A7)
+; 576:     InputRequestBlock->io_Command = IND_ADDHANDLER;
+       | 0A44  206F 00B8                      MOVEA.L     00B8(A7),A0
+       | 0A48  317C 0009 001C                 MOVE.W      #0009,001C(A0)
+; 577:     InputRequestBlock->io_Data = (APTR)&Int_GlobEProc;
+       | 0A4E  41EF 0028                      LEA         0028(A7),A0
+       | 0A52  226F 00B8                      MOVEA.L     00B8(A7),A1
+       | 0A56  2348 0028                      MOVE.L      A0,0028(A1)
+; 578:     DoIO(InputRequestBlock);
+       | 0A5A  4EAE FE38                      JSR         FE38(A6)
+; 579: 
+; 580: 	// Init gameport
+; 581: 
+; 582: 	PotgoBase=(struct PotgoBase *)OpenResource(POTGONAME);
+       | 0A5E  43FA F81C                      LEA         F81C(PC),A1
+       | 0A62  4EAE FE0E                      JSR         FE0E(A6)
+; 583: 	if ( !PotgoBase )
+       | 0A66  2F40 00A0                      MOVE.L      D0,00A0(A7)
+       | 0A6A  6700 03C2                      BEQ.W       0E2E
+; 584: 		return;
+; 585: 	potbits = AllocPotBits(OUTRY | DATRY | OUTRX | DATRX );
+       | 0A6E  2C40                           MOVEA.L     D0,A6
+       | 0A70  203C 0000 F000                 MOVE.L      #0000F000,D0
+       | 0A76  4EAE FFFA                      JSR         FFFA(A6)
+       | 0A7A  7200                           MOVEQ       #00,D1
+       | 0A7C  3200                           MOVE.W      D0,D1
+; 586: 	if ( potbits != (OUTRY | DATRY | OUTRX | DATRX ) )
+       | 0A7E  48EF 0002 009C                 MOVEM.L     D1,009C(A7)
+       | 0A84  0C81 0000 F000                 CMPI.L      #0000F000,D1
+       | 0A8A  670A                           BEQ.B       0A96
+; 587: 	{
+; 588: 		FreePotBits(potbits);
+       | 0A8C  2001                           MOVE.L      D1,D0
+       | 0A8E  4EAE FFF4                      JSR         FFF4(A6)
+; 589: 		return;
+       | 0A92  6000 039A                      BRA.W       0E2E
+; 590: 	}
+; 591: 	WritePotgo(0xFFFFFFFFL,potbits);
+       | 0A96  222F 009C                      MOVE.L      009C(A7),D1
+       | 0A9A  70FF                           MOVEQ       #FF,D0
+       | 0A9C  4EAE FFEE                      JSR         FFEE(A6)
+; 592: 
+; 593: 	// start processing input events	
+; 594: 
+; 595: 	GEventData.ed_B_ProcessEvent = TRUE;
+       | 0AA0  7001                           MOVEQ       #01,D0
+       | 0AA2  3F40 0060                      MOVE.W      D0,0060(A7)
+; 596: 	GEventEnabled = TRUE;
+       | 0AA6  3A00                           MOVE.W      D0,D5
+; 597: 	SigRecvd = 0;
+       | 0AA8  42AF 00D0                      CLR.L       00D0(A7)
+; 598: 
+; 599: 	while( !(SigRecvd & SIGF_ABORT))
+       | 0AAC  082F 0000 00D3                 BTST        #0000,00D3(A7)
+       | 0AB2  6600 0246                      BNE.W       0CFA
+; 600: 	{
+; 601: 		SigRecvd = Wait(SIGF_ABORT | Sig_toGE | SigR_GEtoPC | GEventData.ed_Sig_ItoGE);
+       | 0AB6  202F 00D4                      MOVE.L      00D4(A7),D0
+       | 0ABA  0040 0001                      ORI.W       #0001,D0
+       | 0ABE  80AF 00D8                      OR.L        00D8(A7),D0
+       | 0AC2  80AF 0042                      OR.L        0042(A7),D0
+       | 0AC6  2C78 0004                      MOVEA.L     0004,A6
+       | 0ACA  4EAE FEC2                      JSR         FEC2(A6)
+; 602: 
+; 603: 		// signal from InputEvent interrupt ?
+; 604: 		if(GEventEnabled && (SigRecvd & GEventData.ed_Sig_ItoGE))
+       | 0ACE  2F40 00D0                      MOVE.L      D0,00D0(A7)
+       | 0AD2  4A45                           TST.W       D5
+       | 0AD4  6700 00EC                      BEQ.W       0BC2
+       | 0AD8  C0AF 0042                      AND.L       0042(A7),D0
+       | 0ADC  4A80                           TST.L       D0
+       | 0ADE  6700 00E2                      BEQ.W       0BC2
+; 605: 		{
+; 606: 			Msg_GEDial->gd_Msg.mn_Node.ln_Type = NT_MESSAGE;
+       | 0AE2  206F 00F0                      MOVEA.L     00F0(A7),A0
+       | 0AE6  117C 0005 0008                 MOVE.B      #05,0008(A0)
+; 607: 			Msg_GEDial->gd_Msg.mn_Length = sizeof(GEVENTDIALOGUE);
+       | 0AEC  317C 001C 0012                 MOVE.W      #001C,0012(A0)
+; 608: 			Msg_GEDial->gd_Msg.mn_ReplyPort = RepP_GEtoPC;
+       | 0AF2  216F 00E0 000E                 MOVE.L      00E0(A7),000E(A0)
+; 609: 
+; 610: 			// set other values like new ej_LabelSNR here
+; 611: 			Msg_GEDial->gd_Cmd = GEventData.ed_Cmd;		
+       | 0AF8  202F 0056                      MOVE.L      0056(A7),D0
+       | 0AFC  2140 0014                      MOVE.L      D0,0014(A0)
+; 612: 			// whereto should de pc jump, if needed
+; 613: 
+; 614: 			if(GEventData.ed_Cmd == RCMDSTOPnJUMP)
+       | 0B00  7002                           MOVEQ       #02,D0
+       | 0B02  B0AF 0056                      CMP.L       0056(A7),D0
+       | 0B06  6642                           BNE.B       0B4A
+; 615: 			{
+; 616: 				// START NEW - ADDED ERIK
+; 617: 				if(GEventData.ed_JumpRec)
+       | 0B08  4AAF 0052                      TST.L       0052(A7)
+       | 0B0C  6736                           BEQ.B       0B44
+; 618: 				{
+; 619: 					Msg_GEDial->gd_Label.gl_SNR = ((EVENTJUMPREC *)GEventData.ed_JumpRec)->ej_LabelSNR;
+       | 0B0E  226F 0052                      MOVEA.L     0052(A7),A1
+       | 0B12  2451                           MOVEA.L     (A1),A2
+       | 0B14  214A 0018                      MOVE.L      A2,0018(A0)
+; 620: 					if(Msg_GEDial->gd_Label.gl_SNR->nodeType == TALK_STARTSER)
+       | 0B18  7004                           MOVEQ       #04,D0
+       | 0B1A  B02A 0012                      CMP.B       0012(A2),D0
+       | 0B1E  6606                           BNE.B       0B26
+; 621: 						Msg_GEDial->gd_Label.gl_SNR = (SNR *)Msg_GEDial->gd_Label.gl_SNR->list;
+       | 0B20  216A 000E 0018                 MOVE.L      000E(A2),0018(A0)
+; 622: 					// START NEW
+; 623: 					if ( rvrec->capsprefs->mousePointer & 64 )	// auto sprite
+       | 0B26  246F 00A4                      MOVEA.L     00A4(A7),A2
+       | 0B2A  226A 000C                      MOVEA.L     000C(A2),A1
+       | 0B2E  0829 0006 0681                 BTST        #0006,0681(A1)
+       | 0B34  6718                           BEQ.B       0B4E
+; 624: 						SwitchSprite(&GEventData,_OFF_);
+       | 0B36  42A7                           CLR.L       -(A7)
+       | 0B38  486F 0042                      PEA         0042(A7)
+       | 0B3C  6100 077E                      BSR.W       12BC
+       | 0B40  504F                           ADDQ.W      #8,A7
+       | 0B42  600A                           BRA.B       0B4E
+; 625: 					// END NEW
+; 626: 				}
+; 627: 				else
+; 628: 				{
+; 629: 					Msg_GEDial->gd_Label.gl_SNR = NULL;
+       | 0B44  42A8 0018                      CLR.L       0018(A0)
+       | 0B48  6004                           BRA.B       0B4E
+; 630: 				}
+; 631: 				// END NEW - ADDED ERIK
+; 632: 			}
+; 633: 			else	
+; 634: 			{
+; 635: 				Msg_GEDial->gd_Label.gl_SNR = NULL;
+       | 0B4A  42A8 0018                      CLR.L       0018(A0)
+; 636: 			}
+; 637: 
+; 638: 			if(GEventData.ed_JumpRec != NULL)
+       | 0B4E  4AAF 0052                      TST.L       0052(A7)
+       | 0B52  6724                           BEQ.B       0B78
+; 639: 			{
+; 640: 				if ( ((MOUSEJUMPREC *)GEventData.ed_JumpRec)->mj_JumpRecType == JRT_SCREENBUTTON )
+       | 0B54  206F 0052                      MOVEA.L     0052(A7),A0
+       | 0B58  7000                           MOVEQ       #00,D0
+       | 0B5A  3028 0004                      MOVE.W      0004(A0),D0
+       | 0B5E  5380                           SUBQ.L      #1,D0
+       | 0B60  6616                           BNE.B       0B78
+; 641: 				{
+; 642: 					// CALCULATE VARIABLES
+; 643: 					if ( ((MOUSEJUMPREC *)GEventData.ed_JumpRec)->mj_assignment[0] )
+       | 0B62  4A28 0028                      TST.B       0028(A0)
+       | 0B66  6710                           BEQ.B       0B78
+; 644: 					{
+; 645: //KPrintF("Interpreted 1\n");
+; 646: 						InterpretAssignment(((MOUSEJUMPREC *)GEventData.ed_JumpRec)->mj_assignment,MLSystem);
+       | 0B68  43E8 0028                      LEA         0028(A0),A1
+       | 0B6C  2F2F 00F4                      MOVE.L      00F4(A7),-(A7)
+       | 0B70  2F09                           MOVE.L      A1,-(A7)
+       | 0B72  4EBA  0000-XX.1                JSR         _InterpretAssignment(PC)
+       | 0B76  504F                           ADDQ.W      #8,A7
+; 647: //KPrintF("Interpreted 2\n");
+; 648: 					}
+; 649: 				}
+; 650: 			}
+; 651: 	
+; 652: 			// send the new information to the processcontroller
+; 653: 			PutMsg(Port_GEtoPC,(struct Message *)Msg_GEDial);
+       | 0B78  206F 00E4                      MOVEA.L     00E4(A7),A0
+       | 0B7C  226F 00F0                      MOVEA.L     00F0(A7),A1
+       | 0B80  4EAE FE92                      JSR         FE92(A6)
+; 654: 
+; 655: 			if(GEventData.ed_JumpRec != NULL)
+       | 0B84  4AAF 0052                      TST.L       0052(A7)
+       | 0B88  6732                           BEQ.B       0BBC
+; 656: 			{
+; 657: 				if ( (((MOUSEJUMPREC *)GEventData.ed_JumpRec)->mj_JumpRecType == JRT_SCREENBUTTON) )
+       | 0B8A  206F 0052                      MOVEA.L     0052(A7),A0
+       | 0B8E  7000                           MOVEQ       #00,D0
+       | 0B90  3028 0004                      MOVE.W      0004(A0),D0
+       | 0B94  5380                           SUBQ.L      #1,D0
+       | 0B96  6624                           BNE.B       0BBC
+; 658: 				{
+; 659: 					// play audio sample, highlite button etc.
+; 660: 					if(	GEventData.ed_Cmd == RCMDSTOPnJUMP ||
+       | 0B98  202F 0056                      MOVE.L      0056(A7),D0
+       | 0B9C  7202                           MOVEQ       #02,D1
+       | 0B9E  B081                           CMP.L       D1,D0
+       | 0BA0  670A                           BEQ.B       0BAC
+; 661: 							GEventData.ed_Cmd == RCMDPREVOBJ || GEventData.ed_Cmd == RCMDNEXTOBJ )
+       | 0BA2  7206                           MOVEQ       #06,D1
+       | 0BA4  B081                           CMP.L       D1,D0
+       | 0BA6  6704                           BEQ.B       0BAC
+       | 0BA8  5B80                           SUBQ.L      #5,D0
+       | 0BAA  6610                           BNE.B       0BBC
+; 662: 						SendButtonHilight( MLSystem, (MOUSEJUMPREC *)GEventData.ed_JumpRec, FALSE );
+       | 0BAC  42A7                           CLR.L       -(A7)
+       | 0BAE  2F08                           MOVE.L      A0,-(A7)
+       | 0BB0  2F2F 00FC                      MOVE.L      00FC(A7),-(A7)
+       | 0BB4  6100 F80E                      BSR.W       03C4
+       | 0BB8  4FEF 000C                      LEA         000C(A7),A7
+; 663: 					//else
+; 664: 					//	SendButtonHilight( MLSystem, (MOUSEJUMPREC *)GEventData.ed_JumpRec, TRUE );
+; 665: 				}
+; 666: 			}
+; 667: 
+; 668: 			// don't send incoming events untill a reply has been received
+; 669: 			GEventEnabled = FALSE;
+       | 0BBC  7A00                           MOVEQ       #00,D5
+       | 0BBE  6000 FEEC                      BRA.W       0AAC
+; 670: 		}
+; 671: 		else
+; 672: 		{
+; 673: 			// replysignal from process controller ?
+; 674: 			if(SigRecvd & SigR_GEtoPC)
+       | 0BC2  202F 00D0                      MOVE.L      00D0(A7),D0
+       | 0BC6  222F 00D8                      MOVE.L      00D8(A7),D1
+       | 0BCA  C280                           AND.L       D0,D1
+       | 0BCC  6702                           BEQ.B       0BD0
+; 675: 			{
+; 676: 				GEventEnabled = TRUE;
+       | 0BCE  7A01                           MOVEQ       #01,D5
+; 677: 				// send new gp event right away
+; 678: 				// testing purposes only
+; 679: 				//GEventData.ed_Cmd = RCMDNEXTOBJ;
+; 680: 				//Signal(GEventData.ed_Task,GEventData.ed_Sig_ItoGE);
+; 681: 			}
+; 682: 
+; 683: 			// dialogue from ... ?
+; 684: 			if(SigRecvd & Sig_toGE)
+       | 0BD0  C0AF 00D4                      AND.L       00D4(A7),D0
+       | 0BD4  6700 0110                      BEQ.W       0CE6
+; 685: 			{
+; 686: 				while( (Msg_RGEDial = (GEDIALOGUE *)GetMsg(Port_toGE)) != NULL)
+       | 0BD8  206F 00DC                      MOVEA.L     00DC(A7),A0
+       | 0BDC  2C78 0004                      MOVEA.L     0004,A6
+       | 0BE0  4EAE FE8C                      JSR         FE8C(A6)
+       | 0BE4  2F40 00EC                      MOVE.L      D0,00EC(A7)
+       | 0BE8  4A80                           TST.L       D0
+       | 0BEA  6700 00FA                      BEQ.W       0CE6
+; 687: 				{
+; 688: 					switch(Msg_RGEDial->gd_Cmd)
+       | 0BEE  2040                           MOVEA.L     D0,A0
+       | 0BF0  2028 0016                      MOVE.L      0016(A0),D0
+       | 0BF4  7264                           MOVEQ       #64,D1
+       | 0BF6  9081                           SUB.L       D1,D0
+       | 0BF8  6708                           BEQ.B       0C02
+       | 0BFA  5380                           SUBQ.L      #1,D0
+       | 0BFC  6776                           BEQ.B       0C74
+       | 0BFE  6000 00A4                      BRA.W       0CA4
+; 689: 					{
+; 690: 						case EDC_NEWLOCALEVENTS:
+; 691: #if _PRINTF
+; 692: 							KPrintF("EDC_NEWLOCALEVENTS\n");
+; 693: #endif
+; 694: 							GEventData.ed_B_ProcessEvent = FALSE;
+       | 0C02  426F 0060                      CLR.W       0060(A7)
+; 695: 
+; 696: 							GEventData.temp1 = NULL; // NEW - used to store last followed window
+       | 0C06  42AF 0080                      CLR.L       0080(A7)
+; 697: 
+; 698: 							if((GEventData.ed_B_MouseOn = MakeJumpList(&GEventData, Msg_RGEDial->gd_Luggage.gl_LocEvList, IE_LocJumpList,ME_LocJumpList)))
+       | 0C0A  2F2F 00C4                      MOVE.L      00C4(A7),-(A7)
+       | 0C0E  2F2F 00C0                      MOVE.L      00C0(A7),-(A7)
+       | 0C12  206F 00F4                      MOVEA.L     00F4(A7),A0
+       | 0C16  2F28 001A                      MOVE.L      001A(A0),-(A7)
+       | 0C1A  486F 004A                      PEA         004A(A7)
+       | 0C1E  6100 F904                      BSR.W       0524
+       | 0C22  4FEF 0010                      LEA         0010(A7),A7
+       | 0C26  3F40 0062                      MOVE.W      D0,0062(A7)
+       | 0C2A  6720                           BEQ.B       0C4C
+; 699: 							{
+; 700: 								// Show mouse
+; 701: 								if ( rvrec->capsprefs->mousePointer & 64 )	// auto sprite
+       | 0C2C  226F 00A4                      MOVEA.L     00A4(A7),A1
+       | 0C30  2069 000C                      MOVEA.L     000C(A1),A0
+       | 0C34  0828 0006 0681                 BTST        #0006,0681(A0)
+       | 0C3A  672C                           BEQ.B       0C68
+; 702: 									SwitchSprite(&GEventData,_ON_);
+       | 0C3C  4878 0001                      PEA         0001
+       | 0C40  486F 0042                      PEA         0042(A7)
+       | 0C44  6100 0676                      BSR.W       12BC
+       | 0C48  504F                           ADDQ.W      #8,A7
+       | 0C4A  601C                           BRA.B       0C68
+; 703: 							}
+; 704: 							else
+; 705: 							{
+; 706: 								// Hide mouse
+; 707: 								if ( rvrec->capsprefs->mousePointer & 64 )	// auto sprite
+       | 0C4C  226F 00A4                      MOVEA.L     00A4(A7),A1
+       | 0C50  2069 000C                      MOVEA.L     000C(A1),A0
+       | 0C54  0828 0006 0681                 BTST        #0006,0681(A0)
+       | 0C5A  670C                           BEQ.B       0C68
+; 708: 									SwitchSprite(&GEventData,_OFF_);
+       | 0C5C  42A7                           CLR.L       -(A7)
+       | 0C5E  486F 0042                      PEA         0042(A7)
+       | 0C62  6100 0658                      BSR.W       12BC
+       | 0C66  504F                           ADDQ.W      #8,A7
+; 709: 							}	
+; 710: 
+; 711: 							GEventData.ed_B_LJLUsed = TRUE;
+       | 0C68  7001                           MOVEQ       #01,D0
+       | 0C6A  3F40 005E                      MOVE.W      D0,005E(A7)
+; 712: 							GEventData.ed_B_ProcessEvent = TRUE;
+       | 0C6E  3F40 0060                      MOVE.W      D0,0060(A7)
+; 713: 							break;
+       | 0C72  6058                           BRA.B       0CCC
+; 714: 						case EDC_CLRLOCALEVENTS:
+; 715: #if _PRINTF
+; 716: 							KPrintF("EDC_CLRLOCALEVENTS\n");
+; 717: #endif
+; 718: 							// Hide mouse
+; 719: 							if ( rvrec->capsprefs->mousePointer & 64 )	// auto sprite
+       | 0C74  226F 00A4                      MOVEA.L     00A4(A7),A1
+       | 0C78  2069 000C                      MOVEA.L     000C(A1),A0
+       | 0C7C  0828 0006 0681                 BTST        #0006,0681(A0)
+       | 0C82  670C                           BEQ.B       0C90
+; 720: 								SwitchSprite(&GEventData,_OFF_);
+       | 0C84  42A7                           CLR.L       -(A7)
+       | 0C86  486F 0042                      PEA         0042(A7)
+       | 0C8A  6100 0630                      BSR.W       12BC
+       | 0C8E  504F                           ADDQ.W      #8,A7
+; 721: 							GEventData.ed_B_LJLUsed = FALSE;
+       | 0C90  426F 005E                      CLR.W       005E(A7)
+; 722: 							GEventData.ed_B_MouseOn = FALSE;
+       | 0C94  426F 0062                      CLR.W       0062(A7)
+; 723: 
+; 724: 							KillScreenButtons(&GEventData);
+       | 0C98  486F 003E                      PEA         003E(A7)
+       | 0C9C  6100 F622                      BSR.W       02C0
+       | 0CA0  584F                           ADDQ.W      #4,A7
+; 725: 
+; 726: 							break;
+       | 0CA2  6028                           BRA.B       0CCC
+; 727: 						default:
+; 728: #if _PRINTF
+; 729: 							KPrintF("default\n");
+; 730: #endif
+; 731: 							if(Msg_RGEDial->gd_Cmd & CBB_SETCLR)
+       | 0CA4  206F 00EC                      MOVEA.L     00EC(A7),A0
+       | 0CA8  0828 001F 0016                 BTST        #001F,0016(A0)
+       | 0CAE  6712                           BEQ.B       0CC2
+; 732: 								GEventData.ed_ControlBits |= (Msg_RGEDial->gd_Cmd ^ CBB_SETCLR);
+       | 0CB0  2028 0016                      MOVE.L      0016(A0),D0
+       | 0CB4  2200                           MOVE.L      D0,D1
+       | 0CB6  0A81 8000 0000                 EORI.L      #80000000,D1
+       | 0CBC  83AF 005A                      OR.L        D1,005A(A7)
+       | 0CC0  600A                           BRA.B       0CCC
+; 733: 							else
+; 734: 								GEventData.ed_ControlBits &= (~Msg_RGEDial->gd_Cmd);
+       | 0CC2  2028 0016                      MOVE.L      0016(A0),D0
+       | 0CC6  4680                           NOT.L       D0
+       | 0CC8  C1AF 005A                      AND.L       D0,005A(A7)
+; 735: 							break;	
+; 736: 					}
+; 737: 					// check for a reply port since we can't trust unknown xapps
+; 738: 					if( ((struct Message *)Msg_RGEDial)->mn_ReplyPort)
+       | 0CCC  206F 00EC                      MOVEA.L     00EC(A7),A0
+       | 0CD0  4AA8 000E                      TST.L       000E(A0)
+       | 0CD4  6700 FF02                      BEQ.W       0BD8
+; 739: 						ReplyMsg((struct Message *)Msg_RGEDial);
+       | 0CD8  2248                           MOVEA.L     A0,A1
+       | 0CDA  2C78 0004                      MOVEA.L     0004,A6
+       | 0CDE  4EAE FE86                      JSR         FE86(A6)
+; 740: 				}
+       | 0CE2  6000 FEF4                      BRA.W       0BD8
+; 741: 			}
+; 742: 
+; 743: 			// Clean up the Msg queue
+; 744: 			while(GetMsg(RepP_GEtoPC));	
+       | 0CE6  206F 00E0                      MOVEA.L     00E0(A7),A0
+       | 0CEA  2C78 0004                      MOVEA.L     0004,A6
+       | 0CEE  4EAE FE8C                      JSR         FE8C(A6)
+       | 0CF2  4A80                           TST.L       D0
+       | 0CF4  6700 FDB6                      BEQ.W       0AAC
+       | 0CF8  60EC                           BRA.B       0CE6
+; 745: 		}
+; 746: 	}
+; 747: 
+; 748: 	Forbid();
+       | 0CFA  2C78 0004                      MOVEA.L     0004,A6
+       | 0CFE  4EAE FF7C                      JSR         FF7C(A6)
+; 749: 	if ( GEventData.ed_IntuitionBase->ActiveWindow )
+       | 0D02  206F 006C                      MOVEA.L     006C(A7),A0
+       | 0D06  4AA8 0034                      TST.L       0034(A0)
+       | 0D0A  6724                           BEQ.B       0D30
+; 750: 	{
+; 751: 		if ( (rvrec->capsprefs->mousePointer & 16) || (rvrec->capsprefs->mousePointer & 64) )
+       | 0D0C  246F 00A4                      MOVEA.L     00A4(A7),A2
+       | 0D10  226A 000C                      MOVEA.L     000C(A2),A1
+       | 0D14  0829 0004 0681                 BTST        #0004,0681(A1)
+       | 0D1A  6608                           BNE.B       0D24
+       | 0D1C  0829 0006 0681                 BTST        #0006,0681(A1)
+       | 0D22  670C                           BEQ.B       0D30
+; 752: 			ClearPointer(GEventData.ed_IntuitionBase->ActiveWindow);
+       | 0D24  2068 0034                      MOVEA.L     0034(A0),A0
+       | 0D28  2C6C  0000-XX.2                MOVEA.L     _IntuitionBase(A4),A6
+       | 0D2C  4EAE FFC4                      JSR         FFC4(A6)
+; 753: 	}
+; 754: 	Permit();
+       | 0D30  2C78 0004                      MOVEA.L     0004,A6
+       | 0D34  4EAE FF76                      JSR         FF76(A6)
+; 755: 
+; 756: 	// Free gameport
+; 757: 
+; 758: 	FreePotBits(potbits);
+       | 0D38  202F 009C                      MOVE.L      009C(A7),D0
+       | 0D3C  2C6F 00A0                      MOVEA.L     00A0(A7),A6
+       | 0D40  4EAE FFF4                      JSR         FFF4(A6)
+; 759: 
+; 760: 	// INIT AUDIO - START ADDED ERIK
+; 761: 	DeleteBeep();
+       | 0D44  4EBA  0000-XX.1                JSR         _DeleteBeep(PC)
+; 762: 	// INIT AUDIO - END ADDED ERIK
+; 763: 
+; 764: 	// Do post playing killing of other programs
+; 765: 	// PAR
+; 766: 	medialinkLibBase = (struct Library *)OpenLibrary("mediapoint.library",0L);
+       | 0D48  43FA F542                      LEA         F542(PC),A1
+       | 0D4C  7000                           MOVEQ       #00,D0
+       | 0D4E  2C78 0004                      MOVEA.L     0004,A6
+       | 0D52  4EAE FDD8                      JSR         FDD8(A6)
+       | 0D56  2F40 0098                      MOVE.L      D0,0098(A7)
+; 767: 	if ( medialinkLibBase )
+       | 0D5A  672E                           BEQ.B       0D8A
+; 768: 	{
+; 769: 		if ( FindPort("DDR") )
+       | 0D5C  43FA F542                      LEA         F542(PC),A1
+       | 0D60  4EAE FE7A                      JSR         FE7A(A6)
+       | 0D64  4A80                           TST.L       D0
+       | 0D66  6716                           BEQ.B       0D7E
+; 770: 			UA_IssueRexxCmd_V1("MP_Input","address DDR STOP",NULL,FALSE,0);
+       | 0D68  41FA F53A                      LEA         F53A(PC),A0
+       | 0D6C  43FA F540                      LEA         F540(PC),A1
+       | 0D70  2C6F 0098                      MOVEA.L     0098(A7),A6
+       | 0D74  95CA                           SUBA.L      A2,A2
+       | 0D76  7000                           MOVEQ       #00,D0
+       | 0D78  2200                           MOVE.L      D0,D1
+       | 0D7A  4EAE FD36                      JSR         FD36(A6)
+; 771: 		CloseLibrary((struct Library *)medialinkLibBase);
+       | 0D7E  226F 0098                      MOVEA.L     0098(A7),A1
+       | 0D82  2C78 0004                      MOVEA.L     0004,A6
+       | 0D86  4EAE FE62                      JSR         FE62(A6)
+; 772: 	}
+; 773: 
+; 774: 	// Close other stuff
+; 775: 
+; 776: 	InputRequestBlock->io_Command = IND_REMHANDLER;
+       | 0D8A  206F 00B8                      MOVEA.L     00B8(A7),A0
+       | 0D8E  317C 000A 001C                 MOVE.W      #000A,001C(A0)
+; 777: 	InputRequestBlock->io_Data = (APTR)&Int_GlobEProc;
+       | 0D94  43EF 0028                      LEA         0028(A7),A1
+       | 0D98  2149 0028                      MOVE.L      A1,0028(A0)
+; 778:  	DoIO(InputRequestBlock);
+       | 0D9C  2248                           MOVEA.L     A0,A1
+       | 0D9E  4EAE FE38                      JSR         FE38(A6)
+; 779: 	CloseDevice(InputRequestBlock);
+       | 0DA2  226F 00B8                      MOVEA.L     00B8(A7),A1
+       | 0DA6  4EAE FE3E                      JSR         FE3E(A6)
+; 780: 	DeleteStdIO(InputRequestBlock);
+       | 0DAA  2F2F 00B8                      MOVE.L      00B8(A7),-(A7)
+       | 0DAE  4EBA  0000-XX.1                JSR         _DeleteStdIO(PC)
+; 781: 	FreeSignal(SigNum_ItoGE);
+       | 0DB2  202F 00D0                      MOVE.L      00D0(A7),D0
+       | 0DB6  4EAE FEB0                      JSR         FEB0(A6)
+; 782: 	DeletePort(Port_IDtoIEI);
+       | 0DBA  2EAF 00EC                      MOVE.L      00EC(A7),(A7)
+       | 0DBE  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+; 783: 	DeletePort(RepP_GEtoPC);
+       | 0DC2  2EAF 00E4                      MOVE.L      00E4(A7),(A7)
+       | 0DC6  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+; 784: 	DeletePort(Port_toGE);
+       | 0DCA  2EAF 00E0                      MOVE.L      00E0(A7),(A7)
+       | 0DCE  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 0DD2  584F                           ADDQ.W      #4,A7
+; 785: 	FreeMem(IE_LocJumpList, MAX_RAWKEYS * sizeof(EVENTJUMPREC));
+       | 0DD4  226F 00BC                      MOVEA.L     00BC(A7),A1
+       | 0DD8  704E                           MOVEQ       #4E,D0
+       | 0DDA  E788                           LSL.L       #3,D0
+       | 0DDC  4EAE FF2E                      JSR         FF2E(A6)
+; 786: 	FreeMem(ME_LocJumpList, MAX_GLOBAL_EVENTS * sizeof(MOUSEJUMPREC));
+       | 0DE0  226F 00C4                      MOVEA.L     00C4(A7),A1
+       | 0DE4  203C 0000 2328                 MOVE.L      #00002328,D0
+       | 0DEA  4EAE FF2E                      JSR         FF2E(A6)
+; 787: 	FreeMem(IE_GlobJumpList, MAX_RAWKEYS * sizeof(EVENTJUMPREC));
+       | 0DEE  226F 00C0                      MOVEA.L     00C0(A7),A1
+       | 0DF2  704E                           MOVEQ       #4E,D0
+       | 0DF4  E788                           LSL.L       #3,D0
+       | 0DF6  4EAE FF2E                      JSR         FF2E(A6)
+; 788: 	FreeMem(Msg_GEDial,sizeof(GEVENTDIALOGUE));
+       | 0DFA  226F 00F0                      MOVEA.L     00F0(A7),A1
+       | 0DFE  701C                           MOVEQ       #1C,D0
+       | 0E00  4EAE FF2E                      JSR         FF2E(A6)
+; 789: 	CloseLibrary(GEventData.ed_IntuitionBase);
+       | 0E04  226F 006C                      MOVEA.L     006C(A7),A1
+       | 0E08  4EAE FE62                      JSR         FE62(A6)
+; 790: 	CloseLibrary(GEventData.ed_GfxBase);
+       | 0E0C  226F 0070                      MOVEA.L     0070(A7),A1
+       | 0E10  4EAE FE62                      JSR         FE62(A6)
+; 791: 	CloseLibrary(GEventData.ed_KeymapBase);
+       | 0E14  226F 0074                      MOVEA.L     0074(A7),A1
+       | 0E18  4EAE FE62                      JSR         FE62(A6)
+; 792: 	ThisPI->pi_Arguments.ar_RetErr = NO_ERROR;
+       | 0E1C  42AB 0070                      CLR.L       0070(A3)
+; 793: 
+; 794: 	if ( emptySprite )
+       | 0E20  202C  0004-01.2                MOVE.L      01.00000004(A4),D0
+       | 0E24  6708                           BEQ.B       0E2E
+; 795: 		FreeMem(emptySprite,20L);
+       | 0E26  2240                           MOVEA.L     D0,A1
+       | 0E28  7014                           MOVEQ       #14,D0
+       | 0E2A  4EAE FF2E                      JSR         FF2E(A6)
+; 796: 
+; 797: 	return;
+       | 0E2E  4CDF 6CFC                      MOVEM.L     (A7)+,D2-D7/A2-A3/A5-A6
+       | 0E32  DEFC 00D0                      ADDA.W      #00D0,A7
+       | 0E36  4E75                           RTS
+; 798: }
+; 799: 
+; 800: /***************************************************
+; 801: *Func : Handle the inputevent stream
+; 802: *in   : InEvent -> ptr to an event
+; 803: *		GEventData -> ptr to EVENTDATA struct
+; 804: *out  : InEvent
+; 805: */
+; 806: struct InputEvent *Int_GlobEProcHandler( InEvent, GEventData )
+; 807: struct InputEvent *InEvent;
+; 808: EVENTDATA *GEventData;
+; 809: {
+       | 0E38  9EFC 0014                      SUBA.W      #0014,A7
+       | 0E3C  48E7 3716                      MOVEM.L     D2-D3/D5-D7/A3/A5-A6,-(A7)
+       | 0E40  266F 003C                      MOVEA.L     003C(A7),A3
+       | 0E44  2A6F 0038                      MOVEA.L     0038(A7),A5
+; 810: UWORD KeyCode;
+; 811: UWORD Qual;
+; 812: MOUSEJUMPREC *MouseJumpRec, *jr;
+; 813: BOOL immediate=FALSE, passIt;
+       | 0E48  426F 0020                      CLR.W       0020(A7)
+; 814: ULONG t;
+; 815: struct RendezVousRecord *rvrec;
+; 816: void *ed_JumpRec;
+; 817: 
+; 818: 	rvrec = (struct RendezVousRecord *)GEventData->miscPtr;
+       | 0E4C  2F6B 003A 0028                 MOVE.L      003A(A3),0028(A7)
+; 819: 
+; 820: 	if ( rvrec->capsprefs->input_delay )	// non NULL
+       | 0E52  226F 0028                      MOVEA.L     0028(A7),A1
+       | 0E56  2069 000C                      MOVEA.L     000C(A1),A0
+       | 0E5A  4AA8 0732                      TST.L       0732(A0)
+       | 0E5E  6778                           BEQ.B       0ED8
+; 821: 	{
+; 822: 		if ( InEvent->ie_Class==IECLASS_TIMER )
+       | 0E60  102D 0004                      MOVE.B      0004(A5),D0
+       | 0E64  7206                           MOVEQ       #06,D1
+       | 0E66  B001                           CMP.B       D1,D0
+       | 0E68  6632                           BNE.B       0E9C
+; 823: 		{
+; 824: 			t = (InEvent->ie_TimeStamp.tv_secs * MILLION) + InEvent->ie_TimeStamp.tv_micro;
+       | 0E6A  222D 000E                      MOVE.L      000E(A5),D1
+       | 0E6E  2401                           MOVE.L      D1,D2
+       | 0E70  ED82                           ASL.L       #6,D2
+       | 0E72  9481                           SUB.L       D1,D2
+       | 0E74  2602                           MOVE.L      D2,D3
+       | 0E76  EB83                           ASL.L       #5,D3
+       | 0E78  9682                           SUB.L       D2,D3
+       | 0E7A  E783                           ASL.L       #3,D3
+       | 0E7C  D681                           ADD.L       D1,D3
+       | 0E7E  ED83                           ASL.L       #6,D3
+       | 0E80  D6AD 0012                      ADD.L       0012(A5),D3
+       | 0E84  2A03                           MOVE.L      D3,D5
+; 825: 			if ( (t - GEventData->temp3[0]) > rvrec->capsprefs->input_delay )
+       | 0E86  2205                           MOVE.L      D5,D1
+       | 0E88  92AB 004A                      SUB.L       004A(A3),D1
+       | 0E8C  B2A8 0732                      CMP.L       0732(A0),D1
+       | 0E90  630A                           BLS.B       0E9C
+; 826: 			{
+; 827: 				GEventData->temp3[0] = t;
+       | 0E92  2745 004A                      MOVE.L      D5,004A(A3)
+; 828: 				GEventData->temp3[1] = TRUE;
+       | 0E96  7001                           MOVEQ       #01,D0
+       | 0E98  2740 004E                      MOVE.L      D0,004E(A3)
+; 829: 			}
+; 830: 		}
+; 831: 
+; 832: 		if (	InEvent->ie_Class==IECLASS_RAWKEY ||
+       | 0E9C  7000                           MOVEQ       #00,D0
+       | 0E9E  102D 0004                      MOVE.B      0004(A5),D0
+       | 0EA2  5380                           SUBQ.L      #1,D0
+       | 0EA4  671A                           BEQ.B       0EC0
+; 833: 					(InEvent->ie_Class==IECLASS_RAWMOUSE &&
+       | 0EA6  102D 0004                      MOVE.B      0004(A5),D0
+       | 0EAA  7202                           MOVEQ       #02,D1
+       | 0EAC  B001                           CMP.B       D1,D0
+       | 0EAE  6628                           BNE.B       0ED8
+; 834: 					(InEvent->ie_Code==IECODE_LBUTTON || InEvent->ie_Code==IECODE_RBUTTON)) )
+       | 0EB0  322D 0006                      MOVE.W      0006(A5),D1
+       | 0EB4  7468                           MOVEQ       #68,D2
+       | 0EB6  B242                           CMP.W       D2,D1
+       | 0EB8  6706                           BEQ.B       0EC0
+       | 0EBA  7469                           MOVEQ       #69,D2
+       | 0EBC  B242                           CMP.W       D2,D1
+       | 0EBE  6618                           BNE.B       0ED8
+; 835: 		{
+; 836: 			if ( !GEventData->temp3[1] && InEvent->ie_Code!=0x45 )	// immed. esc.
+       | 0EC0  4AAB 004E                      TST.L       004E(A3)
+       | 0EC4  660E                           BNE.B       0ED4
+       | 0EC6  7045                           MOVEQ       #45,D0
+       | 0EC8  B06D 0006                      CMP.W       0006(A5),D0
+       | 0ECC  6706                           BEQ.B       0ED4
+; 837: 				return(0L);
+       | 0ECE  7000                           MOVEQ       #00,D0
+       | 0ED0  6000 03E0                      BRA.W       12B2
+; 838: 			else
+; 839: 				GEventData->temp3[1]=FALSE;
+       | 0ED4  42AB 004E                      CLR.L       004E(A3)
+; 840: 		}
+; 841: 	}
+; 842: 
+; 843: 	switch(InEvent->ie_Class)
+       | 0ED8  7000                           MOVEQ       #00,D0
+       | 0EDA  102D 0004                      MOVE.B      0004(A5),D0
+       | 0EDE  5380                           SUBQ.L      #1,D0
+       | 0EE0  6710                           BEQ.B       0EF2
+       | 0EE2  5380                           SUBQ.L      #1,D0
+       | 0EE4  6700 0276                      BEQ.W       115C
+       | 0EE8  5980                           SUBQ.L      #4,D0
+       | 0EEA  6700 034A                      BEQ.W       1236
+       | 0EEE  6000 03A6                      BRA.W       1296
+; 844: 	{
+; 845:     case IECLASS_RAWKEY:
+; 846:     	KeyCode = (UWORD)InEvent->ie_Code;
+       | 0EF2  3F6D 0006 0022                 MOVE.W      0006(A5),0022(A7)
+; 847: 			Qual = InEvent->ie_Qualifier;
+       | 0EF8  3E2D 0008                      MOVE.W      0008(A5),D7
+; 848: 
+; 849: do_keys:
+; 850: 			RemapKeyPad(&KeyCode);
+       | 0EFC  486F 0022                      PEA         0022(A7)
+       | 0F00  6100 040E                      BSR.W       1310
+       | 0F04  584F                           ADDQ.W      #4,A7
+; 851: 
+; 852: 			// emergency exit LALT+CTRL+ESC
+; 853: 			if(
+; 854: 					KeyCode == 0x45 && 
+       | 0F06  302F 0022                      MOVE.W      0022(A7),D0
+       | 0F0A  7245                           MOVEQ       #45,D1
+       | 0F0C  B041                           CMP.W       D1,D0
+       | 0F0E  6642                           BNE.B       0F52
+; 855: 					(Qual & (IEQUALIFIER_LALT | IEQUALIFIER_CONTROL)) ==
+       | 0F10  3007                           MOVE.W      D7,D0
+       | 0F12  0240 0018                      ANDI.W      #0018,D0
+; 856: 					(IEQUALIFIER_LALT | IEQUALIFIER_CONTROL)
+       | 0F16  7218                           MOVEQ       #18,D1
+       | 0F18  B041                           CMP.W       D1,D0
+       | 0F1A  6636                           BNE.B       0F52
+; 857: 			  )
+; 858: 			{
+; 859: 				if(GEventData->ed_ControlBits & CBB_ESCAPE)
+       | 0F1C  082B 0002 001F                 BTST        #0002,001F(A3)
+       | 0F22  6700 0372                      BEQ.W       1296
+; 860: 				{
+; 861: 					GEventData->temp3[0] = 0;
+       | 0F26  42AB 004A                      CLR.L       004A(A3)
+; 862: 					GEventData->temp3[1] = 0;
+       | 0F2A  42AB 004E                      CLR.L       004E(A3)
+; 863: 		    	InEvent->ie_Code = 0;
+       | 0F2E  426D 0006                      CLR.W       0006(A5)
+; 864: 					InEvent->ie_Class = IECLASS_NULL;
+       | 0F32  422D 0004                      CLR.B       0004(A5)
+; 865: 					GEventData->ed_JumpRec = NULL;
+       | 0F36  42AB 0014                      CLR.L       0014(A3)
+; 866: 					GEventData->ed_Cmd = RCMDESCAPE_SPECIAL;
+       | 0F3A  7008                           MOVEQ       #08,D0
+       | 0F3C  2740 0018                      MOVE.L      D0,0018(A3)
+; 867: 					Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 0F40  2253                           MOVEA.L     (A3),A1
+       | 0F42  202B 0004                      MOVE.L      0004(A3),D0
+       | 0F46  2C78 0004                      MOVEA.L     0004,A6
+       | 0F4A  4EAE FEBC                      JSR         FEBC(A6)
+       | 0F4E  6000 0346                      BRA.W       1296
+; 868: 				}
+; 869: 			}	
+; 870: 			else
+; 871: 			{
+; 872: 				if(!(KeyCode & IECODE_UP_PREFIX))
+       | 0F52  302F 0022                      MOVE.W      0022(A7),D0
+       | 0F56  0800 0007                      BTST        #0007,D0
+       | 0F5A  6600 033A                      BNE.W       1296
+; 873: 				{	
+; 874: 					passIt=TRUE;
+       | 0F5E  7C01                           MOVEQ       #01,D6
+; 875: 
+; 876: 					if(
+; 877: 						(GEventData->ed_B_LJLUsed && (GEventData->ed_IE_LocJumpList[(int)KeyCode].ej_LabelSNR != NULL)) ||
+       | 0F60  322B 0020                      MOVE.W      0020(A3),D1
+       | 0F64  671A                           BEQ.B       0F80
+       | 0F66  4840                           SWAP        D0
+       | 0F68  4240                           CLR.W       D0
+       | 0F6A  4840                           SWAP        D0
+       | 0F6C  2400                           MOVE.L      D0,D2
+       | 0F6E  E582                           ASL.L       #2,D2
+       | 0F70  9480                           SUB.L       D0,D2
+       | 0F72  D482                           ADD.L       D2,D2
+       | 0F74  206B 000C                      MOVEA.L     000C(A3),A0
+       | 0F78  2248                           MOVEA.L     A0,A1
+       | 0F7A  D3C2                           ADDA.L      D2,A1
+       | 0F7C  4A91                           TST.L       (A1)
+       | 0F7E  661A                           BNE.B       0F9A
+; 878: 						(GEventData->ed_IE_GlobJumpList[(int)KeyCode].ej_LabelSNR != NULL)
+       | 0F80  4840                           SWAP        D0
+       | 0F82  4240                           CLR.W       D0
+       | 0F84  4840                           SWAP        D0
+       | 0F86  2400                           MOVE.L      D0,D2
+       | 0F88  E582                           ASL.L       #2,D2
+       | 0F8A  9480                           SUB.L       D0,D2
+       | 0F8C  D482                           ADD.L       D2,D2
+       | 0F8E  206B 0008                      MOVEA.L     0008(A3),A0
+       | 0F92  D1C2                           ADDA.L      D2,A0
+       | 0F94  4A90                           TST.L       (A0)
+       | 0F96  6700 00CC                      BEQ.W       1064
+; 879: 					  )
+; 880: 					{
+; 881: 						jr=NULL;
+       | 0F9A  42AF 002C                      CLR.L       002C(A7)
+; 882: 
+; 883: 						if(GEventData->ed_B_LJLUsed && (GEventData->ed_IE_LocJumpList[(int)KeyCode].ej_LabelSNR != NULL))
+       | 0F9E  4A41                           TST.W       D1
+       | 0FA0  675E                           BEQ.B       1000
+       | 0FA2  4840                           SWAP        D0
+       | 0FA4  4240                           CLR.W       D0
+       | 0FA6  4840                           SWAP        D0
+       | 0FA8  2200                           MOVE.L      D0,D1
+       | 0FAA  E581                           ASL.L       #2,D1
+       | 0FAC  9280                           SUB.L       D0,D1
+       | 0FAE  D281                           ADD.L       D1,D1
+       | 0FB0  206B 000C                      MOVEA.L     000C(A3),A0
+       | 0FB4  2248                           MOVEA.L     A0,A1
+       | 0FB6  D3C1                           ADDA.L      D1,A1
+       | 0FB8  4A91                           TST.L       (A1)
+       | 0FBA  6744                           BEQ.B       1000
+; 884: 						{
+; 885: 							GEventData->ed_JumpRec = (void *)&GEventData->ed_IE_LocJumpList[(int)KeyCode];
+       | 0FBC  4840                           SWAP        D0
+       | 0FBE  4240                           CLR.W       D0
+       | 0FC0  4840                           SWAP        D0
+       | 0FC2  2200                           MOVE.L      D0,D1
+       | 0FC4  E581                           ASL.L       #2,D1
+       | 0FC6  9280                           SUB.L       D0,D1
+       | 0FC8  D281                           ADD.L       D1,D1
+       | 0FCA  D1C1                           ADDA.L      D1,A0
+       | 0FCC  2748 0014                      MOVE.L      A0,0014(A3)
+; 886: 
+; 887: 							// ADDED ERIK
+; 888: 							if ( rvrec->capsprefs->mousePointer )
+       | 0FD0  226F 0028                      MOVEA.L     0028(A7),A1
+       | 0FD4  2069 000C                      MOVEA.L     000C(A1),A0
+       | 0FD8  4A28 0681                      TST.B       0681(A0)
+       | 0FDC  673A                           BEQ.B       1018
+; 889: 							{
+; 890: 								jr = FindKeyButton(GEventData, KeyCode);
+       | 0FDE  7000                           MOVEQ       #00,D0
+       | 0FE0  302F 0022                      MOVE.W      0022(A7),D0
+       | 0FE4  2F00                           MOVE.L      D0,-(A7)
+       | 0FE6  2F0B                           MOVE.L      A3,-(A7)
+       | 0FE8  6100 F31A                      BSR.W       0304
+       | 0FEC  504F                           ADDQ.W      #8,A7
+       | 0FEE  2F40 002C                      MOVE.L      D0,002C(A7)
+; 891: 								if ( jr )
+       | 0FF2  4A80                           TST.L       D0
+       | 0FF4  6706                           BEQ.B       0FFC
+; 892: 									GEventData->ed_JumpRec = (void *)jr;
+       | 0FF6  2740 0014                      MOVE.L      D0,0014(A3)
+       | 0FFA  601C                           BRA.B       1018
+; 893: 								else
+; 894: 									passIt=FALSE;
+       | 0FFC  7C00                           MOVEQ       #00,D6
+       | 0FFE  6018                           BRA.B       1018
+; 895: 
+; 896: 							}
+; 897: 							// ADDED ERIK
+; 898: 						}
+; 899: 						else
+; 900: 							GEventData->ed_JumpRec = (void *)&GEventData->ed_IE_GlobJumpList[(int)KeyCode];
+       | 1000  4840                           SWAP        D0
+       | 1002  4240                           CLR.W       D0
+       | 1004  4840                           SWAP        D0
+       | 1006  2200                           MOVE.L      D0,D1
+       | 1008  E581                           ASL.L       #2,D1
+       | 100A  9280                           SUB.L       D0,D1
+       | 100C  D281                           ADD.L       D1,D1
+       | 100E  206B 0008                      MOVEA.L     0008(A3),A0
+       | 1012  D1C1                           ADDA.L      D1,A0
+       | 1014  2748 0014                      MOVE.L      A0,0014(A3)
+; 901: 
+; 902: 						if ( jr && jr->mj_TypeBits & TB_PREVPAGE )
+       | 1018  202F 002C                      MOVE.L      002C(A7),D0
+       | 101C  6712                           BEQ.B       1030
+       | 101E  2040                           MOVEA.L     D0,A0
+       | 1020  0828 0001 001F                 BTST        #0001,001F(A0)
+       | 1026  6708                           BEQ.B       1030
+; 903: 						{
+; 904: 							GEventData->ed_Cmd = RCMDPREVOBJ;
+       | 1028  7206                           MOVEQ       #06,D1
+       | 102A  2741 0018                      MOVE.L      D1,0018(A3)
+       | 102E  601C                           BRA.B       104C
+; 905: 						}
+; 906: 						else if ( jr && jr->mj_TypeBits & TB_NEXTPAGE )
+       | 1030  4A80                           TST.L       D0
+       | 1032  6712                           BEQ.B       1046
+       | 1034  2040                           MOVEA.L     D0,A0
+       | 1036  0828 0000 001F                 BTST        #0000,001F(A0)
+       | 103C  6708                           BEQ.B       1046
+; 907: 						{
+; 908: 							GEventData->ed_Cmd = RCMDNEXTOBJ;
+       | 103E  7005                           MOVEQ       #05,D0
+       | 1040  2740 0018                      MOVE.L      D0,0018(A3)
+       | 1044  6006                           BRA.B       104C
+; 909: 						}
+; 910: 						else
+; 911: 						{
+; 912: 							GEventData->ed_Cmd = RCMDSTOPnJUMP;
+       | 1046  7002                           MOVEQ       #02,D0
+       | 1048  2740 0018                      MOVE.L      D0,0018(A3)
+; 913: 						}
+; 914: // ADDED KC
+; 915: 						if ( passIt )
+       | 104C  4A46                           TST.W       D6
+       | 104E  6700 0246                      BEQ.W       1296
+; 916: // END ADDED
+; 917: 							Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 1052  2253                           MOVEA.L     (A3),A1
+       | 1054  202B 0004                      MOVE.L      0004(A3),D0
+       | 1058  2C78 0004                      MOVEA.L     0004,A6
+       | 105C  4EAE FEBC                      JSR         FEBC(A6)
+       | 1060  6000 0234                      BRA.W       1296
+; 918: 					}	
+; 919: 					else
+; 920: 					{
+; 921: 						// check special preprogrammed keys
+; 922: 						switch(KeyCode)
+       | 1064  7200                           MOVEQ       #00,D1
+       | 1066  3200                           MOVE.W      D0,D1
+       | 1068  7045                           MOVEQ       #45,D0
+       | 106A  9280                           SUB.L       D0,D1
+       | 106C  6700 00B8                      BEQ.W       1126
+       | 1070  7009                           MOVEQ       #09,D0
+       | 1072  9280                           SUB.L       D0,D1
+       | 1074  6708                           BEQ.B       107E
+       | 1076  5381                           SUBQ.L      #1,D1
+       | 1078  6758                           BEQ.B       10D2
+       | 107A  6000 021A                      BRA.W       1296
+; 923: 						{
+; 924: 							case 0x4e:	//crsr right
+; 925: 								if(GEventData->ed_ControlBits & CBB_CURSOR)
+       | 107E  082B 0001 001F                 BTST        #0001,001F(A3)
+       | 1084  6700 0210                      BEQ.W       1296
+; 926: 								{
+; 927: 									if(GEventData->ed_ControlBits & CBB_SHFTCRSR)
+       | 1088  082B 0003 001F                 BTST        #0003,001F(A3)
+       | 108E  6726                           BEQ.B       10B6
+; 928: 									{
+; 929: 										if(Qual & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT | IEQUALIFIER_CAPSLOCK))
+       | 1090  3007                           MOVE.W      D7,D0
+       | 1092  0240 0007                      ANDI.W      #0007,D0
+       | 1096  6700 01FE                      BEQ.W       1296
+; 930: 										{
+; 931: 											GEventData->ed_Cmd = RCMDNEXTOBJ;
+       | 109A  7005                           MOVEQ       #05,D0
+       | 109C  2740 0018                      MOVE.L      D0,0018(A3)
+; 932: 											GEventData->ed_JumpRec = NULL;
+       | 10A0  42AB 0014                      CLR.L       0014(A3)
+; 933: 											Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 10A4  2253                           MOVEA.L     (A3),A1
+       | 10A6  202B 0004                      MOVE.L      0004(A3),D0
+       | 10AA  2C78 0004                      MOVEA.L     0004,A6
+       | 10AE  4EAE FEBC                      JSR         FEBC(A6)
+       | 10B2  6000 01E2                      BRA.W       1296
+; 934: 										}
+; 935: 									}
+; 936: 									else
+; 937: 									{
+; 938: 										GEventData->ed_Cmd = RCMDNEXTOBJ;
+       | 10B6  7005                           MOVEQ       #05,D0
+       | 10B8  2740 0018                      MOVE.L      D0,0018(A3)
+; 939: 										GEventData->ed_JumpRec = NULL;
+       | 10BC  42AB 0014                      CLR.L       0014(A3)
+; 940: 										Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 10C0  2253                           MOVEA.L     (A3),A1
+       | 10C2  202B 0004                      MOVE.L      0004(A3),D0
+       | 10C6  2C78 0004                      MOVEA.L     0004,A6
+       | 10CA  4EAE FEBC                      JSR         FEBC(A6)
+; 941: 									}
+; 942: 								}
+; 943: 								break;
+       | 10CE  6000 01C6                      BRA.W       1296
+; 944: 							case 0x4f:	//crsr left
+; 945: 								if(GEventData->ed_ControlBits & CBB_CURSOR)
+       | 10D2  082B 0001 001F                 BTST        #0001,001F(A3)
+       | 10D8  6700 01BC                      BEQ.W       1296
+; 946: 								{
+; 947: 									if(GEventData->ed_ControlBits & CBB_SHFTCRSR)
+       | 10DC  082B 0003 001F                 BTST        #0003,001F(A3)
+       | 10E2  6726                           BEQ.B       110A
+; 948: 									{
+; 949: 										if(Qual & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT | IEQUALIFIER_CAPSLOCK))
+       | 10E4  3007                           MOVE.W      D7,D0
+       | 10E6  0240 0007                      ANDI.W      #0007,D0
+       | 10EA  6700 01AA                      BEQ.W       1296
+; 950: 										{
+; 951: 											GEventData->ed_Cmd = RCMDPREVOBJ;
+       | 10EE  7006                           MOVEQ       #06,D0
+       | 10F0  2740 0018                      MOVE.L      D0,0018(A3)
+; 952: 											GEventData->ed_JumpRec = NULL;
+       | 10F4  42AB 0014                      CLR.L       0014(A3)
+; 953: 											Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 10F8  2253                           MOVEA.L     (A3),A1
+       | 10FA  202B 0004                      MOVE.L      0004(A3),D0
+       | 10FE  2C78 0004                      MOVEA.L     0004,A6
+       | 1102  4EAE FEBC                      JSR         FEBC(A6)
+       | 1106  6000 018E                      BRA.W       1296
+; 954: 										}
+; 955: 									}
+; 956: 									else
+; 957: 									{
+; 958: 										GEventData->ed_Cmd = RCMDPREVOBJ;
+       | 110A  7006                           MOVEQ       #06,D0
+       | 110C  2740 0018                      MOVE.L      D0,0018(A3)
+; 959: 										GEventData->ed_JumpRec = NULL;
+       | 1110  42AB 0014                      CLR.L       0014(A3)
+; 960: 										Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 1114  2253                           MOVEA.L     (A3),A1
+       | 1116  202B 0004                      MOVE.L      0004(A3),D0
+       | 111A  2C78 0004                      MOVEA.L     0004,A6
+       | 111E  4EAE FEBC                      JSR         FEBC(A6)
+; 961: 									}
+; 962: 								}
+; 963: 								break;
+       | 1122  6000 0172                      BRA.W       1296
+; 964: 							case 0x45:	//escape
+; 965: 								if(GEventData->ed_ControlBits & CBB_ESCAPE)
+       | 1126  082B 0002 001F                 BTST        #0002,001F(A3)
+       | 112C  6700 0168                      BEQ.W       1296
+; 966: 								{
+; 967: 									GEventData->temp3[0] = 0;
+       | 1130  42AB 004A                      CLR.L       004A(A3)
+; 968: 									GEventData->temp3[1] = 0;
+       | 1134  42AB 004E                      CLR.L       004E(A3)
+; 969: 						    	InEvent->ie_Code = 0;
+       | 1138  426D 0006                      CLR.W       0006(A5)
+; 970: 									InEvent->ie_Class = IECLASS_NULL;
+       | 113C  422D 0004                      CLR.B       0004(A5)
+; 971: 									GEventData->ed_JumpRec = NULL;
+       | 1140  42AB 0014                      CLR.L       0014(A3)
+; 972: 									GEventData->ed_Cmd = RCMDESCAPE;
+       | 1144  7007                           MOVEQ       #07,D0
+       | 1146  2740 0018                      MOVE.L      D0,0018(A3)
+; 973: 									Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 114A  2253                           MOVEA.L     (A3),A1
+       | 114C  202B 0004                      MOVE.L      0004(A3),D0
+       | 1150  2C78 0004                      MOVEA.L     0004,A6
+       | 1154  4EAE FEBC                      JSR         FEBC(A6)
+; 974: 								}
+; 975: 								break;
+; 976: 						}
+; 977: 					}	
+; 978: 				}
+; 979: 			}
+; 980: 			break;
+       | 1158  6000 013C                      BRA.W       1296
+; 981: 
+; 982: 	    case IECLASS_RAWMOUSE:
+; 983: 			// mouse buttons must be used for button interactivity control
+; 984:    		KeyCode = (UWORD)InEvent->ie_Code;
+       | 115C  3F6D 0006 0022                 MOVE.W      0006(A5),0022(A7)
+; 985: do_mouse:
+; 986: 			if(GEventData->ed_B_MouseOn)
+       | 1162  4A6B 0024                      TST.W       0024(A3)
+       | 1166  677C                           BEQ.B       11E4
+; 987: 			{
+; 988: 				switch(KeyCode)
+       | 1168  7000                           MOVEQ       #00,D0
+       | 116A  302F 0022                      MOVE.W      0022(A7),D0
+       | 116E  7268                           MOVEQ       #68,D1
+       | 1170  9081                           SUB.L       D1,D0
+       | 1172  6600 0122                      BNE.W       1296
+; 989: 				{
+; 990: 					case IECODE_LBUTTON:
+; 991: 						if ( rvrec->capsprefs->mousePointer )
+       | 1176  226F 0028                      MOVEA.L     0028(A7),A1
+       | 117A  2069 000C                      MOVEA.L     000C(A1),A0
+       | 117E  4A28 0681                      TST.B       0681(A0)
+       | 1182  6700 0112                      BEQ.W       1296
+; 992: 						{
+; 993: 							if((MouseJumpRec = FindScreenButton(GEventData,FALSE,NULL)) != NULL)
+       | 1186  42A7                           CLR.L       -(A7)
+       | 1188  42A7                           CLR.L       -(A7)
+       | 118A  2F0B                           MOVE.L      A3,-(A7)
+       | 118C  6100 EE72                      BSR.W       0000
+       | 1190  4FEF 000C                      LEA         000C(A7),A7
+       | 1194  2F40 0030                      MOVE.L      D0,0030(A7)
+       | 1198  4A80                           TST.L       D0
+       | 119A  6700 00FA                      BEQ.W       1296
+; 994: 							{
+; 995: 								if(MouseJumpRec->mj_TypeBits & TB_PREVPAGE)
+       | 119E  2040                           MOVEA.L     D0,A0
+       | 11A0  0828 0001 001F                 BTST        #0001,001F(A0)
+       | 11A6  670C                           BEQ.B       11B4
+; 996: 								{
+; 997: 									GEventData->ed_Cmd = RCMDPREVOBJ;
+       | 11A8  7206                           MOVEQ       #06,D1
+       | 11AA  2741 0018                      MOVE.L      D1,0018(A3)
+; 998: 									// NEW - Prev&Next page also highlists button
+; 999: 									GEventData->ed_JumpRec = (void *)MouseJumpRec;
+       | 11AE  2740 0014                      MOVE.L      D0,0014(A3)
+       | 11B2  601E                           BRA.B       11D2
+;1000: 								}
+;1001: 								else										
+;1002: 								{
+;1003: 									if(MouseJumpRec->mj_TypeBits & TB_NEXTPAGE)
+       | 11B4  0828 0000 001F                 BTST        #0000,001F(A0)
+       | 11BA  670C                           BEQ.B       11C8
+;1004: 									{
+;1005: 										GEventData->ed_Cmd = RCMDNEXTOBJ;
+       | 11BC  7205                           MOVEQ       #05,D1
+       | 11BE  2741 0018                      MOVE.L      D1,0018(A3)
+;1006: 										// NEW - Prev&Next page also highlists button
+;1007: 										GEventData->ed_JumpRec = (void *)MouseJumpRec;
+       | 11C2  2740 0014                      MOVE.L      D0,0014(A3)
+       | 11C6  600A                           BRA.B       11D2
+;1008: 									}
+;1009: 									else									
+;1010: 									{
+;1011: 										GEventData->ed_Cmd = RCMDSTOPnJUMP;
+       | 11C8  7202                           MOVEQ       #02,D1
+       | 11CA  2741 0018                      MOVE.L      D1,0018(A3)
+;1012: 										GEventData->ed_JumpRec = (void *)MouseJumpRec;
+       | 11CE  2740 0014                      MOVE.L      D0,0014(A3)
+;1013: 									}
+;1014: 								}
+;1015: 								Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 11D2  2253                           MOVEA.L     (A3),A1
+       | 11D4  202B 0004                      MOVE.L      0004(A3),D0
+       | 11D8  2C78 0004                      MOVEA.L     0004,A6
+       | 11DC  4EAE FEBC                      JSR         FEBC(A6)
+;1016: 							}
+;1017: 						}
+;1018: 						break;
+;1019: 				}
+       | 11E0  6000 00B4                      BRA.W       1296
+;1020: 			}
+;1021: 			else
+;1022: 			{
+;1023: 				if(GEventData->ed_ControlBits & CBB_MOUSE)
+       | 11E4  082B 0000 001F                 BTST        #0000,001F(A3)
+       | 11EA  6700 00AA                      BEQ.W       1296
+;1024: 				{
+;1025: 					switch(KeyCode)
+       | 11EE  7000                           MOVEQ       #00,D0
+       | 11F0  302F 0022                      MOVE.W      0022(A7),D0
+       | 11F4  7268                           MOVEQ       #68,D1
+       | 11F6  9081                           SUB.L       D1,D0
+       | 11F8  6708                           BEQ.B       1202
+       | 11FA  5380                           SUBQ.L      #1,D0
+       | 11FC  671E                           BEQ.B       121C
+       | 11FE  6000 0096                      BRA.W       1296
+;1026: 					{
+;1027: 						case IECODE_LBUTTON:
+;1028: 								GEventData->ed_Cmd = RCMDPREVOBJ;
+       | 1202  7006                           MOVEQ       #06,D0
+       | 1204  2740 0018                      MOVE.L      D0,0018(A3)
+;1029: 								GEventData->ed_JumpRec = NULL;
+       | 1208  42AB 0014                      CLR.L       0014(A3)
+;1030: 								Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 120C  2253                           MOVEA.L     (A3),A1
+       | 120E  202B 0004                      MOVE.L      0004(A3),D0
+       | 1212  2C78 0004                      MOVEA.L     0004,A6
+       | 1216  4EAE FEBC                      JSR         FEBC(A6)
+;1031: 								break;
+       | 121A  607A                           BRA.B       1296
+;1032: 						case IECODE_RBUTTON:
+;1033: 								GEventData->ed_Cmd = RCMDNEXTOBJ;
+       | 121C  7005                           MOVEQ       #05,D0
+       | 121E  2740 0018                      MOVE.L      D0,0018(A3)
+;1034: 								GEventData->ed_JumpRec = NULL;
+       | 1222  42AB 0014                      CLR.L       0014(A3)
+;1035: 								Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 1226  2253                           MOVEA.L     (A3),A1
+       | 1228  202B 0004                      MOVE.L      0004(A3),D0
+       | 122C  2C78 0004                      MOVEA.L     0004,A6
+       | 1230  4EAE FEBC                      JSR         FEBC(A6)
+;1036: 								break;
+;1037: 					}
+;1038: 				}
+;1039: 			}
+;1040: 			break;
+       | 1234  6060                           BRA.B       1296
+;1041: 
+;1042: 		case IECLASS_TIMER:
+;1043: 			Qual = 0;
+       | 1236  7E00                           MOVEQ       #00,D7
+;1044: 
+;1045: 			if ( TestJoystick(GEventData,InEvent,&KeyCode) )
+       | 1238  486F 0022                      PEA         0022(A7)
+       | 123C  2F0D                           MOVE.L      A5,-(A7)
+       | 123E  2F0B                           MOVE.L      A3,-(A7)
+       | 1240  6100 0184                      BSR.W       13C6
+       | 1244  4FEF 000C                      LEA         000C(A7),A7
+       | 1248  4A40                           TST.W       D0
+       | 124A  6600 FCB0                      BNE.W       0EFC
+;1046: 				goto do_keys;
+;1047: 
+;1048: #if LIGHTPEN_ON
+;1049: 			if ( TestLightpen(GEventData,InEvent,&KeyCode) )
+;1050: 				goto do_mouse;
+;1051: #endif
+;1052: 
+;1053: 			if ( rvrec->capsprefs->mousePointer )
+       | 124E  226F 0028                      MOVEA.L     0028(A7),A1
+       | 1252  2069 000C                      MOVEA.L     000C(A1),A0
+       | 1256  4A28 0681                      TST.B       0681(A0)
+       | 125A  673A                           BEQ.B       1296
+;1054: 			{
+;1055: 				ed_JumpRec = (void *)FollowMouse(GEventData, InEvent, &immediate);
+       | 125C  486F 0020                      PEA         0020(A7)
+       | 1260  2F0D                           MOVE.L      A5,-(A7)
+       | 1262  2F0B                           MOVE.L      A3,-(A7)
+       | 1264  6100 0302                      BSR.W       1568
+       | 1268  4FEF 000C                      LEA         000C(A7),A7
+       | 126C  2F40 0024                      MOVE.L      D0,0024(A7)
+;1056: 				if ( ed_JumpRec )
+       | 1270  6724                           BEQ.B       1296
+;1057: 				{
+;1058: 					GEventData->ed_JumpRec = ed_JumpRec;
+       | 1272  2740 0014                      MOVE.L      D0,0014(A3)
+;1059: 					if ( immediate )
+       | 1276  4A6F 0020                      TST.W       0020(A7)
+       | 127A  6708                           BEQ.B       1284
+;1060: 						GEventData->ed_Cmd = RCMDSTOPnJUMP;
+       | 127C  7002                           MOVEQ       #02,D0
+       | 127E  2740 0018                      MOVE.L      D0,0018(A3)
+       | 1282  6004                           BRA.B       1288
+;1061: 					else
+;1062: 						GEventData->ed_Cmd = RCMDNONE;
+       | 1284  42AB 0018                      CLR.L       0018(A3)
+;1063: 					Signal(GEventData->ed_Task,GEventData->ed_Sig_ItoGE);
+       | 1288  2253                           MOVEA.L     (A3),A1
+       | 128A  202B 0004                      MOVE.L      0004(A3),D0
+       | 128E  2C78 0004                      MOVEA.L     0004,A6
+       | 1292  4EAE FEBC                      JSR         FEBC(A6)
+;1064: 				}
+;1065: 			}
+;1066: 
+;1067: 			break;
+;1068: 	}
+;1069: 
+;1070: 	if (	InEvent->ie_Class==IECLASS_RAWKEY ||
+       | 1296  102D 0004                      MOVE.B      0004(A5),D0
+       | 129A  7201                           MOVEQ       #01,D1
+       | 129C  B001                           CMP.B       D1,D0
+       | 129E  670C                           BEQ.B       12AC
+;1071: 				(InEvent->ie_Class==IECLASS_RAWMOUSE && InEvent->ie_Code!=IECODE_NOBUTTON) )
+       | 12A0  5500                           SUBQ.B      #2,D0
+       | 12A2  660C                           BNE.B       12B0
+       | 12A4  0C6D 00FF 0006                 CMPI.W      #00FF,0006(A5)
+       | 12AA  6704                           BEQ.B       12B0
+;1072: 		return(0L);
+       | 12AC  7000                           MOVEQ       #00,D0
+       | 12AE  6002                           BRA.B       12B2
+;1073: 	else
+;1074: 		return(InEvent);
+       | 12B0  200D                           MOVE.L      A5,D0
+;1075: }
+       | 12B2  4CDF 68EC                      MOVEM.L     (A7)+,D2-D3/D5-D7/A3/A5-A6
+       | 12B6  DEFC 0014                      ADDA.W      #0014,A7
+       | 12BA  4E75                           RTS
+;1076: 
+;1077: /******** SwitchSprite() ********/
+;1078: 
+;1079: STATIC void SwitchSprite(EVENTDATA *GEventData, BOOL state)
+;1080: {
+       | 12BC  48E7 3116                      MOVEM.L     D2-D3/D7/A3/A5-A6,-(A7)
+       | 12C0  3E2F 0022                      MOVE.W      0022(A7),D7
+       | 12C4  2A6F 001C                      MOVEA.L     001C(A7),A5
+;1081: struct Window *win;
+;1082: 
+;1083: 	Forbid();
+       | 12C8  2C78 0004                      MOVEA.L     0004,A6
+       | 12CC  4EAE FF7C                      JSR         FF7C(A6)
+;1084: 	win = GEventData->ed_IntuitionBase->ActiveWindow;
+       | 12D0  206D 002E                      MOVEA.L     002E(A5),A0
+       | 12D4  2668 0034                      MOVEA.L     0034(A0),A3
+;1085: 	Permit();
+       | 12D8  4EAE FF76                      JSR         FF76(A6)
+;1086: 	if ( win )
+       | 12DC  200B                           MOVE.L      A3,D0
+       | 12DE  672A                           BEQ.B       130A
+;1087: 	{
+;1088: 		if ( state )
+       | 12E0  4A47                           TST.W       D7
+       | 12E2  670C                           BEQ.B       12F0
+;1089: 			ClearPointer(win);
+       | 12E4  204B                           MOVEA.L     A3,A0
+       | 12E6  2C6C  0000-XX.2                MOVEA.L     _IntuitionBase(A4),A6
+       | 12EA  4EAE FFC4                      JSR         FFC4(A6)
+       | 12EE  601A                           BRA.B       130A
+;1090: 		else if ( emptySprite )
+       | 12F0  202C  0004-01.2                MOVE.L      01.00000004(A4),D0
+       | 12F4  6714                           BEQ.B       130A
+;1091: 			SetPointer(win,emptySprite,0,16,0,0);
+       | 12F6  2240                           MOVEA.L     D0,A1
+       | 12F8  204B                           MOVEA.L     A3,A0
+       | 12FA  2C6C  0000-XX.2                MOVEA.L     _IntuitionBase(A4),A6
+       | 12FE  7000                           MOVEQ       #00,D0
+       | 1300  7210                           MOVEQ       #10,D1
+       | 1302  2400                           MOVE.L      D0,D2
+       | 1304  2600                           MOVE.L      D0,D3
+       | 1306  4EAE FEF2                      JSR         FEF2(A6)
+;1092: 	}
+;1093: }
+       | 130A  4CDF 688C                      MOVEM.L     (A7)+,D2-D3/D7/A3/A5-A6
+       | 130E  4E75                           RTS
+;1094: 
+;1095: /******** RemapKeyPad() ********/
+;1096: 
+;1097: void RemapKeyPad(UWORD *KeyCode)
+;1098: {
+       | 1310  2F0D                           MOVE.L      A5,-(A7)
+       | 1312  2A6F 0008                      MOVEA.L     0008(A7),A5
+;1099: 	if ( *KeyCode==0x5c )				// slash
+       | 1316  705C                           MOVEQ       #5C,D0
+       | 1318  B055                           CMP.W       (A5),D0
+       | 131A  6608                           BNE.B       1324
+;1100: 		*KeyCode=0x3a;
+       | 131C  703A                           MOVEQ       #3A,D0
+       | 131E  3A80                           MOVE.W      D0,(A5)
+       | 1320  6000 00A0                      BRA.W       13C2
+;1101: 	else if ( *KeyCode==0x3d )	// 7
+       | 1324  703D                           MOVEQ       #3D,D0
+       | 1326  B055                           CMP.W       (A5),D0
+       | 1328  6608                           BNE.B       1332
+;1102: 		*KeyCode=0x07;
+       | 132A  7007                           MOVEQ       #07,D0
+       | 132C  3A80                           MOVE.W      D0,(A5)
+       | 132E  6000 0092                      BRA.W       13C2
+;1103: 	else if ( *KeyCode==0x3e )	// 8
+       | 1332  703E                           MOVEQ       #3E,D0
+       | 1334  B055                           CMP.W       (A5),D0
+       | 1336  6608                           BNE.B       1340
+;1104: 		*KeyCode=0x08;
+       | 1338  7008                           MOVEQ       #08,D0
+       | 133A  3A80                           MOVE.W      D0,(A5)
+       | 133C  6000 0084                      BRA.W       13C2
+;1105: 	else if ( *KeyCode==0x3f )	// 9
+       | 1340  703F                           MOVEQ       #3F,D0
+       | 1342  B055                           CMP.W       (A5),D0
+       | 1344  6606                           BNE.B       134C
+;1106: 		*KeyCode=0x09;
+       | 1346  7009                           MOVEQ       #09,D0
+       | 1348  3A80                           MOVE.W      D0,(A5)
+       | 134A  6076                           BRA.B       13C2
+;1107: 	else if ( *KeyCode==0x4a )	// minus
+       | 134C  704A                           MOVEQ       #4A,D0
+       | 134E  B055                           CMP.W       (A5),D0
+       | 1350  6606                           BNE.B       1358
+;1108: 		*KeyCode=0x0b;
+       | 1352  700B                           MOVEQ       #0B,D0
+       | 1354  3A80                           MOVE.W      D0,(A5)
+       | 1356  606A                           BRA.B       13C2
+;1109: 	else if ( *KeyCode==0x2d )	// 4
+       | 1358  702D                           MOVEQ       #2D,D0
+       | 135A  B055                           CMP.W       (A5),D0
+       | 135C  6606                           BNE.B       1364
+;1110: 		*KeyCode=0x04;
+       | 135E  7004                           MOVEQ       #04,D0
+       | 1360  3A80                           MOVE.W      D0,(A5)
+       | 1362  605E                           BRA.B       13C2
+;1111: 	else if ( *KeyCode==0x2e )	// 5
+       | 1364  702E                           MOVEQ       #2E,D0
+       | 1366  B055                           CMP.W       (A5),D0
+       | 1368  6606                           BNE.B       1370
+;1112: 		*KeyCode=0x05;
+       | 136A  7005                           MOVEQ       #05,D0
+       | 136C  3A80                           MOVE.W      D0,(A5)
+       | 136E  6052                           BRA.B       13C2
+;1113: 	else if ( *KeyCode==0x2f )	// 6
+       | 1370  702F                           MOVEQ       #2F,D0
+       | 1372  B055                           CMP.W       (A5),D0
+       | 1374  6606                           BNE.B       137C
+;1114: 		*KeyCode=0x06;
+       | 1376  7006                           MOVEQ       #06,D0
+       | 1378  3A80                           MOVE.W      D0,(A5)
+       | 137A  6046                           BRA.B       13C2
+;1115: 	else if ( *KeyCode==0x1d )	// 1
+       | 137C  701D                           MOVEQ       #1D,D0
+       | 137E  B055                           CMP.W       (A5),D0
+       | 1380  6606                           BNE.B       1388
+;1116: 		*KeyCode=0x01;
+       | 1382  7001                           MOVEQ       #01,D0
+       | 1384  3A80                           MOVE.W      D0,(A5)
+       | 1386  603A                           BRA.B       13C2
+;1117: 	else if ( *KeyCode==0x1e )	// 2
+       | 1388  701E                           MOVEQ       #1E,D0
+       | 138A  B055                           CMP.W       (A5),D0
+       | 138C  6606                           BNE.B       1394
+;1118: 		*KeyCode=0x02;
+       | 138E  7002                           MOVEQ       #02,D0
+       | 1390  3A80                           MOVE.W      D0,(A5)
+       | 1392  602E                           BRA.B       13C2
+;1119: 	else if ( *KeyCode==0x1f )	// 3
+       | 1394  701F                           MOVEQ       #1F,D0
+       | 1396  B055                           CMP.W       (A5),D0
+       | 1398  6606                           BNE.B       13A0
+;1120: 		*KeyCode=0x03;
+       | 139A  7003                           MOVEQ       #03,D0
+       | 139C  3A80                           MOVE.W      D0,(A5)
+       | 139E  6022                           BRA.B       13C2
+;1121: 	else if ( *KeyCode==0x0f )	// 0
+       | 13A0  700F                           MOVEQ       #0F,D0
+       | 13A2  B055                           CMP.W       (A5),D0
+       | 13A4  6606                           BNE.B       13AC
+;1122: 		*KeyCode=0x0a;
+       | 13A6  700A                           MOVEQ       #0A,D0
+       | 13A8  3A80                           MOVE.W      D0,(A5)
+       | 13AA  6016                           BRA.B       13C2
+;1123: 	else if ( *KeyCode==0x3c )	// period
+       | 13AC  703C                           MOVEQ       #3C,D0
+       | 13AE  B055                           CMP.W       (A5),D0
+       | 13B0  6606                           BNE.B       13B8
+;1124: 		*KeyCode=0x39;
+       | 13B2  7039                           MOVEQ       #39,D0
+       | 13B4  3A80                           MOVE.W      D0,(A5)
+       | 13B6  600A                           BRA.B       13C2
+;1125: 	else if ( *KeyCode==0x43 )	// enter
+       | 13B8  7043                           MOVEQ       #43,D0
+       | 13BA  B055                           CMP.W       (A5),D0
+       | 13BC  6604                           BNE.B       13C2
+;1126: 		*KeyCode=0x44;
+       | 13BE  3ABC 0044                      MOVE.W      #0044,(A5)
+;1127: }
+       | 13C2  2A5F                           MOVEA.L     (A7)+,A5
+       | 13C4  4E75                           RTS
+;1128: 
+;1129: /******** TestJoystick() ********/
+;1130: 
+;1131: BOOL TestJoystick(EVENTDATA *GEventData, struct InputEvent *ie, UWORD *keys)
+;1132: {
+       | 13C6  9EFC 0010                      SUBA.W      #0010,A7
+       | 13CA  48E7 2734                      MOVEM.L     D2/D5-D7/A2-A3/A5,-(A7)
+       | 13CE  266F 0034                      MOVEA.L     0034(A7),A3
+       | 13D2  2A6F 0030                      MOVEA.L     0030(A7),A5
+;1133: struct RendezVousRecord *rvrec;
+;1134: UWORD *JOY1DAT = (UWORD *)0xdff00c;
+       | 13D6  2F7C 00DF F00C 0024            MOVE.L      #00DFF00C,0024(A7)
+;1135: UWORD *JOY2DAT = (UWORD *)0xbfe001;
+       | 13DE  2F7C 00BF E001 0020            MOVE.L      #00BFE001,0020(A7)
+;1136: UWORD *JOY3DAT = (UWORD *)0xdff016;
+       | 13E6  2F7C 00DF F016 001C            MOVE.L      #00DFF016,001C(A7)
+;1137: ULONG t,diff;
+;1138: STATIC ULONG ts = 0L;
+;1139: int game=-1;
+       | 13EE  7AFF                           MOVEQ       #FF,D5
+;1140: 
+;1141: 	rvrec = (struct RendezVousRecord *)GEventData->miscPtr;
+       | 13F0  2F6D 003A 0028                 MOVE.L      003A(A5),0028(A7)
+;1142:   
+;1143: 	// skip fast if not used -- saves time!
+;1144: 
+;1145: 	if ( rvrec->capsprefs->gameport_used )
+       | 13F6  226F 0028                      MOVEA.L     0028(A7),A1
+       | 13FA  2069 000C                      MOVEA.L     000C(A1),A0
+       | 13FE  4A68 0694                      TST.W       0694(A0)
+       | 1402  6700 0158                      BEQ.W       155C
+;1146: 	{
+;1147: 		if ( rvrec->capsprefs->gameport[8] && (*JOY2DAT & 0x8000) == 0x0 )
+       | 1406  4A28 068C                      TST.B       068C(A0)
+       | 140A  6710                           BEQ.B       141C
+       | 140C  246F 0020                      MOVEA.L     0020(A7),A2
+       | 1410  0812 000F                      BTST        #000F,(A2)
+       | 1414  6606                           BNE.B       141C
+;1148: 			game=8;		// FIRE 1
+       | 1416  7A08                           MOVEQ       #08,D5
+       | 1418  6000 00F4                      BRA.W       150E
+;1149: 		else if ( rvrec->capsprefs->gameport[9] && (*JOY3DAT & 0x4000) == 0x0 )
+       | 141C  4A28 068D                      TST.B       068D(A0)
+       | 1420  6710                           BEQ.B       1432
+       | 1422  246F 001C                      MOVEA.L     001C(A7),A2
+       | 1426  0812 000E                      BTST        #000E,(A2)
+       | 142A  6606                           BNE.B       1432
+;1150: 			game=9;		// FIRE 2 (RIGHT MOUSE BUTTON IN GAMEPORT)
+       | 142C  7A09                           MOVEQ       #09,D5
+       | 142E  6000 00DE                      BRA.W       150E
+;1151: 		else if ( rvrec->capsprefs->gameport[10] && (*JOY3DAT & 0x1000) == 0x0 )
+       | 1432  4A28 068E                      TST.B       068E(A0)
+       | 1436  6710                           BEQ.B       1448
+       | 1438  246F 001C                      MOVEA.L     001C(A7),A2
+       | 143C  0812 000C                      BTST        #000C,(A2)
+       | 1440  6606                           BNE.B       1448
+;1152: 			game=10;	// FIRE 3 (MIDDLE MOUSE BUTTON IN GAMEPORT)
+       | 1442  7A0A                           MOVEQ       #0A,D5
+       | 1444  6000 00C8                      BRA.W       150E
+;1153: 		else if ( rvrec->capsprefs->gameport[1] && (*JOY1DAT & 0x0103) == 0x0103 )
+       | 1448  4A28 0685                      TST.B       0685(A0)
+       | 144C  6716                           BEQ.B       1464
+       | 144E  303C 0103                      MOVE.W      #0103,D0
+       | 1452  246F 0024                      MOVEA.L     0024(A7),A2
+       | 1456  C052                           AND.W       (A2),D0
+       | 1458  0C40 0103                      CMPI.W      #0103,D0
+       | 145C  6606                           BNE.B       1464
+;1154: 			game=1;		// RIGHT UP
+       | 145E  7A01                           MOVEQ       #01,D5
+       | 1460  6000 00AC                      BRA.W       150E
+;1155: 		else if ( rvrec->capsprefs->gameport[5] && (*JOY1DAT & 0x0301) == 0x0301 )
+       | 1464  4A28 0689                      TST.B       0689(A0)
+       | 1468  6716                           BEQ.B       1480
+       | 146A  303C 0301                      MOVE.W      #0301,D0
+       | 146E  246F 0024                      MOVEA.L     0024(A7),A2
+       | 1472  C052                           AND.W       (A2),D0
+       | 1474  0C40 0301                      CMPI.W      #0301,D0
+       | 1478  6606                           BNE.B       1480
+;1156: 			game=5;		// LEFT DOWN
+       | 147A  7A05                           MOVEQ       #05,D5
+       | 147C  6000 0090                      BRA.W       150E
+;1157: 		else if ( rvrec->capsprefs->gameport[2] && (*JOY1DAT & 0x0003) == 0x0003 )
+       | 1480  4A28 0686                      TST.B       0686(A0)
+       | 1484  6710                           BEQ.B       1496
+       | 1486  7003                           MOVEQ       #03,D0
+       | 1488  246F 0024                      MOVEA.L     0024(A7),A2
+       | 148C  C052                           AND.W       (A2),D0
+       | 148E  5740                           SUBQ.W      #3,D0
+       | 1490  6604                           BNE.B       1496
+;1158: 			game=2;		// RIGHT
+       | 1492  7A02                           MOVEQ       #02,D5
+       | 1494  6078                           BRA.B       150E
+;1159: 		else if ( rvrec->capsprefs->gameport[3] && (*JOY1DAT & 0x0002) == 0x0002 )
+       | 1496  4A28 0687                      TST.B       0687(A0)
+       | 149A  6710                           BEQ.B       14AC
+       | 149C  7002                           MOVEQ       #02,D0
+       | 149E  246F 0024                      MOVEA.L     0024(A7),A2
+       | 14A2  C052                           AND.W       (A2),D0
+       | 14A4  5540                           SUBQ.W      #2,D0
+       | 14A6  6604                           BNE.B       14AC
+;1160: 			game=3;		// RIGHT DOWN
+       | 14A8  7A03                           MOVEQ       #03,D5
+       | 14AA  6062                           BRA.B       150E
+;1161: 		else if ( rvrec->capsprefs->gameport[4] && (*JOY1DAT & 0x0001) == 0x0001 )
+       | 14AC  4A28 0688                      TST.B       0688(A0)
+       | 14B0  6710                           BEQ.B       14C2
+       | 14B2  7001                           MOVEQ       #01,D0
+       | 14B4  246F 0024                      MOVEA.L     0024(A7),A2
+       | 14B8  C052                           AND.W       (A2),D0
+       | 14BA  5340                           SUBQ.W      #1,D0
+       | 14BC  6604                           BNE.B       14C2
+;1162: 			game=4;		// DOWN
+       | 14BE  7A04                           MOVEQ       #04,D5
+       | 14C0  604C                           BRA.B       150E
+;1163: 		else if ( rvrec->capsprefs->gameport[6] && (*JOY1DAT & 0x0300) == 0x0300 )
+       | 14C2  4A28 068A                      TST.B       068A(A0)
+       | 14C6  6714                           BEQ.B       14DC
+       | 14C8  303C 0300                      MOVE.W      #0300,D0
+       | 14CC  246F 0024                      MOVEA.L     0024(A7),A2
+       | 14D0  C052                           AND.W       (A2),D0
+       | 14D2  0C40 0300                      CMPI.W      #0300,D0
+       | 14D6  6604                           BNE.B       14DC
+;1164: 			game=6;		// LEFT
+       | 14D8  7A06                           MOVEQ       #06,D5
+       | 14DA  6032                           BRA.B       150E
+;1165: 		else if ( rvrec->capsprefs->gameport[7] && (*JOY1DAT & 0x0200) == 0x0200 )
+       | 14DC  4A28 068B                      TST.B       068B(A0)
+       | 14E0  6714                           BEQ.B       14F6
+       | 14E2  303C 0200                      MOVE.W      #0200,D0
+       | 14E6  246F 0024                      MOVEA.L     0024(A7),A2
+       | 14EA  C052                           AND.W       (A2),D0
+       | 14EC  0C40 0200                      CMPI.W      #0200,D0
+       | 14F0  6604                           BNE.B       14F6
+;1166: 			game=7;		// LEFT UP
+       | 14F2  7A07                           MOVEQ       #07,D5
+       | 14F4  6018                           BRA.B       150E
+;1167: 		else if ( rvrec->capsprefs->gameport[0] && (*JOY1DAT & 0x0100) == 0x0100 )
+       | 14F6  4A28 0684                      TST.B       0684(A0)
+       | 14FA  6712                           BEQ.B       150E
+       | 14FC  303C 0100                      MOVE.W      #0100,D0
+       | 1500  246F 0024                      MOVEA.L     0024(A7),A2
+       | 1504  C052                           AND.W       (A2),D0
+       | 1506  0C40 0100                      CMPI.W      #0100,D0
+       | 150A  6602                           BNE.B       150E
+;1168: 			game=0;		// UP
+       | 150C  7A00                           MOVEQ       #00,D5
+;1169: 		if (game!=-1)
+       | 150E  70FF                           MOVEQ       #FF,D0
+       | 1510  BA80                           CMP.L       D0,D5
+       | 1512  6748                           BEQ.B       155C
+;1170: 		{
+;1171: 			t = (ie->ie_TimeStamp.tv_secs * MILLION) + ie->ie_TimeStamp.tv_micro;
+       | 1514  202B 000E                      MOVE.L      000E(A3),D0
+       | 1518  2200                           MOVE.L      D0,D1
+       | 151A  ED81                           ASL.L       #6,D1
+       | 151C  9280                           SUB.L       D0,D1
+       | 151E  2401                           MOVE.L      D1,D2
+       | 1520  EB82                           ASL.L       #5,D2
+       | 1522  9481                           SUB.L       D1,D2
+       | 1524  E782                           ASL.L       #3,D2
+       | 1526  D480                           ADD.L       D0,D2
+       | 1528  ED82                           ASL.L       #6,D2
+       | 152A  D4AB 0012                      ADD.L       0012(A3),D2
+       | 152E  2E02                           MOVE.L      D2,D7
+;1172: 			diff = t - ts;
+       | 1530  2C07                           MOVE.L      D7,D6
+       | 1532  9CAC  0008-01.2                SUB.L       01.00000008(A4),D6
+;1173: 			if ( diff >= rvrec->capsprefs->gameport_delay )
+       | 1536  BCA8 0696                      CMP.L       0696(A0),D6
+       | 153A  6520                           BCS.B       155C
+;1174: 			{
+;1175: 				ts = t;
+       | 153C  2947  0008-01.2                MOVE.L      D7,01.00000008(A4)
+;1176: 				*keys = ASCIIToRawKey( GEventData, rvrec->capsprefs->gameport[game] );
+       | 1540  D1C5                           ADDA.L      D5,A0
+       | 1542  7000                           MOVEQ       #00,D0
+       | 1544  1028 0684                      MOVE.B      0684(A0),D0
+       | 1548  2F00                           MOVE.L      D0,-(A7)
+       | 154A  2F0D                           MOVE.L      A5,-(A7)
+       | 154C  6100 EF88                      BSR.W       04D6
+       | 1550  206F 0040                      MOVEA.L     0040(A7),A0
+       | 1554  3080                           MOVE.W      D0,(A0)
+;1177: 				return(TRUE);
+       | 1556  504F                           ADDQ.W      #8,A7
+       | 1558  7001                           MOVEQ       #01,D0
+       | 155A  6002                           BRA.B       155E
+;1178: 			}
+;1179: 		}
+;1180: 	}
+;1181: 
+;1182: 	return(FALSE);
+       | 155C  7000                           MOVEQ       #00,D0
+;1183: }
+       | 155E  4CDF 2CE4                      MOVEM.L     (A7)+,D2/D5-D7/A2-A3/A5
+       | 1562  DEFC 0010                      ADDA.W      #0010,A7
+       | 1566  4E75                           RTS
+;1184: 
+;1185: /******** FollowMouse() ********/
+;1186: 
+;1187: MOUSEJUMPREC *FollowMouse(EVENTDATA *GEventData, struct InputEvent *ie, BOOL *immediate)
+;1188: {
+       | 1568  594F                           SUBQ.W      #4,A7
+       | 156A  48E7 0014                      MOVEM.L     A3/A5,-(A7)
+       | 156E  266F 0018                      MOVEA.L     0018(A7),A3
+       | 1572  2A6F 0010                      MOVEA.L     0010(A7),A5
+;1189: MOUSEJUMPREC *mjr;
+;1190: 
+;1191: 	// GEventData->
+;1192: 	//  APTR temp1;	// temporary storage used by gp:input.c
+;1193: 	//  LONG temp2;	// temporary storage used by gp:input.c
+;1194: 
+;1195: 	mjr = FindScreenButton(GEventData,TRUE,immediate);
+       | 1576  2F0B                           MOVE.L      A3,-(A7)
+       | 1578  4878 0001                      PEA         0001
+       | 157C  2F0D                           MOVE.L      A5,-(A7)
+       | 157E  6100 EA80                      BSR.W       0000
+       | 1582  4FEF 000C                      LEA         000C(A7),A7
+;1196: 	if ( mjr && (mjr != GEventData->temp1) )
+       | 1586  2F40 0008                      MOVE.L      D0,0008(A7)
+       | 158A  4A80                           TST.L       D0
+       | 158C  670E                           BEQ.B       159C
+       | 158E  206D 0042                      MOVEA.L     0042(A5),A0
+       | 1592  B1C0                           CMPA.L      D0,A0
+       | 1594  6706                           BEQ.B       159C
+;1197: 	{
+;1198: 		GEventData->temp1 = mjr;
+       | 1596  2B40 0042                      MOVE.L      D0,0042(A5)
+;1199: 		return( mjr );
+       | 159A  600A                           BRA.B       15A6
+;1200: 	}
+;1201: 	else if ( !mjr )
+       | 159C  4A80                           TST.L       D0
+       | 159E  6604                           BNE.B       15A4
+;1202: 		GEventData->temp1 = NULL;
+       | 15A0  42AD 0042                      CLR.L       0042(A5)
+;1203: 
+;1204: 	return(NULL);
+       | 15A4  7000                           MOVEQ       #00,D0
+;1205: }
+       | 15A6  4CDF 2800                      MOVEM.L     (A7)+,A3/A5
+       | 15AA  584F                           ADDQ.W      #4,A7
+       | 15AC  4E75                           RTS
+
+SECTION 01 "__MERGED" 0000000C BYTES
+0000 000001E6-00 00.000001E6
+0004 00 00 00 00 00 00 00 00 80 03 00 04 ............

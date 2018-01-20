@@ -1,0 +1,73 @@
+bgm_seg                 25-Aug-94 14:20:16  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         2f84 lib:c.o          c        code            0    0      260
+                       bgm_seg.o        bgm_seg. code          260    0      698
+                       sc:source/_main. _main.c  code          8f8    0      12c
+                       mpri:errors.o    errors.c code          a24    0      298
+                       lib:scm.lib      _pfmt.c  code          cbc    0      840
+                       lib:scm.lib      sprintf. code         14fc    0       44
+                       lib:scm.lib      _fpinit. code         1540    0       30
+                       lib:scm.lib      _cxvfd   code         1570    0      404
+                       lib:scm.lib      _cxv54   code         1974    0      10c
+                       lib:scm.lib      _cxv45   code         1a80    0       68
+                       lib:scm.lib      _cxv43   code         1ae8    0       d4
+                       lib:scm.lib      _cxv34   code         1bbc    0       94
+                       lib:scm.lib      _cxspc5  code         1c50    0       94
+                       lib:scm.lib      _cxren5  code         1ce4    0       64
+                       lib:scm.lib      _cxnrm5  code         1d48    0       9c
+                       lib:scm.lib      _cxnrm4  code         1de4    0       84
+                       lib:scm.lib      _cxm55   code         1e68    0      198
+                       lib:scm.lib      _cxfxt5  code         2000    0       ec
+                       lib:scm.lib      _cxferr. code         20ec    0       10
+                       lib:scm.lib      _cxd55   code         20fc    0      240
+                       lib:scm.lib      _cxadj5  code         233c    0       84
+                       lib:sc.lib       _MemClea code         23c0    0       80
+                       lib:sc.lib       _stcul_d code         2440    0       30
+                       lib:sc.lib       _stcl_o  code         2470    0       30
+                       lib:sc.lib       _stcl_h  code         24a0    0       3c
+                       lib:sc.lib       _stcd_i  code         24dc    0       54
+                       lib:sc.lib       stccpy.c code         2530    0       44
+                       lib:sc.lib       _strupr. code         2574    0       3c
+                       lib:sc.lib       _write.c code         25b0    0      100
+                       lib:sc.lib       _lseek.c code         26b0    0       94
+                       lib:sc.lib       _cxfpe.c code         2744    0       3c
+                       lib:sc.lib       _cxd33   code         2780    0       c4
+                       lib:sc.lib       _exit.c  code         2844    0       5c
+                       lib:sc.lib       _cxbrk.c code         28a0    0      14c
+                       lib:sc.lib       _chkufb. code         29ec    0       4c
+                       lib:sc.lib       _chkabor code         2a38    0       50
+                       lib:sc.lib       memchr   code         2a88    0       24
+                       lib:sc.lib       memmove  code         2aac    0       2c
+                       lib:sc.lib       free     code         2ad8    0      16c
+                       lib:sc.lib       malloc   code         2c44    0      174
+                       lib:sc.lib       exit.c   code         2db8    0       54
+                       lib:sc.lib       _pf.c    code         2e0c    0       7c
+                       lib:sc.lib       raise.c  code         2e88    0       64
+                       lib:sc.lib       signal.c code         2eec    0       38
+                       lib:sc.lib       io2errno code         2f24    0       60
+   1 chip            4 bgm_seg.o        bgm_seg. datachip        0    0        4
+   2 __MERGED      614 bgm_seg.o        bgm_seg. data            0    0      3d0
+                       mpri:errors.o    errors.c data          3d0    0       10
+                       lib:sc.lib       mstep.c  data          3e0    0        4
+                       lib:sc.lib       sigfunc. data          3e4    0       24
+                       lib:sc.lib       ctype.c  data          408    0      104
+                       lib:sc.lib       stack.c  data          50c    0        4
+                       lib:sc.lib       _iob.c   data          510    0       68
+bgm_seg                 25-Aug-94 14:20:16  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       _ufb.c   data          578    0        8
+                       lib:sc.lib       _cxbrk.c data          580    0       50
+                       lib:sc.lib       exitfunc data          5d0    0        4
+                       lib:sc.lib       io2errno data          5d4    0       40
+                       lib:c.o          c        bss           614    0       54
+                       bgm_seg.o        bgm_seg. bss           668    0       18
+                       sc:source/_main. _main.c  bss           680    0       8c
+                       mpri:errors.o    errors.c bss           70c    0      218
+                       lib:sc.lib       errno.c  bss           924    0        4
+                       lib:sc.lib       memheap. bss           928    0        4
+                       lib:sc.lib       memtype. bss           92c    0        4
+                       lib:sc.lib       dosbase  bss           930    0        4
+                       lib:sc.lib       _top.c   bss           934    0        4
+                       lib:sc.lib       _exit.c  bss           938    0        4

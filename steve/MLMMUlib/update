@@ -1,0 +1,6 @@
+del libent.o         
+del mpmmu_custom.o   
+del mpmmu.o          
+del errors.o         
+del endtag.o         
+del libinit.o

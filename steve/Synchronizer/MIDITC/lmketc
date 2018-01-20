@@ -1,0 +1,24 @@
+#
+#
+#
+
+CFLAGS = DATA=FAR NMINC STRMERGE STREQ NOSTKCHK
+
+HEAD= tc_external.h
+
+CODE= etc.c itc.c
+
+OBJS= etc.o itc.o
+
+LIBS=LIB:SC.lib LIB:amiga.lib
+
+.c.o:
+    @sc $(CFLAGS) $*
+
+etc: $(OBJS) $(LIBS)
+   slink FROM LIB:c.o $(OBJS) TO etc LIB $(LIBS) ND
+
+
+etc.o: etc.c
+itc.o: itc.c
+

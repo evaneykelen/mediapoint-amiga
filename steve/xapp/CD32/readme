@@ -1,0 +1,38 @@
+-------------------------------------------------------------------------------
+
+Verbindt twee Amiga's met een null modem kabel en start een telecom
+programma op 14400 baud en N81.
+
+Start MP_CDTV op de CD³² met een audio CD.
+
+De volgende commando's kunnen op de terminal worden ingevoerd:
+
+P1 track 0/1 -> speel 1 track
+
+P2 startTrack endTrack 0/1 -> speel meerdere tracks
+
+P3 MM:SS:FF MM:SS:FF 0/1 -> speel van frame tot frame
+
+PA -> pause
+
+ST -> stop
+
+F1 -> fade in slow
+F2 -> fade in fast
+F3 -> fade out slow
+F4 -> fade out fast
+
+M1 -> mute on
+M2 -> mute off
+
+CD -> lees inhoudsopgave van (nieuwe) CD
+
+GI -> toon CD info, geeft terug bijv.: [00:02:01] [71:40:00] (huidige pos, tot duur)
+
+GT -> Get Track, geeft terug bijv.: [00:02:00] [06:42:02] (begin, eind)
+
+VOORBEELD
+
+'P1 4 0' -> speel track 4, fade niet (0=niet in faden, 1=wel in faden)
+
+-------------------------------------------------------------------------------

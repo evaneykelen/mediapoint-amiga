@@ -1,0 +1,56 @@
+#include "exec/types.h"
+#include "exec/exec.h"
+#include "devdisk/include/studio16.h"
+
+struct StudioBase *StudioBase;
+
+short GetEventID();
+
+void main(argc,argv)	
+int argc;
+char *argv[];
+{
+struct ChanKey *key;
+struct ActiveSample *as;
+struct Region myregion;
+int rate,we_are_initing;
+
+if (argc!=2) {
+	printf("usage: StudioPlay <samplename>\n");
+	exit(10);
+	}
+
+StudioBase=(struct StudioBase *)OpenLibrary("studio.library",0);
+if (StudioBase==NULL) {
+	printf("Can't open studio.library\n");
+	exit(10);
+	}
+
+if (StudioBase->LibNode.lib_OpenCnt==1)
+	we_are_initing=TRUE; 
+else
+	we_are_initing=FALSE;
+
+InitStudio16UserEnv(ISUE_DO_ASSIGNS|ISUE_LOAD_STUDIO16BASE|ISUE_LOAD_DRIVERS,0,0);
+
+setmem(&myregion, sizeof(struct Region), 0);
+strcpy(myregion.samp_name,argv[1]);
+	
+as=(struct ActiveSample *)ASOpen(&myregion, AS_PLAY|AS_AUTO_DATA|AS_AUTO_CLOSE|AS_AUTO_FREECHAN);
+if (as==0) {
+	printf("Error opening sample for playback!\n");
+	if (we_are_initing)
+		CloseAllModules(FALSE);
+	CloseLibrary(StudioBase);
+	exit(10);
+	}
+
+as->key=(struct ChanKey *)AllocChan(NULL,-1,CK_CHAN_PLAY);
+key=as->key;
+if (key)
+	ASTrigger(as);		/** start playback **/
+else
+	printf("Can't Allocate a play channel!\n");
+
+CloseLibrary(StudioBase);
+}

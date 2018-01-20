@@ -1,0 +1,5 @@
+FROM lib:c.o mp_cdtv.o gui.o hostser.o serial.o 					cd_init.o cdtv_init.o mpeg_init.o 					display.o coproutine.o 					gen:general.o gen:asm/wait50hz.o
+LIBRARY lib:sc.lib
+ 
+TO MP_CDTV SMALLCODE SMALLDATA NODEBUG
+MAP MP_CDTV.map H

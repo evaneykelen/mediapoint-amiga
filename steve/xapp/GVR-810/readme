@@ -1,0 +1,22 @@
+----------------------------------------------
+Chris,
+
+I read your bug report regarding the GVR, and I immediately changed
+it to make it work in the player. I should have tested this, my apologies
+for the mistake.
+
+Do this to fix it:
+
+1. Change in serial.c the function UA_MakeFullPath into MakeFullPath.
+2. Delete geninit.o, use the included general.o instead.
+3. Remove the KPrintF in setup.c
+
+What was wrong: serial.c called a function (UA_MakeFullPath) in the
+mediapoint.library (all functions in this lib start with UA_). The
+library though is not available when playing the script. Therefore I
+have made for the xapps a small file with a few frequently used functions.
+By mistake I used the library version of MakeFullPath instead of the one
+in general.o.
+
+Erik
+----------------------------------------------

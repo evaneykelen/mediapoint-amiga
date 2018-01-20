@@ -1,0 +1,251 @@
+cd gen:
+update
+
+cd demo:gen
+update
+
+cd ph:
+update_sys
+
+; cees & steve
+
+;cd sync:gmt
+;del #?.o
+;smake >ram:gmt
+;cop
+
+;cd sync:miditc
+;update
+;smake >ram:miditc
+;cop
+
+;cd sync:zentc
+;update
+;smake >ram:zentc
+;cop
+
+; input
+
+cd gp:
+update
+smake >ram:gp
+cop
+
+; parallel en serial
+
+cd pg:
+update
+smake >ram:pg
+cop
+
+cd sg:
+update
+smake >ram:sg
+cop
+
+; system stuff
+
+cd wa:
+update
+smake >ram:wa
+cop
+
+cd wd:
+del #?.o
+smake >ram:wd
+cop
+
+cd wm:
+update
+smake >ram:wm
+cop
+
+cd ml:workarexx
+del #?.o
+smake >ram:workarexx
+cop
+
+cd wp:
+update
+smake >ram:wp
+cop
+
+cd vars:
+update
+smake >ram:vars
+cop
+
+; libs
+
+cd mllib:
+update
+smake >ram:mllib
+
+cd mlmmu:
+update
+smake >ram:mlmmu
+cop
+
+; mp
+
+cd nb:
+del #?.o
+copy a_files/formatterm.o nb:formatterm.o
+del ph:#?.o
+copy ph:rexxvars.o.bak ph:rexxvars.o
+smake >ram:mp
+
+; modules
+
+cd mpri:
+del #?.o
+smake >ram:mpri
+cop
+
+cd ma:
+del #?.o
+smake >ram:ma
+cop
+
+cd mbgm:
+del #?.o
+smake >ram:mbgm
+cop
+
+cd mpag:
+del #?.o
+smake >ram:mpag
+cop
+
+cd mpre:
+del #?.o
+smake >ram:mpre
+cop
+
+cd msm:
+del #?.o
+smake >ram:msm
+cop
+
+cd mra:
+del #?.o
+smake >ram:mra
+cop
+
+; xapps
+
+cd air:
+update
+smake >ram:air
+cop
+
+cd cd32:
+update
+smake >ram:cd32
+
+cd cdtv:
+update
+smake >ram:cdtv
+cop
+
+cd cdxl:
+update
+smake >ram:cdxl
+cop
+
+cd demo:
+update
+smake >ram:demo
+copy demo:DemoXapp nb:xapps/
+
+cd dpspar:
+update
+smake >ram:par
+cop
+
+cd endscr:
+update
+smake >ram:endscr
+cop
+
+cd gl:
+update
+smake >ram:genlock
+cop
+
+cd ion:
+update
+smake >ram:ion
+cop
+
+cd iv24:
+update
+smake >ram:iv24
+cop
+
+cd lightp:
+update
+smake >ram:lightp
+cop
+
+cd midi:
+update
+smake >ram:midi
+cop
+
+cd nep:
+update
+smake >ram:nep
+cop
+
+cd newscr:
+update
+smake >ram:newscr
+cop
+
+cd pdev:
+update
+smake >ram:pdev
+cop
+
+cd res:
+update
+smake >ram:res
+cop
+
+cd s16:
+update
+smake >ram:s16
+cop
+
+cd sample:
+update
+smake >ram:sample
+cop
+
+cd seri:
+update
+smake >ram:seri
+cop
+
+cd toc:
+update
+smake >ram:toc
+cop
+
+cd vscroll:
+update
+smake >ram:vscroll
+cop
+
+cd vu:
+update
+smake >ram:vuport
+cop
+
+; Remote access stuff
+
+cd mra:RA_Prefs
+del #?.o
+smake >ram:ra_prefs
+

@@ -1,0 +1,2515 @@
+
+;--- txed.a -------------------------------------------------------------+
+; MediaPoint TextEdit Functions. Based on the original Macintosch        |
+; TextEdit resource. Contains all assembly code needed to be able to     |
+; perform the textedit functions quickly, called from a C routine.       |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/txed.a 02.000 (28.03.94)
+
+
+	TTL	txed.a
+	IDNT	txed.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/tasks.i"
+	INCLUDE	"exec/lists.i"
+	INCLUDE	"exec/nodes.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/strings.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/execbase.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/text.i"
+	INCLUDE	"graphics/clip.i"
+	INCLUDE	"graphics/rastport.i"
+	INCLUDE	"graphics/graphics_lib.i"
+	INCLUDE	"intuition/screens.i"
+	INCLUDE	"intuition/intuition.i"
+	INCLUDE	"hardware/blit.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"txed.i"
+	INCLUDE	"txedstyles.i"
+	INCLUDE	"prefs.i"
+	INCLUDE	"editwindow.i"
+	INCLUDE	"antialias.i"
+	INCLUDE	"toolslib.i"
+
+
+	XREF	_SysBase
+	XREF	_GfxBase
+
+	XREF	_CPrefs
+	XREF	_pageWindow
+
+	XREF	_textBM
+	XREF	_maskBM
+	XREF	_xtraBM
+
+	XREF	_AntiAlias
+
+	XREF	_ChunkyToPlanar
+	XREF	_PlanarToChunky
+	XREF	@GetPaletteSize
+	XREF	@AllocRememberMP
+	XREF	@FreeRememberMP
+
+	XREF	@TECharWidth
+	XREF	@TEExtraSpace
+	XREF	@TECalcLineWidth
+	XREF	@TECalcFitChars
+	XREF	@TECalcLineOffset
+	XREF	@TECalcLineHeight
+	XREF	@TECalcTopOffset
+
+
+	XREF	GetTrueRGB
+	XREF	GetBestPen
+
+
+
+	XDEF	_TEKey		; insert typed character
+	XDEF	_TEActivate	; activate caret/selection range
+	XDEF	_TEDeactivate	; remove caret/selection range
+	XDEF	_TESetSelect	; set selection range / caret
+	XDEF	_TEUpdate	; update all frames in list as needed
+	XDEF	_TEWhichBox	; where can we find this line ????
+	XDEF	@TEWhichBox	;
+	XDEF	_TEReportPos	; report position of caretstart
+	XDEF	_TECaretPos	; calculate position of caret relative
+				; to window
+	XDEF	_TEWhichLine	; on which line is the cursor ????
+	XDEF	_teDelSelection
+
+
+
+
+
+	SECTION	TEXT,CODE
+
+
+;-------------------------------------------------------------------------
+; VOID _TEUpdate( struct TEInfo *, BOOL flag )
+;-------------------------------------------------------------------------
+; Redraw all text that must be redrawn
+;-------------------------------------------------------------------------
+
+  STACKSTRUCT TEUpdateStack,2		; 2 parameters on stack
+	_ULONG	txt_EditMode
+	_ULONG	txt_TEInfo
+	_APTR	txt__ReturnAddress
+	_APTR	txt__OldAnAddress
+
+	_UWORD	txt_addX
+	_UWORD	txt_dstYStart
+	_APTR	txt_editWindow
+	_APTR	txt_maskPtr
+	_UWORD	txt_charStart
+	_UWORD	txt_extraSpace
+	_UWORD	txt_extraTopSpace
+	_STRUCT	txt_aaInfo,aa_SIZEOF
+	_STRUCT	txt_RGBtripletsBGND,3*4
+	_STRUCT	txt_RGBtripletsTEXT,3*4
+	_UWORD	txt_OldD2
+*	_UBYTE	txt_antiAliasLevel
+*	_UBYTE	txt_pad0
+	_LABEL	txt_STACKSIZE
+
+
+
+
+_TEUpdate	link	a5,#txt_STACKSIZE
+	movem.l	d2-d7/a2-a4/a6,-(sp)
+
+	movea.l	_GfxBase,a6
+	movea.l	txt_TEInfo(a5),a3
+
+	bsr	teRecalLines		; recalc linestarts if necessary
+
+	TSTNODE	a3,a4
+	beq	.exit
+
+	move.l	a4,a0
+	jsr	@TEExtraSpace
+	move.w	d0,d5
+	move.w	ew_TopMargin(a4),d1
+	moveq.l	#0,d2			; start update at first character
+
+.loop	cmp.w	ew_LastChar(a4),d2	; compare with last
+	bge	.endwdw
+
+	move.l	a4,txt_editWindow(a5)
+	movem.l	d1/d4,-(sp)
+	bsr	teWhichCursorLine
+	move.w	0(a0,d1.w),d2
+	move.w	2(a0,d1.w),d3
+	move.w	d3,d0
+	sub.w	d2,d0
+	move.w	d2,d4
+	movea.l	tei_text(a3),a0
+	lsl.w	#tec_SHIFTSIZE,d4
+	lea.l	(a0,d4.w),a0
+	jsr	@TECalcLineHeight
+	move.w	d0,tei_lineHeight(a3)
+	swap.w	d0
+	move.w	d0,tei_baseLine(a3)
+	movem.l	(sp)+,d1/d4
+
+	cmp.w	tei_firstChanged(a3),d3
+	bls	.noDisply
+	cmp.w	tei_lastChanged(a3),d2
+	bhi	.noDisply
+
+	move.w	ew_Height(a4),d0
+	sub.w	d1,d0			; remaining space for line
+	sub.w	d5,d0			; remaining space after shadow
+	cmp.w	tei_lineHeight(a3),d0
+	blt	.endwdw			; if remaining smaller than line -> exit!!!
+
+	movem.l	d1/d2,-(sp)
+	movea.l	a4,a0
+	move.w	d3,d0
+	sub.w	d2,d0
+	lsl.w	#tec_SHIFTSIZE,d2
+	movea.l	tei_text(a3),a1
+	lea.l	(a1,d2.w),a1
+	jsr	@TECalcLineWidth
+	move.l	a4,a0
+	jsr	@TECalcLineOffset
+*	move.b	ew_antiAliasLevel(a4),d1
+*	move.b	d1,txt_antiAliasLevel(a5)
+	movem.l	(sp)+,d1/d2
+
+	bsr	teText
+
+.noDisply	move.w	d3,d2
+	add.w	tei_lineHeight(a3),d1
+	add.w	ew_ySpacing(a4),d1
+	add.w	d5,d1
+	bra	.loop
+
+
+
+**** If window is not filled fully, fill the rest ****
+
+.endwdw	tst.l	txt_EditMode(a5)
+	beq	.exit
+
+	movem.w	d1-d6,-(sp)
+	movea.l	ew_undoBM(a4),a0	; src bitmap
+	movea.l	ew_rastPort(a4),a1	; dst rastport
+	moveq.l	#0,d0			; srcx
+	move.w	ew_X(a4),d2		; destx
+	move.w	d1,d3
+	add.w	ew_Y(a4),d3		; desty
+	move.w	ew_Width(a4),d4		; sizex
+	move.w	ew_Height(a4),d5
+	sub.w	d1,d5			; sizey
+	bmi	.stop
+	beq	.stop
+	move.w	#ABC+ABNC,d6		; minterm
+	CALLLIB	_LVOBltBitMapRastPort
+.stop	movem.w	(sp)+,d1-d6
+
+.exit	clr.w	tei_lastChanged(a3)
+	move.w	#TEXTEDITSIZE,tei_firstChanged(a3)
+.exit2	movem.l	(sp)+,d2-d7/a2-a4/a6
+	unlk	a5
+	rts
+
+
+
+
+
+
+* (new d2) teText( (APTR) TEInfo (a3), (UWORD) from (d2), (UWORD) to (d3),
+*		(UWORD) dstX (d0), (UWORD) dstY (d1), (APTR) EditWindow (a4)
+*		(UWORD) extraSpace (d5) - taken by shadow
+
+teText	movem.l	d1/d3/d5/a4,-(sp)
+	move.w	d1,txt_dstYStart(a5)
+	move.w	d5,txt_extraSpace(a5)
+
+**** Determine text offset from top of block ****
+
+	movem.l	d0-d1/a0-a1,-(sp)
+	movea.l	a4,a0
+	jsr	@TECalcTopOffset(pc)
+	move.w	d0,txt_extraTopSpace(a5)
+	movem.l	(sp)+,d0-d1/a0-a1
+
+**** Code to fill text & mask bitmaps with bgnd ****
+
+	movem.l	d0-d2/d6-d7/a3-a4,-(sp)
+	lea.l	_textBM,a2
+	movea.l	bm24_Planes(a2),a1
+	adda.w	bm24_Modulo(a2),a1
+	adda.w	bm24_Modulo(a2),a1
+	addq.w	#8,a1
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+	move.w	txt_dstYStart(a5),d1
+
+	movea.l	ew_undoBM(a4),a0	; src bitmap
+	tst.l	txt_EditMode(a5)
+	bne	.edit			; if TRUE, edit
+
+.update	movea.l	_pageWindow,a0
+	add.w	wd_TopEdge(a0),d1
+	movea.l	ew_rastPort(a4),a0	; src rastport
+	movea.l	rp_BitMap(a0),a0	; src bitmap
+	add.w	ew_X(a4),d0
+	add.w	ew_Y(a4),d1
+
+.edit	move.w	ew_Width(a4),d6
+	move.w	tei_lineHeight(a3),d7
+	add.w	txt_extraSpace(a5),d7
+	add.w	ew_ySpacing(a4),d7	; height
+	subq.w	#1,d7
+
+**** Solve potential *possible* blitter problems ****
+
+	movem.l	d0-d1/a0-a1/a6,-(sp)
+	movea.l	_GfxBase,a6
+	CALLLIB	_LVOWaitBlit
+	movem.l	(sp)+,d0-d1/a0-a1/a6
+
+**** Write the background into the chunky bitmap ****
+
+	lea	_maskBM,a2
+	movea.l	bm24_Planes(a2),a3
+	lea	_textBM,a2
+.FillY	movem.l	a0-a1/d0-d1,-(sp)
+	jsr	_PlanarToChunky
+	movem.l	(sp)+,a0-a1/d0-d1
+	addq.w	#1,d1
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d7,.FillY
+
+	move.l	bm24_rasSize(a2),d2
+	lsr.l	#2,d2
+.clrloop	clr.l	(a3)+
+	subq.l	#1,d2
+	bne	.clrloop
+
+	movem.l	(sp)+,d0-d2/d6-d7/a3-a4
+
+
+**** Test if character must be drawn, otherwise exit ****
+
+	lsl.w	#tec_SHIFTSIZE,d2
+	lsl.w	#tec_SHIFTSIZE,d3
+
+	move.w	d2,txt_OldD2(a5)
+
+NextCH	cmp.w	d2,d3			; if all characters are done, proceed
+	bls	Drawed
+
+	movea.l	tei_text(a3),a0
+	lea.l	(a0,d2.w),a1
+	addq.w	#tec_SIZE,d2
+	movea.l	tec_charFont(a1),a0
+
+**** Force character into real character or undefined ****
+
+.offset	moveq.l	#0,d6
+	move.b	tec_charCode(a1),d6
+	move.b	tf_LoChar(a0),d4
+	move.b	tf_HiChar(a0),d5
+	cmp.b	d6,d4			; if LoChar > char
+	bhi	.otble1
+	cmp.b	d5,d6			; if char > HiChar
+	bhi	.otble1
+.itble1	sub.b	d4,d6			; char -= LoChar
+	bra	.ofsdne
+.otble1	sub.b	d4,d5
+	addq.b	#1,d5
+	move.b	d5,d6
+.ofsdne
+
+**** Set parameters according to fixed or proportional space font ****
+
+	move.l	a3,-(sp)
+	move.w	d0,txt_charStart(a5)
+	lsl.w	#1,d6
+
+	btst.b	#FPB_PROPORTIONAL,tf_Flags(a0)
+	bne	.proportW
+
+.fixedW	move.w	tf_XSize(a0),txt_addX(a5)
+	movea.l	tf_CharKern(a0),a3
+	cmpa.w	#0,a3
+	beq	.bothW
+	move.w	(a3,d6.w),d1
+	add.w	d1,d0		; increase horizontal destx
+	sub.w	d1,txt_addX(a5)
+	bra	.bothW
+
+.proportW	movea.l	tf_CharKern(a0),a3
+	cmpa.w	#0,a3
+	beq	.noKern
+	add.w	(a3,d6.w),d0		; increase horizontal destx
+.noKern	movea.l	tf_CharSpace(a0),a3
+	move.w	tf_XSize(a0),d4
+	cmpa.w	#0,a3
+	beq	.noSpace
+	move.w	(a3,d6.w),d4
+.noSpace	move.w	d4,txt_addX(a5)
+
+.bothW	moveq.l	#0,d1
+	tst.w	d0
+	bpl	.noCorr01
+	neg.w	d0
+	move.w	d0,d1
+	moveq.l	#0,d0
+.noCorr01	lsl.w	#1,d6
+	movea.l	tf_CharLoc(a0),a3
+	move.w	0(a3,d6.w),d4		; charOffset
+	move.w	2(a3,d6.w),d5		; charBitWidth
+	add.w	d1,d4
+	sub.w	d1,d5
+	movea.l	(sp)+,a3
+
+**** Test whether character really should be displayed ****
+
+	tst.w	d5
+	beq	.incPos			; if width = 0 no display
+	bmi	.incPos			; and if width < 0 no display
+	cmp.b	#31,tec_charCode(a1)	; if control code no display
+	bls	.incPos
+
+**** Perform setting of location of character, correct if needed ****
+
+	movem.l	d0-d3/a0-a4/a6,-(sp)
+	moveq.l	#0,d6
+
+	btst.b	#MFSB_ITALIC,tec_charStyle(a1)
+	beq	.addOffs
+	btst.b	#FSB_ITALIC,tf_Style(a0)
+	bne	.addOffs
+
+	move.w	tf_YSize(a0),d6
+	sub.w	tf_Baseline(a0),d6
+	neg.w	d6
+	muls.w	ew_slantValue(a4),d6
+	divs.w	ew_slantAmount(a4),d6
+.addOffs	add.w	d6,d0
+
+**** Initialize pointer to chunky bitmap data ****
+
+	move.w	tei_baseLine(a3),d6
+	add.w	tf_YSize(a0),d6
+	sub.w	tf_Baseline(a0),d6
+	lea.l	_textBM,a2
+	lea.l	_maskBM,a3
+	cmpi.b	#SHADOWTYPE_TRANSPARENT,ew_shadowType(a4)
+	bne	.skipTr
+	movea.l	a3,a2
+.skipTr	movea.l	bm24_Planes(a2),a4
+	movea.l	bm24_Planes(a3),a3
+	add.w	txt_extraTopSpace(a5),d6	; move text down for shadow
+	addq.w	#1,d6
+	mulu.w	bm24_Modulo(a2),d6
+	adda.l	d6,a4
+	adda.l	d6,a3
+	adda.w	d0,a4
+	adda.w	d0,a3
+	addq.w	#8,a4
+	addq.w	#8,a3
+	move.l	a3,txt_maskPtr(a5)
+
+**** Initialize pointer to font bitmap data ****
+
+	movea.l	tf_CharData(a0),a3
+	move.w	tf_YSize(a0),d6
+	subq.w	#1,d6
+	mulu.w	tf_Modulo(a0),d6
+	adda.l	d6,a3
+	move.w	d4,d6
+	lsr.w	#4,d6
+	lsl.w	#1,d6
+	adda.w	d6,a3
+
+**** Perform actual 'blitting' of character ****
+
+	lea.l	teBlitCharNormal(pc),a6
+*	tst.b	txt_antiAliasLevel(a5)
+*	bne	.special
+	move.b	tec_charStyle(a1),d6
+	andi.b	#~MFSF_UNDERLINED,d6
+	beq	.bltchar
+.special	lea.l	teBlitCharSpecial(pc),a6
+.bltchar	jsr	(a6)
+	movem.l	(sp)+,d0-d3/a0-a4/a6
+
+**** Increment position for next character ****
+
+.incPos	add.w	txt_addX(a5),d0
+	add.w	ew_xSpacing(a4),d0
+
+	btst.b	#MFSB_BOLD,tec_charStyle(a1)
+	beq	.nobold
+	btst.b	#FSB_BOLD,tf_Style(a0)
+	bne	.nobold
+	add.w	tf_BoldSmear(a0),d0
+.nobold	btst.b	#MFSB_UNDERLINED,tec_charStyle(a1)
+	beq	NextCH
+	btst.b	#FSB_UNDERLINED,tf_Style(a0)
+	bne	NextCH
+	cmp.b	#31,tec_charCode(a1)
+	bls	NextCH
+	bsr	teDrawUnderline
+	bra	NextCH
+
+**** The last character is 'blitted', now blit the line ****
+
+Drawed	move.w	txt_OldD2(a5),d2
+	bsr	PerformAntiAlias
+	tst.b	ew_shadowType(a4)
+	beq	teShadowTypeNormal
+	cmp.b	#SHADOWTYPE_CAST,ew_shadowType(a4)
+	beq	teShadowTypeCast
+	cmp.b	#SHADOWTYPE_SOLID,ew_shadowType(a4)
+	beq	teShadowTypeSolid
+	cmp.b	#SHADOWTYPE_OUTLINE,ew_shadowType(a4)
+	beq	teShadowTypeOutline
+	cmp.b	#SHADOWTYPE_TRANSPARENT,ew_shadowType(a4)
+	beq	teShadowTypeTransparent
+	bra	teShadowTypeNormal
+
+TextExit	movem.l (sp)+,d1/d3/d5/a4
+	rts
+
+
+
+
+teShadowTypeNormal
+	lea.l	_textBM,a2
+	lea.l	_xtraBM,a1
+	move.w	ew_Width(a4),d6
+	move.w	tei_lineHeight(a3),d7
+	add.w	txt_extraSpace(a5),d7
+	add.w	ew_ySpacing(a4),d7
+	subq.w	#1,d7
+	bmi	teFinalBlit
+	movea.l	bm24_Planes(a2),a0
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a0
+	addq.w	#8,a0
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+
+.loopY	movem.l	d0-d1/a0-a1,-(sp)
+	jsr	_ChunkyToPlanar
+	movem.l	(sp)+,d0-d1/a0-a1
+	adda.w	bm24_Modulo(a2),a0
+	addq.w	#1,d1
+	dbra	d7,.loopY
+	bra	teFinalBlit
+
+
+
+
+teDirectionTable
+	dc.w	01,01		; south-east
+	dc.w	00,01		; south
+	dc.w	-1,01		; south-west
+	dc.w	-1,00		;       west
+	dc.w	-1,-1		; north-west
+	dc.w	00,-1		; north
+	dc.w	01,-1		; north-east
+	dc.w	01,00		;       east
+
+
+
+
+teShadowTypeCast
+	lea.l	_maskBM,a1
+	lea.l	_textBM,a2
+	movea.l	bm24_Planes(a1),a0
+	movea.l	bm24_Planes(a2),a1
+	move.w	bm24_Modulo(a2),d6
+	add.w	d6,d6
+	adda.w	d6,a0
+	adda.w	d6,a1
+
+**** initialize offset for shadow ****
+
+	move.l	a2,-(sp)
+	move.w	bm24_Modulo(a2),d3
+	lea.l	teDirectionTable(pc),a2
+	moveq.l	#0,d7
+	move.b	ew_shadowDirection(a4),d7
+	lsl.w	#2,d7
+	lea.l	(a2,d7.w),a2
+
+	move.b	ew_shadowDepth(a4),d7
+	addq.w	#1,d7
+
+	move.w	d7,-(sp)
+	mulu.w	d3,d7
+	muls.w	2(a2),d7
+	move.w	d7,d3
+	move.w	(sp)+,d7
+	muls.w	0(a2),d7
+	add.w	d7,d3
+	move.l	(sp)+,a2
+
+**** initialize other parameters ****
+
+	moveq.l	#1,d2			; value in mask where shadow is drawn
+	move.b	ew_shadowPen(a4),d4	; color which is written as shadow
+
+	move.w	tei_lineHeight(a3),d0
+	add.w	txt_extraSpace(a5),d0
+	add.w	ew_ySpacing(a4),d0
+	subq.w	#1,d0
+	bmi	teFinalBlit
+	move.w	bm24_Modulo(a2),d1
+	subq.w	#1,d1
+
+.loopY	movem.l	a0-a1/d1,-(sp)
+
+.loopX	tst.b	(a0)
+	bpl	.skip
+	tst.b	(a0,d3.w)
+	bne	.skip
+	move.b	d2,(a0,d3.w)
+	move.b	d4,(a1,d3.w)
+.skip	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d1,.loopX
+
+	movem.l	(sp)+,a0-a1/d1
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY
+
+	bra	teShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+teShadowTypeSolid
+	lea.l	_maskBM,a1
+	lea.l	_textBM,a2
+	movea.l	bm24_Planes(a1),a0
+	movea.l	bm24_Planes(a2),a1
+	move.w	bm24_Modulo(a2),d6
+	add.w	d6,d6
+	adda.w	d6,a0
+	adda.w	d6,a1
+
+**** initialize offset for shadow ****
+
+	moveq.l	#0,d6
+	move.b	ew_shadowDepth(a4),d6
+
+	moveq.l	#1,d2			; value in mask where shadow is drawn
+	move.b	ew_shadowPen(a4),d4	; color which is written as shadow
+
+	move.w	tei_lineHeight(a3),d0
+	add.w	txt_extraSpace(a5),d0
+	add.w	ew_ySpacing(a4),d0
+	subq.w	#1,d0
+	bmi	teFinalBlit
+	move.w	bm24_Modulo(a2),d1
+	subq.w	#1,d1
+
+	move.l	a3,-(sp)
+	lea.l	teDirectionTable(pc),a3
+	moveq.l	#0,d7
+	move.b	ew_shadowDirection(a4),d7
+	lsl.w	#2,d7
+	lea.l	(a3,d7.w),a3
+
+.solid_lp	movem.l	d0/a0-a1,-(sp)
+
+	move.w	bm24_Modulo(a2),d3
+	moveq.l	#0,d7
+	move.b	d6,d7
+	addq.w	#1,d7
+	move.w	d7,-(sp)
+	mulu.w	d3,d7
+	muls.w	2(a3),d7
+	move.w	d7,d3
+	move.w	(sp)+,d7
+	muls.w	0(a3),d7
+	add.w	d7,d3
+
+.loopY	movem.l	a0-a1/d1,-(sp)
+.loopX	tst.b	(a0)
+	bpl	.skip
+	tst.b	(a0,d3.w)
+	bne	.skip
+	move.b	d2,(a0,d3.w)
+	move.b	d4,(a1,d3.w)
+.skip	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d1,.loopX
+	movem.l	(sp)+,a0-a1/d1
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY
+
+	movem.l	(sp)+,d0/a0-a1
+
+	dbra	d6,.solid_lp
+
+	move.l	(sp)+,a3
+	bra	teShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+teShadowTypeOutline:
+teShadowTypeTransparent:
+	lea.l	_maskBM,a1
+	lea.l	_textBM,a2
+	movea.l	bm24_Planes(a1),a0
+	movea.l	bm24_Planes(a2),a1
+	move.w	bm24_Modulo(a2),d6
+	adda.w	d6,a0
+	adda.w	d6,a1
+
+	move.w	bm24_Modulo(a2),d3
+	move.w	d3,d4
+	neg.w	d3
+	move.w	d3,d2
+	add.w	d2,d2
+	adda.w	d4,a0
+	adda.w	d4,a1
+	move.w	d4,d5
+	add.w	d5,d5
+
+**** initialize offset for shadow ****
+
+	moveq.l	#1,d6			; value in mask where shadow is drawn
+	move.b	ew_shadowPen(a4),d7	; color which is written as shadow
+
+	move.w	tei_lineHeight(a3),d0
+	add.w	txt_extraSpace(a5),d0
+	add.w	ew_ySpacing(a4),d0
+	subq.w	#1,d0
+	bmi	teFinalBlit
+
+	tst.b	ew_shadowDepth(a4)
+	bne	.loopY2
+
+.loopY	movem.l	a0-a1/d0,-(sp)
+	move.w	bm24_Modulo(a2),d0
+	subq.w	#1,d0
+
+.loopX	tst.b	(a0)
+	bpl	.skip
+
+	tst.b	-1(a0)
+	bne	.skip00
+	move.b	d6,-1(a0)
+	move.b	d7,-1(a1)
+.skip00	tst.b	01(a0)
+	bne	.skip01
+	move.b	d6,01(a0)
+	move.b	d7,01(a1)
+.skip01	tst.b	(a0,d3.w)
+	bne	.skip02
+	move.b	d6,00(a0,d3.w)
+	move.b	d7,00(a1,d3.w)
+.skip02	tst.b	(a0,d4.w)
+	bne	.skip
+	move.b	d6,00(a0,d4.w)
+	move.b	d7,00(a1,d4.w)
+
+.skip	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d0,.loopX
+
+	movem.l	(sp)+,a0-a1/d0
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY
+
+	bra	teShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+.loopY2	movem.l	a0-a1/d0,-(sp)
+	move.w	bm24_Modulo(a2),d0
+	subq.w	#1,d0
+
+.loopX2	tst.b	(a0)			; is the mask set for this byte ?
+	bpl	.skip2			; no -> go to next byte
+
+	tst.b	00(a0,d3.w)
+	bne	.skip10a
+	move.b	d6,00(a0,d3.w)
+	move.b	d7,00(a1,d3.w)
+.skip10a	tst.b	00(a0,d2.w)
+	bne	.skip10b
+	move.b	d6,00(a0,d2.w)
+	move.b	d7,00(a1,d2.w)
+.skip10b
+	tst.b	00(a0,d4.w)
+	bne	.skip11
+	move.b	d6,00(a0,d4.w)
+	move.b	d7,00(a1,d4.w)
+	tst.b	00(a0,d5.w)
+	bne	.skip11
+	move.b	d6,00(a0,d5.w)
+	move.b	d7,00(a1,d5.w)
+.skip11
+	tst.b	-2(a0)
+	bne	.skip12
+	move.b	d6,-2(a0)
+	move.b	d7,-2(a1)
+	tst.b	-1(a0)
+	bne	.skip12
+	move.b	d6,-1(a0)
+	move.b	d7,-1(a1)
+.skip12
+	tst.b	01(a0)
+	bne	.skip13
+	move.b	d6,01(a0)
+	move.b	d7,01(a1)
+	tst.b	02(a0)
+	bne	.skip13
+	move.b	d6,02(a0)
+	move.b	d7,02(a1)
+.skip13
+
+	tst.b	-1(a0,d2.w)
+	bne	.skip14
+	move.b	d6,-1(a0,d2.w)
+	move.b	d7,-1(a1,d2.w)
+.skip14	tst.b	01(a0,d2.w)
+	bne	.skip15
+	move.b	d6,01(a0,d2.w)
+	move.b	d7,01(a1,d2.w)
+.skip15
+	tst.b	-1(a0,d3.w)
+	bne	.skip17
+	move.b	d6,-1(a0,d3.w)
+	move.b	d7,-1(a1,d3.w)
+	tst.b	-2(a0,d3.w)
+	bne	.skip17
+	move.b	d6,-2(a0,d3.w)
+	move.b	d7,-2(a1,d3.w)
+.skip17	tst.b	01(a0,d3.w)
+	bne	.skip18
+	move.b	d6,01(a0,d3.w)
+	move.b	d7,01(a1,d3.w)
+.skip18	tst.b	02(a0,d3.w)
+	bne	.skip19
+	move.b	d6,02(a0,d3.w)
+	move.b	d7,02(a1,d3.w)
+.skip19
+	tst.b	-1(a0,d4.w)
+	bne	.skip21
+	move.b	d6,-1(a0,d4.w)
+	move.b	d7,-1(a1,d4.w)
+	tst.b	-2(a0,d4.w)
+	bne	.skip21
+	move.b	d6,-2(a0,d4.w)
+	move.b	d7,-2(a1,d4.w)
+.skip21	tst.b	01(a0,d4.w)
+	bne	.skip22
+	move.b	d6,01(a0,d4.w)
+	move.b	d7,01(a1,d4.w)
+.skip22	tst.b	02(a0,d4.w)
+	bne	.skip23
+	move.b	d6,02(a0,d4.w)
+	move.b	d7,02(a1,d4.w)
+.skip23
+	tst.b	-1(a0,d5.w)
+	bne	.skip24
+	move.b	d6,-1(a0,d5.w)
+	move.b	d7,-1(a1,d5.w)
+.skip24	tst.b	01(a0,d5.w)
+	bne	.skip2
+	move.b	d6,01(a0,d5.w)
+	move.b	d7,01(a1,d5.w)
+
+.skip2	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d0,.loopX2
+
+	movem.l	(sp)+,a0-a1/d0
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY2
+
+
+	bra	teShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+teFinalBlit
+	lea.l	_xtraBM,a0		; src bitmap
+	movea.l	ew_rastPort(a4),a1	; dst rastport
+	moveq.l	#0,d0			; srcx
+	moveq.l	#0,d1			; srcy
+	moveq.l	#0,d2			; dstx
+	move.w	txt_dstYStart(a5),d3	; dsty
+	move.w	ew_Width(a4),d4		; sizex
+	move.w	tei_lineHeight(a3),d5
+	add.w	txt_extraSpace(a5),d5
+	add.w	ew_ySpacing(a4),d5	; sizey
+
+	move.w	ew_Width(a4),d6
+	sub.w	d2,d6			; remaining x-space
+	sub.w	d4,d6
+	bpl	.skip00
+	add.w	d6,d4
+.skip00	move.w	ew_Height(a4),d6
+	sub.w	d3,d6			; remaining y-space
+	sub.w	d5,d6
+	bpl	.skip01
+	add.w	d6,d5
+
+.skip01	move.w	#$C0,d6			; minterm
+	add.w	ew_X(a4),d2
+	add.w	ew_Y(a4),d3
+
+	tst.w	d5
+	beq	TextExit
+	bmi	TextExit
+	CALLLIB	_LVOBltBitMapRastPort
+	bra	TextExit
+
+
+
+
+*******************************************************************
+teBlitCharNormal
+	movem.l	a1,-(sp)
+	move.w	tf_YSize(a0),d1
+	subq.w	#1,d1
+	subq.w	#1,d5
+	not.w	d4
+	andi.w	#15,d4
+	move.b	tec_charColor(a1),d0
+	move.l	txt_maskPtr(a5),a1
+
+.loopY	movem.l	d1/d4-d5/a1/a3-a4,-(sp)
+	moveq.l	#-1,d1
+
+	move.w	(a3)+,d3		; prefetch font data
+.loopX	btst.l	d4,d3			; is bit set
+	beq	.pixDone		; if clear, don't write
+	move.b	d0,(a4)			; write color to chunky
+	move.b	d1,(a1)			; set mask if text data
+.pixDone	dbra	d4,.noForce		; decr bit counter
+	moveq.l	#15,d4			; reset bit counter
+	move.w	(a3)+,d3		; fetch font data
+.noForce	addq.w	#1,a4			; next chunky byte textbm
+	addq.w	#1,a1			; next chunky byte maskbm
+	dbra	d5,.loopX		; loop until all x done
+
+	movem.l	(sp)+,d1/d4-d5/a1/a3-a4
+	suba.w	tf_Modulo(a0),a3
+	suba.w	bm24_Modulo(a2),a4
+	suba.w	bm24_Modulo(a2),a1
+	dbra	d1,.loopY
+	movem.l	(sp)+,a1
+	rts
+*******************************************************************
+
+
+
+
+*******************************************************************
+teBlitCharSpecial
+	movem.l	a0,-(sp)
+	movea.l	txt_editWindow(a5),a6
+	move.w	tf_YSize(a0),d1
+	subq.w	#1,d1
+	subq.w	#1,d5
+	moveq.l	#0,d7
+	not.w	d4
+	andi.w	#15,d4
+	move.b	tec_charColor(a1),d2
+
+	move.w	d0,d6
+	btst.b	#MFSB_BOLD,tec_charStyle(a1)
+	beq	.setMaskP
+	btst.b	#FSB_BOLD,tf_Style(a0)
+	bne	.setMaskP
+	add.w	tf_BoldSmear(a0),d6
+.setMaskP	movea.l	txt_maskPtr(a5),a0
+	suba.w	d0,a0
+	suba.w	d0,a4
+
+.loopY	movem.l	d0-d1/d4-d6/a3,-(sp)
+	moveq.l	#-1,d1
+.skipX	tst.w	d0
+	bpl	.fetch
+	dbra	d4,.skip
+	moveq.l	#15,d4
+	adda.w	#2,a3
+.skip	addq.w	#1,d0
+	addq.w	#1,d6
+	dbra	d5,.skipX
+	bra	.nextY
+
+.fetch	move.w	(a3)+,d3		; prefetch font data
+
+.loopX	btst.l	d4,d3			; is bit set
+	beq	.pixDone		; if clear, don't write
+	move.b	d2,(a4,d0.w)		; write color to chunky
+	move.b	d2,(a4,d6.w)		; write color for boldsmear
+	move.b	d1,(a0,d0.w)		; write mask to chunky
+	move.b	d1,(a0,d6.w)		; write mask for boldsmear
+.pixDone	dbra	d4,.noForce		; decr bit counter
+	moveq.l	#15,d4			; reset bit counter
+	move.w	(a3)+,d3		; fetch font data
+.noForce	addq.w	#1,d0			; next chunky byte
+	addq.w	#1,d6
+	dbra	d5,.loopX		; loop until all x done
+
+.nextY	movem.l	(sp)+,d0-d1/d4-d6/a3
+	suba.w	bm24_Modulo(a2),a4
+	suba.w	bm24_Modulo(a2),a0
+
+	move.l	a0,-(sp)
+	movea.l	tec_charFont(a1),a0
+	suba.w	tf_Modulo(a0),a3
+	btst.b	#MFSB_ITALIC,tec_charStyle(a1)
+	beq	.incrY
+	btst.b	#FSB_ITALIC,tf_Style(a0)
+	bne	.incrY
+	addq.w	#1,d7
+	cmp.w	ew_slantAmount(a6),d7
+	bne	.incrY
+	moveq.l	#0,d7
+	add.w	ew_slantValue(a6),d0
+	add.w	ew_slantValue(a6),d6
+.incrY	move.l	(sp)+,a0
+
+	dbra	d1,.loopY
+	movem.l	(sp)+,a0
+	rts
+*******************************************************************
+
+
+
+
+*******************************************************************
+teDrawUnderline
+	movem.l	d1-d4/d6/a0-a2,-(sp)
+	move.b	tec_underlineColor(a1),d4
+	moveq.l	#-1,d6
+
+	lea.l	_maskBM,a1
+	lea.l	_textBM,a2
+	movea.l	bm24_Planes(a1),a1
+	movea.l	bm24_Planes(a2),a0
+	cmp.b	#SHADOWTYPE_TRANSPARENT,ew_shadowType(a4)
+	bne	.noTrans
+	movea.l	a1,a0
+.noTrans	move.w	tei_baseLine(a3),d1
+	add.w	txt_extraTopSpace(a5),d1
+	addq.w	#2,d1
+	add.w	ew_underLineOffset(a4),d1
+
+	mulu.w	bm24_Modulo(a2),d1
+	adda.l	d1,a0
+	adda.l	d1,a1
+	adda.w	txt_charStart(a5),a0
+	adda.w	txt_charStart(a5),a1
+	addq.w	#8,a0
+	addq.w	#8,a1
+
+	move.w	tei_lineHeight(a3),d5
+	sub.w	tei_baseLine(a3),d5
+	sub.w	ew_underLineOffset(a4),d5
+	bmi	.exit
+
+	move.w	ew_underLineHeight(a4),d2
+
+	cmp.w	d2,d5
+	bhi	.skip
+	move.w	d5,d2
+.skip	subq.w	#1,d2
+	bmi	.exit
+	move.w	d0,d3
+	sub.w	txt_charStart(a5),d3		; for underline drawing
+	subq.l	#1,d3
+
+.loopY	movem.l	d3/a0/a1,-(sp)
+
+.loopX	tst.b	(a1)
+	bmi.b	.skip01
+	move.b	d4,(a0)+
+	move.b	d6,(a1)+
+	dbra	d3,.loopX
+	bra.b	.next
+
+.skip01	addq.l	#1,a0
+	addq.l	#1,a1
+	dbra	d3,.loopX
+
+.next	movem.l	(sp)+,d3/a0/a1
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d2,.loopY
+
+.exit	movem.l	(sp)+,d1-d4/d6/a0-a2
+	rts
+*******************************************************************
+
+
+
+
+
+*******************************************************************
+PerformAntiAlias:
+	movem.l	d0-d7/a0-a4,-(sp)
+	tst.b	ew_antiAliasLevel(a4)
+	beq	.exit
+
+	lea.l	_textBM,a0
+	lea.l	_maskBM,a1
+	move.l	a0,txt_aaInfo+aa_SrcBitMap(a5)
+	move.l	a1,txt_aaInfo+aa_MskBitMap(a5)
+
+	move.w	ew_Width(a4),txt_aaInfo+aa_Width(a5)
+	move.w	tei_lineHeight(a3),d1
+	add.w	txt_extraSpace(a5),d1
+	move.w	d1,txt_aaInfo+aa_Height(a5)
+	move.b	ew_antiAliasLevel(a4),txt_aaInfo+aa_Level(a5)
+
+	lea.l	_CPrefs,a2
+	move.l	cp_PageScreenModes(a2),d0
+	move.l	d0,txt_aaInfo+aa_ViewModes(a5)
+	movem.l	d1/a0-a1,-(sp)
+	jsr	@GetPaletteSize
+	movem.l	(sp)+,d1/a0-a1
+	move.l	d0,txt_aaInfo+aa_PaletteSize(a5)
+	lsl.l	#2,d0
+	addq.l	#4,d0
+	move.l	#MEMF_ANY|MEMF_PUBLIC|MEMF_CLEAR,d1
+	movem.l	a0/a1,-(sp)
+	jsr	@AllocRememberMP
+	movem.l	(sp)+,a0/a1
+	move.l	d0,txt_aaInfo+aa_ColorConversion(a5)
+	beq	.exit
+
+.loop00	cmp.w	d2,d3
+	bls	.lpend
+	movem.w	d2/d3,-(sp)
+
+	movea.l	tei_text(a3),a1
+	movea.l	txt_aaInfo+aa_ColorConversion(a5),a2
+
+	cmp.b	#31,tec_charCode(a1,d2.w)	
+	bls	.nextCH
+
+.loop01	move.b	0(a2),d0
+	bne	.skip02
+	tst.b	1(a2)
+	beq	.skip03
+.skip02	cmp.b	tec_charColor(a1,d2.w),d0
+	beq	.nextCH
+	adda.w	#4,a2
+	bra	.loop01
+
+.skip03	lea.l	_CPrefs,a0
+	movea.l	cp_PageCM(a0),a0
+	moveq.l	#0,d0
+	move.b	tec_charColor(a1,d2.w),d0
+	move.b	d0,(a2)+
+	lea.l	txt_RGBtripletsTEXT(a5),a1
+	move.l	txt_aaInfo+aa_ViewModes(a5),d1
+	move.l	d1,d2
+	move.l	d1,-(sp)
+	jsr	GetTrueRGB
+	move.l	(sp)+,d1
+
+	moveq.l	#0,d0
+	tst.w	ew_BackFillType(a4)
+	bne	.doIt
+	move.w	ew_BackFillColor(a4),d0
+
+.doIt	lea.l	txt_RGBtripletsBGND(a5),a1
+	jsr	GetTrueRGB
+
+	move.l	a3,-(sp)
+	moveq.l	#0,d7
+	lea.l	txt_RGBtripletsTEXT(a5),a1
+	lea.l	txt_RGBtripletsBGND(a5),a3
+
+	moveq.l	#0,d4
+	moveq.l	#0,d5
+	moveq.l	#0,d6
+
+	move.w	0(a1),d4
+	move.w	4(a1),d5
+	move.w	8(a1),d6
+
+	move.w	0(a3),d7
+	sub.l	d7,d4
+	move.w	4(a3),d7
+	sub.l	d7,d5
+	move.w	8(a3),d7
+	sub.l	d7,d6
+
+	asr.l	#2,d4		; div by four
+	asr.l	#2,d5
+	asr.l	#2,d6
+
+	move.l	0(a3),0(a1)
+	move.l	4(a3),4(a1)
+	move.l	8(a3),8(a1)
+
+	add.w	d4,0(a1)
+	add.w	d5,4(a1)
+	add.w	d6,8(a1)
+
+	move.b	-1(a2),d0
+	move.l	txt_aaInfo+aa_PaletteSize(a5),d1
+
+	move.l	d0,-(sp)
+	jsr	GetBestPen
+	move.b	d0,(a2)+
+	move.l	(sp)+,d0
+
+	add.w	d4,0(a1)
+	add.w	d5,4(a1)
+	add.w	d6,8(a1)
+
+	move.l	d0,-(sp)
+	jsr	GetBestPen
+	move.b	d0,(a2)+
+	move.l	(sp)+,d0
+
+	add.w	d4,0(a1)
+	add.w	d5,4(a1)
+	add.w	d6,8(a1)
+
+	move.l	d0,-(sp)
+	jsr	GetBestPen
+	move.b	d0,(a2)+
+	move.l	(sp)+,d0
+	move.l	(sp)+,a3
+
+.nextCH	movem.w	(sp)+,d2/d3
+	addq.w	#tec_SIZE,d2
+	bra	.loop00
+
+
+.lpend	pea.l	txt_aaInfo(a5)
+	jsr	_AntiAlias
+	lea.l	4(sp),sp
+
+	movea.l	txt_aaInfo+aa_ColorConversion(a5),a0
+	jsr	@FreeRememberMP
+
+.exit	movem.l	(sp)+,d0-d7/a0-a4
+	rts
+*******************************************************************
+
+
+
+; UWORD (d1) = teWhichCursorLine( (APTR) TEInfo (a3), Position (d2) )
+; returns the linestart offset from actual line with char "position"
+; a0 is set to linestart table, thus (a0,d1.w) points to 1st char of line
+
+teWhichCursorLine
+
+	movem.l	d0/d2/a1,-(sp)
+	lea.l	tei_lineStarts(a3),a0
+	moveq.l	#0,d1
+
+	move.w	0(a0),d0
+	cmp.w	2(a0),d0
+	beq.b	.exit
+
+.skip01	move.w	2(a0,d1.w),d0
+	cmp.w	d2,d0
+	bhi.b	.exit
+	beq.b	.tstend
+.skip02	addq.w	#2,d1
+	bra.b	.skip01
+
+.exit	movem.l	(sp)+,d0/d2/a1
+	rts
+
+
+.tstend	movea.l	tei_text(a3),a1
+	lsl.w	#tec_SHIFTSIZE,d0
+	tst.b	tec_charCode(a1,d0.w)
+	bne.b	.skip02
+	cmp.b	#LF,tec_charCode-tec_SIZE(a1,d0.w)
+	bne.b	.exit
+	addq.w	#2,d1
+	bra.b	.exit
+
+
+
+
+
+; UWORD (d3) = teWidthUpToCaret( (APTR) TEInfo (a3), Position (d2) )
+;				APTR EditWindow A4,
+; calculates width of line from start to character indicated by position.
+
+teWidthUpToCaret
+	movem.l	d0-d2/d4-d5/a0-a1,-(sp)
+
+	bsr	teWhichCursorLine
+
+	move.w	(a0,d1.w),d1
+	moveq.l	#0,d3				; total size still zero
+	movea.l	tei_text(a3),a0
+	lsl.w	#tec_SHIFTSIZE,d1
+	lsl.w	#tec_SHIFTSIZE,d2
+
+.skip04	cmp.w	d1,d2
+	bls	.skip09
+
+	movem.l	a0-a1/d1,-(sp)
+	lea.l	(a0,d1.w),a0
+	jsr	@TECharWidth
+	movem.l	(sp)+,a0-a1/d1
+
+	add.w	d0,d3
+	add.w	ew_xSpacing(a4),d3
+	addq.w	#tec_SIZE,d1
+	bra	.skip04
+
+.skip09	movem.l	(sp)+,d0-d2/d4-d5/a0-a1
+	rts
+
+
+
+; UWORD (d3) = teCalcLineHeight( (APTR) TEInfo (a3), from (d2) to (d3) )
+; calculates height of line containing the character indicated by position.
+
+teCalcLineHeight
+	movem.l	d0-d2/d4/a0-a2,-(sp)
+
+	move.w	d2,d0
+	move.w	d2,d4
+	move.w	d3,d1
+
+	movea.l	tei_text(a3),a0
+	moveq.l	#0,d3				; total height still zero
+
+	lsl.w	#tec_SHIFTSIZE,d0
+	lsl.w	#tec_SHIFTSIZE,d1
+
+	cmpi.b	#LF,tec_charCode(a0,d0.w)
+	bne.b	.skip00
+
+	movea.l	tec_charFont(a0,d0.w),a2
+	move.w	tf_YSize(a2),d3
+	move.w	d3,tei_lineHeight(a3)
+	move.w	tf_Baseline(a2),tei_baseLine(a3)
+	bra.b	.exit2
+
+.skip00	movem.w	d0/d1/d4,-(sp)
+.testup	cmp.w	d0,d1
+	bls.b	.endup
+
+	tst.b	tec_charCode(a0,d0.w)
+	beq.b	.endup
+
+	cmpi.b	#31,tec_charCode(a0,d0.w)
+	bls.b	.nextup
+
+;	cmp.w	ew_LastChar(a4),d4
+;	bge.w	.nextup
+
+	movea.l	tec_charFont(a0,d0.w),a2
+	move.w	tf_Baseline(a2),d2
+	cmp.w	d3,d2
+	bls.b	.nextup
+	move.w	d2,d3
+.nextup	addq.w	#1,d4
+	add.w	#tec_SIZE,d0
+	bra.b	.testup
+.endup	movem.w	(sp)+,d0/d1/d4
+
+	move.w	d3,tei_baseLine(a3)
+	moveq.l	#0,d3
+
+.testlo	cmp.w	d0,d1
+	bls.b	.exit
+
+	tst.b	tec_charCode(a0,d0.w)
+	beq.b	.exit
+
+	cmpi.b	#31,tec_charCode(a0,d0.w)
+	bls.b	.nextlo
+
+;	cmp.w	ew_LastChar(a4),d4
+;	bge.w	.nextlo
+
+	movea.l	tec_charFont(a0,d0.w),a2
+	move.w	tf_YSize(a2),d2
+	sub.w	tf_Baseline(a2),d2
+	cmp.w	d3,d2
+	bls.b	.nextlo
+	move.w	d2,d3
+.nextlo	addq.w	#1,d4
+	add.w	#tec_SIZE,d0
+	bra.b	.testlo
+
+.exit	add.w	tei_baseLine(a3),d3
+	beq.b	.empty				; if no printable scan backw.
+	move.w	d3,tei_lineHeight(a3)
+.exit2	movem.l	d1/a0-a1,-(sp)
+	move.l	a4,a0
+	jsr	@TEExtraSpace
+	movem.l	(sp)+,d1/a0-a1
+	add.w	d0,d3
+.exit3	movem.l	(sp)+,d0-d2/d4/a0-a2
+	rts
+
+
+.caret	movea.l	tei_newText+tec_charFont(a3),a2
+	move.w	tf_YSize(a2),d3
+	move.w	d3,tei_lineHeight(a3)
+	move.w	tf_Baseline(a2),tei_baseLine(a3)
+	bra.b	.exit2
+
+.empty	tst.w	d0
+	beq.b	.caret
+	move.w	d0,d1
+.emp01	subq.w	#tec_SIZE,d0
+	beq.b	.chklf
+	cmpi.b	#31,tec_charCode(a0,d0.w)
+	bls.b	.emp01
+
+;	cmp.w	ew_LastChar(a4),d4
+;	bge.w	.emp01
+
+	movea.l	tec_charFont(a0,d0.w),a2
+	move.w	tf_YSize(a2),d3
+	move.w	d3,tei_lineHeight(a3)
+	move.w	tf_Baseline(a2),tei_baseLine(a3)
+	bra.b	.exit2
+
+.chklf	subq.w	#tec_SIZE,d1
+	beq.b	.caret
+	cmpi.b	#LF,tec_charCode(a0,d1.w)
+	bne.b	.chklf
+;	cmp.w	ew_LastChar(a4),d4
+;	bge.w	.chklf
+	movea.l	tec_charFont(a0,d1.w),a2
+	move.w	tf_YSize(a2),d3
+	move.w	d3,tei_lineHeight(a3)
+	move.w	tf_Baseline(a2),tei_baseLine(a3)
+	bra.b	.exit2
+
+
+
+
+
+
+
+; VOID teRecalLines( (APTR) TEInfo (a3) )
+; linestarts and endings are recalculated
+
+teRecalLines
+	movem.l	d0-d5/a4-a5,-(sp)
+
+	cmp.b	#RECALC_NONE,tei_recalLines(a3)
+	beq	.QckExit		; do NOTHING if no updating needed
+
+	lea.l	tei_lineStarts(a3),a5
+	clr.w	(a5)
+
+	TSTNODE	a3,a4
+	beq	.exit
+
+
+	clr.w	ew_FirstChar(a4)
+	move.w	#1,ew_LastChar(a4)
+
+	moveq.l	#0,d2		; counter
+
+	move.w	ew_Height(a4),d1
+	sub.w	ew_TopMargin(a4),d1
+	sub.w	ew_BottomMargin(a4),d1
+	bmi	.nxtwdw
+	move.w	ew_Width(a4),d3
+	sub.w	ew_LeftMargin(a4),d3
+	sub.w	ew_RightMargin(a4),d3
+	bmi	.nxtwdw
+
+.ctloop	cmp.w	(a5),d2		; is new value other than old one ?
+	beq	.nochg		; same. no update needed
+
+	cmp.b	#RECALC_DONE,tei_recalLines(a3)
+	beq	.nochg		; override when done for line
+
+	cmp.b	#RECALC_LINE,tei_recalLines(a3)
+	bne	.nospec
+
+	move.w	d2,d3
+	sub.w	(a5),d3
+	cmp.w	#1,d3
+	beq	.spec
+	cmp.w	#-1,d3
+	beq	.spec
+	move.b	#RECALC_FULL,tei_recalLines(a3)	
+	bra	.nospec
+
+.spec	movem.w	d0-d1,-(sp)
+	move.w	-2(a5),d0
+	move.w	d0,d1
+	bsr	teSetUpdateRange
+	movem.w	(sp)+,d0-d1
+	move.b	#RECALC_DONE,tei_recalLines(a3)
+	bra	.nochg
+
+.nospec	move.w	d1,-(sp)
+	move.w	d2,d0
+	move.w	d2,d1
+	subq.w	#1,d0
+	bsr	teSetUpdateRange
+	move.w	(sp)+,d1
+
+.nochg	move.w	d2,(a5)		; set linestart for current line
+
+	cmp.w	tei_textLength(a3),d2
+	bge	.exit
+
+
+	movem.l	d1/a0-a1,-(sp)
+	movea.l	a4,a0
+	movea.l	tei_text(a3),a1
+	move.w	d2,d0
+	lsl.w	#tec_SHIFTSIZE,d0
+	lea.l	(a1,d0.w),a1
+	jsr	@TECalcFitChars
+	move.w	d0,d4
+	movem.l	(sp)+,d1/a0-a1
+
+	move.w	d2,d3
+	add.w	d0,d3
+	bsr	teCalcLineHeight
+
+	cmp.w	d1,d3
+	bhi	.nxtwdw
+
+	add.w	ew_ySpacing(a4),d3
+	sub.w	d3,d1
+
+	addq.w	#2,a5		; update linestart pointer
+	add.w	d4,d2		; increase counter with chars on this line
+
+	bra	.ctloop
+
+.exit	tst.l	(a4)		; test if invalid pointer
+	beq	.exit2		; if so, then no update of these parms
+	move.w	d2,ew_LastChar(a4)
+.exit2	move.w	0(a5),2(a5)		; make sure we set end of table
+.QckExit	movem.l	(sp)+,d0-d5/a4-a5
+	move.b	#RECALC_NONE,tei_recalLines(a3) ; we've just calculated them
+	rts
+
+.nxtwdw	move.w	d2,ew_LastChar(a4)
+	bra	.exit
+
+.endwdw	add.w	d4,d2
+	move.w	d2,ew_LastChar(a4)
+	bra	.exit
+
+
+
+
+
+
+; VOID teSetUpdateRange( TEInfo (a3), start (d0.w), end (d1.w) )
+; expands limits (if needed) of begin and end to update
+
+teSetUpdateRange
+	addq.w	#1,d1
+	cmp.w	tei_firstChanged(a3),d0
+	bhi.b	.nochg1
+	move.w	d0,tei_firstChanged(a3)
+.nochg1	cmp.w	tei_lastChanged(a3),d1
+	bls.b	.nochg2
+	move.w	d1,tei_lastChanged(a3)
+.nochg2	move.b	#RECALC_FULL,tei_recalLines(a3)	; make sure it's updated
+	subq.w	#1,d1
+	rts
+
+
+
+
+;-------------------------------------------------------------------------
+; func: void _TEKey( struct TEInfo *, UWORD charCode )
+;-------------------------------------------------------------------------
+; Inserts characters & deletes characters backspaced over / deleted
+;-------------------------------------------------------------------------
+
+_TEKey
+
+.TEInfo		equ	8
+.charCode	equ	14
+
+	link	a5,#0
+	movem.l	a3/a6,-(sp)
+
+	movea.l	.TEInfo(a5),a3
+	movea.l	_GfxBase,a6
+
+	cmp.b	#FALSE,tei_caretState(a3)
+	beq.b	.cont
+
+	move.b	#FALSE,tei_caretState(a3)
+	movem.l	d0-d1/a0-a1,-(sp)
+	movea.l	a3,a0
+	bsr.w	teReverseCaret
+	movem.l	(sp)+,d0-d1/a0-a1
+
+.cont	move.w	.charCode(a5),d0
+	cmp.b	#DEL,d0
+	beq.w	.erase
+	cmp.b	#BS,d0
+	beq.w	.erase
+	cmp.b	#CR,d0
+	bne.b	.ctrl
+
+	move.w	tei_selStart(a3),d0
+	move.w	tei_selEnd(a3),d1
+	bsr.w	teSetUpdateRange
+
+	bsr.w	teDelSelection
+	movea.l	tei_text(a3),a1
+	move.w	tei_selStart(a3),d0
+	lsl.w	#tec_SHIFTSIZE,d0
+	cmp.b	#' ',tec_charCode(a1,d0.w)
+	bne.b	.other
+	addi.w	#1,tei_selStart(a3)
+	bra.b	.spc2lf
+.other	subq.w	#tec_SIZE,d0
+	cmp.b	#' ',tec_charCode(a1,d0.w)
+	beq.b	.spc2lf
+	move.b	#LF,d0
+	bra.b	.doit
+
+.spc2lf	move.l	tei_newText+tec_charFont(a3),tec_charFont(a1,d0.w)
+	move.b	tei_newText+tec_charStyle(a3),tec_charStyle(a1,d0.w)
+	move.b	tei_newText+tec_charColor(a3),tec_charColor(a1,d0.w)
+	move.b	tei_newText+tec_underlineColor(a3),tec_underlineColor(a1,d0.w)
+	move.b	#LF,tec_charCode(a1,d0.w)
+	move.w	tei_selStart(a3),tei_selEnd(a3)
+	bra.w	.update
+
+.ctrl	cmp.b	#31,d0
+	bls.w	.exit
+;--------------------------------------------
+.doit	move.w	tei_selStart(a3),d1
+	cmp.w	tei_selEnd(a3),d1
+	beq.w	.caret
+
+	bsr.w	teDelSelection
+	bsr.w	teInsertChar
+	bra.w	.update
+
+.caret	movem.l	d2-d4/a0,-(sp)
+	move.w 	tei_selStart(a3),d2
+	bsr.w	teWhichCursorLine
+	move.w	0(a0,d1.w),d2
+	move.w	2(a0,d1.w),d3
+	movem.w	d2/d3,-(sp)
+	bsr.w	teCalcLineHeight	; set d3 to height
+	bsr.w	teInsertChar
+	move.w	d3,d0
+	movem.w	(sp)+,d2/d3
+	addq.w	#1,d3
+	bsr.w	teCalcLineHeight
+	cmp.w	d3,d0
+	movem.l	(sp)+,d2-d4/a0
+	bne.w	.update
+
+	move.w	tei_selStart(a3),d0
+	move.w	tei_selEnd(a3),d1
+	bsr.w	teSetUpdateRange
+	move.b	#RECALC_LINE,tei_recalLines(a3)
+	bra.w	.exit
+;--------------------------------------------
+.erase	move.w	tei_selStart(a3),d1
+	cmp.w	tei_selEnd(a3),d1
+	beq.b	.nosel
+	bsr.w	teDelSelection
+	bra.b	.update
+.nosel	cmp.b	#BS,d0
+	bne.b	.noBS
+.yesBS	tst.w	tei_selStart(a3)
+	beq.b	.exit
+	subi.w	#1,tei_selStart(a3)
+	move.w	tei_selStart(a3),tei_selEnd(a3)
+
+.noBS	movem.l	d2-d4/a0,-(sp)
+	move.w 	tei_selStart(a3),d2
+	bsr.w	teWhichCursorLine
+	move.w	0(a0,d1.w),d2
+	move.w	2(a0,d1.w),d3
+	movem.w	d2/d3,-(sp)
+	bsr.w	teCalcLineHeight	; set d3 to height
+	bsr.w	teDelCharacter
+	move.w	d3,d0
+	movem.w	(sp)+,d2/d3
+	addq.w	#1,d3
+	bsr.w	teCalcLineHeight
+	cmp.w	d3,d0
+	movem.l	(sp)+,d2-d4/a0
+	bne.b	.update
+	move.w	tei_selStart(a3),d0
+	move.w	tei_selEnd(a3),d1
+	bsr.w	teSetUpdateRange
+	move.b	#RECALC_LINE,tei_recalLines(a3)
+	bra.b	.exit
+;--------------------------------------------
+.update	move.w	tei_selStart(a3),d0
+	move.w	tei_selEnd(a3),d1
+	bsr.w	teSetUpdateRange
+	move.b	#RECALC_FULL,tei_recalLines(a3)
+.exit	movem.l	(sp)+,a3/a6
+	unlk	a5
+	rts
+
+
+; VOID teInsertChar( TEInfo (a3), charCode (d0.b) )
+; inserts character into the buffer, no error returned when full
+
+teInsertChar
+	movem.l	d0-d3/a0-a1,-(sp)
+	move.w	tei_textLength(a3),d3
+	cmpi.w	#TEXTEDITSIZE-2,d3
+	bhi.b	.exit
+
+	move.w	d3,d1				; start at end of text
+	lsl.w	#tec_SHIFTSIZE,d1		; make it real offset
+	sub.w	tei_selStart(a3),d3
+	addq.w	#1,d3
+
+	movea.l	tei_text(a3),a0
+	lea.l	tec_SIZE(a0,d1.w),a0		; source
+	lea.l	tec_SIZE(a0),a1			; destination
+
+.dellp	move.l	-(a0),-(a1)
+	move.l	-(a0),-(a1)
+	dbra	d3,.dellp
+
+.place	move.l	tei_newText+tec_charFont(a3),tec_charFont(a1)
+	move.b	tei_newText+tec_charStyle(a3),tec_charStyle(a1)
+	move.b	tei_newText+tec_charColor(a3),tec_charColor(a1)
+	move.b	tei_newText+tec_underlineColor(a3),tec_underlineColor(a1)
+	move.b	d0,tec_charCode(a1)
+
+	addi.w	#1,tei_textLength(a3)
+	addi.w	#1,tei_selStart(a3)
+	move.w	tei_selStart(a3),tei_selEnd(a3)
+
+.exit	movem.l	(sp)+,d0-d3/a0-a1
+	rts
+
+
+; VOID teDelSelection( TEInfo (a3) )
+; removes selected range from the text
+
+teDelSelection
+	movem.l	d0-d2/a0-a1,-(sp)
+	move.w	tei_selStart(a3),d0
+	move.w	tei_selEnd(a3),d1
+	cmp.w	d0,d1
+	beq.b	.exit
+	bsr.w	teSetUpdateRange
+
+	move.w	tei_textLength(a3),d2
+	sub.w	d1,d2				; copylength
+	lsl.w	#tec_SHIFTSIZE,d0
+	lsl.w	#tec_SHIFTSIZE,d1
+
+	movea.l	tei_text(a3),a0
+	movea.l	a0,a1
+	add.w	d1,a0				; source
+	add.w	d0,a1				; destination
+.dellp	move.l	(a0)+,(a1)+
+	move.l	(a0)+,(a1)+
+	dbra	d2,.dellp
+	move.w	tei_selEnd(a3),d0
+	sub.w	tei_selStart(a3),d0
+	sub.w	d0,tei_textLength(a3)
+	move.w	tei_selStart(a3),tei_selEnd(a3)
+.exit	movem.l	(sp)+,d0-d2/a0-a1
+	rts
+
+; VOID _teDelSelection( TEInfo )
+; removes selected range from the text
+
+_teDelSelection
+	link	a5,#0
+	movem.l	d0-d2/a0-a1/a3,-(sp)
+	move.l	_1stParam(a5),a3
+	move.w	tei_selStart(a3),d0
+	move.w	tei_selEnd(a3),d1
+	cmp.w	d0,d1
+	beq.b	.exit
+	bsr.w	teSetUpdateRange
+
+	move.w	tei_textLength(a3),d2
+	sub.w	d1,d2				; copylength
+	lsl.w	#tec_SHIFTSIZE,d0
+	lsl.w	#tec_SHIFTSIZE,d1
+
+	movea.l	tei_text(a3),a0
+	movea.l	a0,a1
+	add.w	d1,a0				; source
+	add.w	d0,a1				; destination
+.dellp	move.l	(a0)+,(a1)+
+	move.l	(a0)+,(a1)+
+	dbra	d2,.dellp
+	move.w	tei_selEnd(a3),d0
+	sub.w	tei_selStart(a3),d0
+	sub.w	d0,tei_textLength(a3)
+	move.w	tei_selStart(a3),tei_selEnd(a3)
+.exit	movem.l	(sp)+,d0-d2/a0-a1/a3
+	unlk	a5
+	rts
+
+
+; VOID teDelCharacter( TEInfo (a3) )
+; removes character indicated by the caret from the text
+
+teDelCharacter
+	movem.l	d0-d1/a0-a1,-(sp)
+	move.w	tei_selStart(a3),d0
+	move.w	tei_textLength(a3),d1
+	sub.w	d0,d1
+	beq.b	.exit
+
+	movea.l	tei_text(a3),a1
+	lsl.w	#tec_SHIFTSIZE,d0
+	lea.l	(a1,d0.w),a1			; destination
+	lea.l	tec_SIZE(a1),a0			; source
+
+.dellp	move.l	(a0)+,(a1)+
+	move.l	(a0)+,(a1)+
+	dbra	d1,.dellp
+
+	sub.w	#1,tei_textLength(a3)
+
+.exit	movem.l	(sp)+,d0-d1/a0-a1
+	rts
+
+
+
+
+;-------------------------------------------------------------------------
+; VOID TEActivate( struct TEInfo *TEI )
+;-------------------------------------------------------------------------
+
+_TEActivate
+	movea.l	4(sp),a0
+@TEActivate
+	cmp.b	#TRUE,tei_caretState(a0)
+	beq	.exit
+	move.b	#TRUE,tei_caretState(a0)
+	bsr	teReverseCaret
+.exit	rts
+
+
+;-------------------------------------------------------------------------
+; VOID TEDeactive( struct TEInfo *TEI )
+;-------------------------------------------------------------------------
+
+_TEDeactivate
+	movea.l	4(sp),a0
+@TEDeactivate
+	cmp.b	#FALSE,tei_caretState(a0)
+	beq	.exit
+	move.b	#FALSE,tei_caretState(a0)
+	bsr	teReverseCaret
+.exit	rts
+
+
+
+
+
+
+
+;--------------------------------------------------------
+; for ranges, we have 3 possible situations:
+; - somewhere in the line to somewhere in the same line
+; - somewhere in the line to somewhere on the next line
+; - somewhere in the line to somewhere on another line
+;   filled up with totally reversed lines.
+; the last 2 situations can be linked together, filling
+; up the intermediate lines by reversing the full block
+; if start and end lines have space between them.
+;--------------------------------------------------------
+
+teReverseCaret:
+
+	movem.l	d2-d7/a3-a6,-(sp)
+	movea.l	a0,a3
+
+	move.w	tei_selStart(a3),d0
+	bsr	@TEWhichBox
+	movea.l	d0,a4
+	cmpa.w	#0,a4
+	beq	.exit
+
+	movea.l	_GfxBase,a6
+	movea.l	ew_rastPort(a4),a1
+	moveq.l	#RP_COMPLEMENT,d0
+	CALLLIB	_LVOSetDrMd
+
+	movea.l	ew_rastPort(a4),a1
+	move.w	tei_selStart(a3),d2
+	cmp.w	tei_selEnd(a3),d2
+	bne	.range
+
+.caret	movem.l	a0-a1,-(sp)
+	bsr	calc_pos_n_height
+	movem.l	(sp)+,a0-a1
+	tst.w	d0
+	bmi	.exit
+	tst.w	d1
+	bmi	.exit
+
+	move.w	ew_Width(a4),d4
+	sub.w	ew_RightMargin(a4),d4
+	cmp.w	d0,d4
+	bhi	.skip0
+	move.w	d4,d0
+.skip0	add.w	ew_X(a4),d0
+	add.w	ew_Y(a4),d1
+	move.w	d0,d2
+	addq.w	#2,d2
+	move.w	d1,d3
+	bsr	.GetHeight
+	add.w	d5,d3
+	bsr	.RectFillSafe
+
+.exit	movem.l	(sp)+,d2-d7/a3-a6
+	rts
+
+
+.range	movem.l	a0-a1,-(sp)
+	bsr	calc_pos_n_height
+	movem.l	(sp)+,a0-a1
+	move.w	ew_Height(a4),d4
+	sub.w	ew_TopMargin(a4),d4
+	sub.w	ew_BottomMargin(a4),d4
+	bsr	.GetHeight
+	cmp.w	d4,d5
+	bhi	.exit
+
+	move.w	tei_selEnd(a3),d2
+	bsr	.limit
+
+	movem.l	d0-d1/a0-a1,-(sp)
+	bsr	calc_pos_n_height
+	move.w	d0,d6
+	move.w	d1,d7
+	movem.l	(sp)+,d0-d1/a0-a1
+	tst.w	d6
+	bmi.w	.exit
+	beq	.cont
+	subq.w	#1,d6
+.cont
+	tst.w	d0
+	bmi.b	.exit
+	tst.w	d1
+	bmi.b	.exit
+	tst.w	d6
+	bmi.b	.exit
+	tst.w	d7
+	bmi.b	.exit
+
+	add.w	ew_X(a4),d0
+	add.w	ew_Y(a4),d1
+	add.w	ew_X(a4),d6
+	add.w	ew_Y(a4),d7
+
+	cmp.w	d1,d7
+	blt	.exit
+	bne	.sit2a
+
+**** situation 1: from start to end on same line ****
+
+.sit1	move.w	d6,d2		; xmax
+	move.w	d7,d3		; ymax
+	add.w	d5,d3
+	bsr	.RectFillSafe
+	bra	.exit
+
+**** situation 2a: from start to end_window on first line ****
+
+.sit2a	move.w	ew_X(a4),d2
+	add.w	ew_Width(a4),d2
+	sub.w	ew_RightMargin(a4),d2
+	move.w	d1,d3
+	add.w	d5,d3
+	bsr	.RectFillSafe
+	cmp.w	d3,d7
+	beq	.sit2c
+
+**** situation 2b: fill intermediate lines ****
+
+.sit2b	move.w	ew_X(a4),d0
+	add.w	ew_LeftMargin(a4),d0
+	move.w	d3,d1
+	move.w	ew_X(a4),d2
+	add.w	ew_Width(a4),d2
+	sub.w	ew_RightMargin(a4),d2
+	move.w	d7,d3
+	bsr	.RectFillSafe
+
+**** situation 2c: from start_window to end of line ****
+
+.sit2c	move.w	ew_X(a4),d0
+	add.w	ew_LeftMargin(a4),d0
+	move.w	d7,d1
+	move.w	d6,d2
+	move.w	d7,d3
+	bsr	.GetHeight
+	add.w	d5,d3
+	bsr	.RectFillSafe
+	bra	.exit
+
+
+.RectFillSafe
+	movem.l	d0-d4/a0-a1,-(sp)
+	subq.w	#1,d2
+	subq.w	#1,d3
+	cmp.w	d0,d2
+	bge.b	.maxXok
+	move.w	d0,d2
+.maxXok	cmp.w	d1,d3
+	bge.b	.maxYok
+	move.w	d1,d3
+.maxYok	move.w	ew_X(a4),d4
+	add.w	ew_Width(a4),d4
+	sub.w	ew_RightMargin(a4),d4
+	cmp.w	d2,d4
+	bgt.b	.noXend
+	move.w	d4,d2
+	subq.w	#1,d2
+.noXend	move.w	ew_Y(a4),d4
+	add.w	ew_Height(a4),d4
+	sub.w	ew_BottomMargin(a4),d4
+	cmp.w	d3,d4
+	bgt.b	.noYend
+	move.w	d4,d3
+	subq.w	#1,d3
+.noYend	move.w	ew_X(a4),d4
+	cmp.w	d4,d0
+	blt	.noFill
+	add.w	ew_Width(a4),d4
+	cmp.w	d4,d0
+	bge	.noFill
+	move.w	ew_Y(a4),d4
+	cmp.w	d4,d1
+	blt	.noFill
+	add.w	ew_Height(a4),d4
+	cmp.w	d4,d1
+	bge	.noFill
+	CALLLIB	_LVORectFill
+.noFill	movem.l	(sp)+,d0-d4/a0-a1
+	rts
+
+.GetHeight
+	movem.l	d0-d1/a0-a1,-(sp)
+	move.l	a4,a0
+	jsr	@TEExtraSpace
+	move.w	tei_lineHeight(a3),d5
+	add.w	ew_ySpacing(a4),d5
+	add.w	d0,d5
+	movem.l	(sp)+,d0-d1/a0-a1
+	rts
+
+.limit	cmp.w	ew_LastChar(a4),d2
+	blt.b	.estart
+	move.w	ew_LastChar(a4),d2
+	cmp.w	tei_textLength(a3),d2
+	beq.b	.estart
+	tst.w	d2
+	beq.b	.estart
+	subq.w	#1,d2
+.estart	rts
+
+
+
+
+;--------------------------------------------------------
+calc_pos_n_height:
+
+	movem.l	d2-d7/a3-a6,-(sp)
+	moveq.l	#-1,d3
+
+	move.l	a3,a0
+	move.l	d2,d0
+	bsr	@TEWhichBox
+	movea.l	d0,a4
+	cmpa.w	#0,a4
+	beq	.exit
+	
+	move.w	d2,d4
+	move.w	ew_FirstChar(a4),d2
+	bsr.w	teWhichCursorLine
+	adda.w	d1,a0
+	move.w	ew_TopMargin(a4),d1	; initial y_offset
+;-------------------------------------------------
+	movem.l	d1/a0,-(sp)
+	move.w	d4,d2
+	bsr.w	teWhichCursorLine
+	adda.w	d1,a0
+	movea.l	a0,a1
+	movem.l	(sp)+,d1/a0
+
+.y_offs	move.w	0(a0),d2
+	move.w	2(a0),d3
+
+	bsr.w	teCalcLineHeight
+
+	move.w	(a0),d2
+	cmp.w	(a1),d2
+	beq	.x_offs
+
+	add.w	d3,d1
+	add.w	ew_ySpacing(a4),d1
+	adda.w	#2,a0
+	bra	.y_offs
+;-------------------------------------------------
+.x_offs	move.w	d4,d2
+	bsr	teWidthUpToCaret
+	move.w	d3,d4
+	movem.l	d1-d2/a0-a1,-(sp)
+	move.w	2(a0),d0
+	sub.w	0(a0),d0
+	movea.l	tei_text(a3),a1
+	move.w	(a0),d2
+	movea.l	a4,a0
+	lsl.w	#tec_SHIFTSIZE,d2
+	lea.l	(a1,d2.w),a1
+	jsr	@TECalcLineWidth
+	move.l	a4,a0
+	jsr	@TECalcLineOffset
+	move.w	d0,d3
+	movem.l	(sp)+,d1-d2/a0-a1
+	add.w	d4,d3
+
+.exit	move.w	d3,d0
+	cmp.w	ew_Width(a4),d0
+	ble	.exit_02
+	move.w	ew_Width(a4),d0
+.exit_02	movem.l	(sp)+,d2-d7/a3-a6
+	rts
+;--------------------------------------------------------
+
+
+
+
+
+
+;-------------------------------------------------------------------------
+; func: VOID _TEReportPos( struct TEInfo *, UWORD *x, UWORD *y )
+;-------------------------------------------------------------------------
+; Report actual position of selStart
+;-------------------------------------------------------------------------
+
+_TEReportPos
+	link	a5,#0
+	movem.l	d2-d7/a2-a4/a6,-(sp)
+
+	movea.l	_1stParam(a5),a3
+	movea.l	_GfxBase,a6
+
+	movea.l	_2ndParam(a5),a0
+	movea.l	_3rdParam(a5),a1
+	move.w	#-1,(a0)
+	move.w	#-1,(a1)
+
+	move.l	a3,a0
+	move.w	tei_selStart(a0),d0
+	bsr	@TEWhichBox
+	tst.l	d0
+	beq	.exit
+	movea.l	d0,a4
+
+	move.w	tei_selStart(a3),d2
+	bsr	calc_pos_n_height
+	movea.l	_2ndParam(a5),a0
+	movea.l	_3rdParam(a5),a1
+	move.w	d0,(a0)
+	move.w	d1,(a1)
+	tst.w	d0
+	bmi	.exit
+
+	move.w	tei_selStart(a3),d2
+	movea.l	tei_text(a3),a2
+	lsl.w	#tec_SHIFTSIZE,d2
+	lea.l	(a2,d2.w),a1
+	cmp.b	#31,tec_charCode(a1)
+	bls	.exit
+
+	movem.l	a0-a1,-(sp)
+	movea.l	a1,a0
+	jsr	@TECharWidth
+	movem.l	(sp)+,a0-a1
+
+	lsr.w	#1,d0
+	add.w	d0,(a0)
+
+	cmp.w	#0,a4
+	beq	.exit
+
+	move.w	ew_Width(a4),d0
+	sub.w	ew_RightMargin(a4),d0
+	cmp.w	(a0),d0
+	bhi	.exit
+	move.w	d0,(a0)
+
+.exit	movem.l	(sp)+,d2-d7/a2-a4/a6
+	unlk	a5
+	rts
+
+
+
+
+;-------------------------------------------------------------------------
+; func: UWORD _TEWhichLine( struct TEInfo * )
+;-------------------------------------------------------------------------
+; Report number of line cursor located on
+;-------------------------------------------------------------------------
+
+_TEWhichLine
+	move.l	4(sp),a0
+@TEWhichLine
+	movem.l	d2-d7/a2-a4/a6,-(sp)
+	movea.l	a0,a3
+	move.w	tei_selStart(a3),d2
+	bsr	teWhichCursorLine
+	move.w	d1,d0
+	lsr.w	#1,d0
+	movem.l	(sp)+,d2-d7/a2-a4/a6
+	rts
+
+
+
+
+;-------------------------------------------------------------------------
+; func: VOID TESetSelect( struct TEInfo *, UWORD selstart, UWORD selend )
+;-------------------------------------------------------------------------
+; Sets selection range or cursor position. No immediate display.
+;-------------------------------------------------------------------------
+
+_TESetSelect
+	link	a5,#0
+	movem.l	d2-d4/a2-a4/a6,-(sp)
+
+	movea.l	_1stParam(a5),a3
+	movea.l	_GfxBase,a6
+
+	cmp.b	#FALSE,tei_caretState(a3)
+	beq	.cont
+
+	move.b	#FALSE,tei_caretState(a3)
+	movea.l	a3,a0
+	bsr	teReverseCaret
+
+.cont	move.w	_2ndParam+2(a5),d0
+	move.w	_3rdParam+2(a5),d1
+	cmp.w	d0,d1
+	bhi	.limit
+	exg.l	d0,d1
+
+.limit	exg.l	d0,d1
+	bsr	.limitA
+	exg.l	d0,d1
+	bsr	.limitA
+
+	movem.l	d0-d1,-(sp)
+	movea.l	a3,a0
+	bsr	@TEWhichBox
+	movea.l	d0,a4
+	movem.l	(sp)+,d0-d1
+
+	cmp.w	#0,a4
+	beq	.moveEm
+
+	tst.w	d0
+	bne	.limit2
+	cmp.w	tei_textLength(a3),d1
+	bne	.limit2
+
+.moveEm	move.w	d0,tei_selStart(a3)
+	move.w	d1,tei_selEnd(a3)
+	bra	.tstrng
+
+.limit2	bsr	.limitB
+	move.w	d0,tei_selStart(a3)
+	move.w	d1,d0
+	bsr	.limitB
+	move.w	d0,tei_selEnd(a3)
+
+.tstrng	move.w	tei_selStart(a3),d0
+	cmp.w	tei_selEnd(a3),d0
+	bne	.exit
+
+	tst.w	tei_textLength(a3)
+	beq	.exit
+
+	move.w	d0,d2
+	bsr	teWhichCursorLine
+	move.w	(a0,d1.w),d2
+	lsl.w	#tec_SHIFTSIZE,d2
+	movea.l	tei_text(a3),a1
+	cmpi.b	#LF,tec_charCode(a1,d2.w)
+	bne	.skip01
+	move.b	tec_charStyle(a1,d2.w),tei_newText+tec_charStyle(a3)
+	move.b	tec_charColor(a1,d2.w),tei_newText+tec_charColor(a3)
+	move.b	tec_underlineColor(a1,d2.w),tei_newText+tec_underlineColor(a3)
+	move.l	tec_charFont(a1,d2.w),tei_newText+tec_charFont(a3)
+	bra	.exit
+
+.skip01	lsl.w	#tec_SHIFTSIZE,d0
+	cmp.w	d0,d2			; is cursor at start of line ?
+	beq	.skip02
+	move.w	d0,d1
+	beq	.skip02
+.emp01	subq.w	#tec_SIZE,d0
+	bmi	.chklf
+	cmpi.b	#31,tec_charCode(a1,d0.w)
+	bls	.emp01
+.skip02	tst.b	tec_charCode(a1,d0.w)
+	bne	.skip03
+	subq.w	#tec_SIZE,d0
+.skip03	move.b	tec_charStyle(a1,d0.w),tei_newText+tec_charStyle(a3)
+	move.b	tec_charColor(a1,d0.w),tei_newText+tec_charColor(a3)
+	move.b	tec_underlineColor(a1,d0.w),tei_newText+tec_underlineColor(a3)
+	move.l	tec_charFont(a1,d0.w),tei_newText+tec_charFont(a3)
+	bra	.exit
+
+.chklf	subq.w	#tec_SIZE,d1
+	bmi	.exit
+	cmpi.b	#LF,tec_charCode(a1,d1.w)
+	bne	.chklf
+
+	move.b	tec_charStyle(a1,d0.w),tei_newText+tec_charStyle(a3)
+	move.b	tec_charColor(a1,d0.w),tei_newText+tec_charColor(a3)
+	move.b	tec_underlineColor(a1,d0.w),tei_newText+tec_underlineColor(a3)
+	move.l	tec_charFont(a1,d0.w),tei_newText+tec_charFont(a3)
+
+.exit	movem.l	(sp)+,d2-d4/a2-a4/a6
+	unlk	a5
+	rts
+
+
+.limitA	tst.w	d0
+	bpl.b	.limA1
+	moveq.l	#0,d0
+.limA1	cmp.w	tei_textLength(a3),d0
+	ble.b	.limA2
+	move.w	tei_textLength(a3),d0
+.limA2	rts
+
+
+.limitB	cmp.w	ew_FirstChar(a4),d0
+	bge.b	.bstart
+	move.w	ew_FirstChar(a4),d0
+
+.bstart	cmp.w	ew_LastChar(a4),d0
+	blt.b	.estart
+
+	move.w	ew_LastChar(a4),d0
+
+	TSTNODE	a4,a1
+	bne.b	.estart
+
+	cmp.w	tei_textLength(a3),d0
+	beq.b	.estart
+
+	tst.w	d0
+	beq.b	.estart
+
+	subq.w	#1,d0
+
+.estart	rts
+
+
+
+
+
+;-------------------------------------------------------------------------
+; struct EditWindow *TEWhichBox( struct TEInfo *, UWORD position )
+;-------------------------------------------------------------------------
+; In which box is this character located ?
+;-------------------------------------------------------------------------
+
+_TEWhichBox:
+	move.l	04(sp),a0
+	move.l	10(sp),d0
+
+@TEWhichBox:
+	TSTNODE	a0,a1
+	beq	.notinwin
+
+	move.w	tei_textLength(a0),d1
+	cmp.w	ew_LastChar(a1),d1
+	beq	.result
+	cmp.w	ew_LastChar(a1),d0
+	blt	.result
+.notinwin	move.l	#0,a1
+.result	move.l	a1,d0
+	rts
+
+
+
+;-------------------------------------------------------------------------
+; func: UWORD TECaretPos( struct EditWindow *, MouseX, MouseY )
+;-------------------------------------------------------------------------
+; Determine cursor position from mousepointer in current window
+;-------------------------------------------------------------------------
+
+_TECaretPos
+
+.EditWindow	equ	8
+.MouseX		equ	14
+.MouseY		equ	18
+
+	link	a5,#0
+	movem.l	d1-d5/a0-a4,-(sp)
+
+	movea.l	.EditWindow(a5),a4
+
+	moveq.l	#0,d0
+	cmpa.w	#0,a4
+	beq	.exit
+
+	movea.l	ew_teInfo(a4),a3
+
+	move.w	.MouseY(a5),d5
+	sub.w	ew_Y(a4),d5
+	move.w	ew_TopMargin(a4),d4
+
+	move.w	ew_FirstChar(a4),d2
+	bsr	teWhichCursorLine
+
+.line	move.w	0(a0,d1.w),d2
+	move.w	2(a0,d1.w),d3
+	cmp.w	d2,d3
+	beq	.last
+
+	bsr	teCalcLineHeight
+
+	add.w	d3,d4
+	add.w	ew_ySpacing(a4),d4
+
+	cmp.w	d5,d4
+	bgt	.char	
+
+	move.w	2(a0,d1.w),d3
+	cmp.w	ew_LastChar(a4),d3
+	bgt	.char
+	addq.w	#2,d1
+	bra	.line
+
+.char	movem.l	d1-d2/a0-a1,-(sp)
+	move.w	0(a0,d1.w),d2
+	move.w	2(a0,d1.w),d0
+	sub.w	d2,d0
+	move.w	d2,d3
+	lsl.w	#tec_SHIFTSIZE,d3
+	movea.l	tei_text(a3),a1
+	lea.l	(a1,d3.w),a1
+	movea.l	a4,a0
+	jsr	@TECalcLineWidth
+	move.w	d0,d4
+	move.l	a4,a0
+	jsr	@TECalcLineOffset
+	movem.l	(sp)+,d1-d2/a0-a1
+
+	movea.l	tei_text(a3),a1
+	lea.l	(a1,d3.w),a1			; a1 is now set to the first char on the line
+
+	move.w	.MouseX(a5),d5			; get X mouse position
+	sub.w	ew_X(a4),d5
+	sub.w	d0,d5
+	bmi	.start_of_line
+
+	move.w	0(a0,d1.w),d0
+	move.w	2(a0,d1.w),d1
+	moveq.l	#0,d2
+	moveq.l	#0,d4
+	cmp.w	d0,d1
+	beq	.exit
+
+.loop	cmp.w	d0,d1
+	bls	.test
+	cmpi.b	#LF,tec_charCode(a1)
+	beq	.exit
+
+	move.w	d1,-(sp)
+	cmpi.b	#31,tec_charCode(a1)
+	bhi	.skip05
+	move.w	#6,d1
+	bra	.skip06
+.skip05	movem.l	d0/a0-a1,-(sp)
+	movea.l	a1,a0
+	jsr	@TECharWidth
+	move.w	d0,d1
+	movem.l	(sp)+,d0/a0-a1
+.skip06	add.w	d1,d4
+	add.w	ew_xSpacing(a4),d4
+	move.w	(sp)+,d1
+	cmp.w	d5,d4
+	bhi	.test
+	addq.w	#1,d0
+	addq.w	#tec_SIZE,a1
+	bra	.loop
+
+.test	cmpi.b	#' ',tec_charCode-tec_SIZE(a1)
+	bne	.exit
+	cmp.w	d0,d1
+	bne	.exit
+	subq.w	#1,d0
+
+.exit	movem.l	(sp)+,d1-d5/a0-a4
+	unlk	a5
+	rts
+
+.last	move.w	d2,d0
+	bra.b	.exit
+
+
+.start_of_line
+	move.w	0(a0,d1.w),d0
+	bra	.exit
+
+
+
+
+
+
+	END
+
+
+******************** END OF FILE ***********************

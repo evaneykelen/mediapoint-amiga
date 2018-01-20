@@ -1,0 +1,30 @@
+OFILES=mpmmu_custom.o mpmmu.o errors.o
+
+LIBOFILES=libent.o libinit.o nb:formatterm.o
+
+CFLAGS = DEBUG=LINE LIBCODE NMINC STRMERGE NOSTKCHK
+
+AFLAGS= -iinclude:
+
+.c.o:
+	sc $(CFLAGS) $*
+
+.a.o:
+	asm $(AFLAGS) $*
+
+all: mlmmu_pragma.h mpmmu.library
+
+mpmmu.library: $(OFILES) $(LIBOFILES) mpmmu_lib.fd endtag.o
+	slink <with <
+LIBID "mpmmu library"
+LIBPREFIX _LIB
+LIBFD mpmmu_lib.fd
+
+TO mpmmu.library
+MAP mpmmu.map H
+FROM $(LIBOFILES) $(OFILES)
+LIB lib:sc.lib lib:amiga.lib endtag.o
+# lib:debug.lib
+SMALLCODE SMALLDATA NODEBUG
+<
+	cop

@@ -1,0 +1,62 @@
+globeproc 		21-1-93 	Enforcer hit verwijderd bij initialisatie
+
+DONGLEIO.O	25-1-93		Bug verwijderd welke tot gevolg had dat ML
+DONGLE.O	25-1-93		de eerste keer steeds crashte
+
+PROCERROR.C	31-1-93		Nieuwe error melding toegevoegd. Werkt echter
+						niet goed om duistere reden.
+
+Proccont.c	31-1-93		Onderbreken van effect verbeterd bij interactieve
+serguide.c				scripts.
+workanim.c
+workpage.c
+
+
+procerror.c	3-2-93		Bug verwijderd
+workdos					speelt scripts
+arexx					ook bij 0 secs, was moeilijk te testen wellicht
+						dat dit nog niet 100 % is.
+Serguide
+Parguide
+proccont				Aanpassing in .info file van alle Xapps
+						alles opnieuw gecompileerd. Verder is de ProcessInfo
+					    in process.h aangepast. Alle Xapps, synchronizers,
+						globeproc, prochandler opnieuw gecompileerd.
+xload.c					in nb: compileren
+
+smltc:		14-2-93		Tempo editor in ML synchronizer
+		
+
+UPDATE		23-2-92		Executables Serguide, Parguide, synchro.., globeproc, 
+					 	process controller, arexx en dos gecopieerd. Sources
+						volgen. De files staan in zowel de afzonderlijke directories
+						als in de Xapps/System directory. Voor het gemak kan gewoon
+						alles ui de Xapps directory gecopieerd worden.
+						Niet meteen in de stress raken maar gewoon even rustig kijken.
+						Let op dat er een aantal .info files zijn veranderd.
+		
+
+--------------------------------------------------
+input.c	   24-7		repeat voor toetsen	  
+proccont.c 24-7		scripts getimed op timecode worden nu 1 keer afgespeeld
+					en het laatste object blijft staan.
+proccont.c 24-7		tempo editing bj timecode, bij einde script wordt nu niet
+					meer automatisch doorgesprongen naar het eerste object van
+					het script maar wordt de stop-framecode in het laatste object ook
+					opgeslagen.
+
+synchrozentc.c 24 -7 getest en werkt goed.
+
+proccont.c 	-		serial SNR worden nu getest op datum
+
+tempoeditor.c 30-7-93	miditc/zentc/mltc De functie returnpunch removes de msg_timer nu
+				van de TRList. Vroeger had dit tot gevolg dat sommige messages
+				twee maal naar de proccont gestuurd werden waar dan de punch
+				twee maal gefreed werd en de linked list in dewar geschopt werd.
+---------------------------------------------------------------------------------
+zentc tempoeditor 14-8-93 fout verwijdert voor recording met zentc
+						bleek nog oude code te zijn
+minc:errors.h	15-8 nieuwe error ERR_MEMVILIST voor variabelen toegevoegd
+ph:proccont.c   15-8 variabelen ingebouwd, nog niet getest, wel gecompileerd
+ph:external.h 	15-8 nieuwe functie defs voor variabelen toegevoegd
+

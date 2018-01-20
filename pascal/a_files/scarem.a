@@ -1,0 +1,1358 @@
+
+;--- scarem.a -----------------------------------------------------------+
+; MediaPoint Scale & Remap Routine. Code written by B.O.M.B. AudioVisual |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/scarem.a 0.124 (17/12/93)
+
+
+	TTL	scarem.a
+	IDNT	scarem.a
+
+
+	INCDIR "include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/view.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"scarem.i"
+	INCLUDE	"misctools.i"
+	INCLUDE	"dither.i"
+
+	XREF	_PlanarToChunky
+	XREF	_PlanarToChunky24
+	XREF	_ChunkyToPlanar
+	XREF	_GetPaletteSize
+	XREF	_GetBitMapAttr24
+	XREF	_AllocRememberMP
+	XREF	_FreeRememberMP
+
+	XREF	Divs32
+	XREF	Mulu32
+
+	XREF	_AllocDither
+	XREF	_PerformDither
+	XREF	_FreeDither
+
+	XREF	_CMapToUBYTES
+	XREF	_CMapToUWORDS
+	XREF	_InitBaseColor
+	XREF	_FindColorBest
+
+	XDEF	_ScaleRemap
+
+
+	SECTION	TEXT,CODE
+
+;--------------------------------------------------------------------------
+; func: BOOL _ScaleRemap( struct ScaleRemapInfo * )
+;--------------------------------------------------------------------------
+; Performs (if neccessary) both remap (1st) and scale (2nd) from the source
+; to the destination bitmap. Smart yes/no remapping determination.
+;--------------------------------------------------------------------------
+
+  STACKSTRUCT
+	_APTR	sr_BufferMem
+	_APTR	sr_SrcRGBbytesU
+	_APTR	sr_SrcRGBbytesL
+	_APTR	sr_DstRGBbytesU
+	_APTR	sr_DstRGBbytesL
+	_APTR	sr_SrcPenWordsU
+	_APTR	sr_DstPenWordsU
+	_APTR	sr_SrcPenWordsL
+	_APTR	sr_DstPenWordsL
+	_APTR	sr_SrcChunkyBytesU
+	_APTR	sr_DstChunkyBytesU
+	_APTR	sr_DstPens
+	_APTR	sr_HorPrecalcAddr
+	_LONG	sr_ScaleFactor
+	_WORD	sr_DeltaY
+	_UWORD	sr_RedValue
+	_UWORD	sr_GrnValue
+	_UWORD	sr_BluValue
+	_UWORD	sr_AverageRED
+	_UWORD	sr_AverageGRN
+	_LABEL	sr_AvgVars1
+	_UWORD	sr_AverageBLU
+	_UWORD	sr_AverageCount
+	_LABEL	sr_AvgVars2
+	_STRUCT	sr_DitherInfo,di_SIZEOF
+	_STRUCT	sr_SrcColHeader,cth_SIZEOF
+	_STRUCT	sr_DstColHeader,cth_SIZEOF
+	_LABEL	sr_SIZEOF
+
+
+_ScaleRemap
+	link	a5,#sr_SIZEOF
+	movem.l	d1-d7/a0-a6,-(sp)
+	movea.l	_1stParam(a5),a4
+	movea.l	sri_SrcBitMap(a4),a0
+	move.l	sri_SrcViewModes(a4),d1
+	jsr	_GetPaletteSize
+	move.l	d0,sr_SrcColHeader+cth_Size(a5)
+	movea.l	sri_DstBitMap(a4),a0
+	move.l	sri_DstViewModes(a4),d1
+	jsr	_GetPaletteSize
+	move.l	d0,sr_DstColHeader+cth_Size(a5)
+	bsr.w	GetDestinationSizes
+
+	move.l	sri_SrcColorMap(a4),sr_SrcColHeader+cth_ColorMap(a5)
+	move.l	sri_DstColorMap(a4),sr_DstColHeader+cth_ColorMap(a5)
+
+	bsr.w	AllocBuffer
+	move.l	d0,sr_BufferMem(a5)
+	beq.w	xitSR
+
+	movea.l	sr_SrcColHeader+cth_ColorMap(a5),a0
+	movea.l	sr_SrcColHeader+cth_ColorTable(a5),a1
+	move.l	sr_SrcColHeader+cth_Size(a5),d0
+
+	tst.w	sri_DitherMode(a4)
+	beq	.noDither
+
+.Dithered	lea.l	sr_SrcColHeader(a5),a0
+	move.l	sri_SrcViewModes(a4),d1
+	jsr	_CMapToUBYTES
+	lea.l	sr_DstColHeader(a5),a0
+	move.l	sri_DstViewModes(a4),d1
+	jsr	_CMapToUWORDS
+
+	pea.l	_FindColorBest
+	move.l	(sp)+,sr_DstColHeader+cth_ColorFunc(a5)
+
+	movem.l	d0-d7/a0-a6,-(sp)
+	moveq.l	#0,d0
+	lea.l	sr_DitherInfo(a5),a1
+	move.l	sr_DstRGBbytesU(a5),di_RGBupper(a1)
+	move.w	sri_DitherMode(a4),di_DitherMode(a1)
+
+	move.l	sr_DstColHeader+cth_Size(a5),di_ColorHdr+cth_Size(a1)
+	move.l	sr_DstColHeader+cth_ColorMap(a5),di_ColorHdr+cth_ColorMap(a1)
+	move.l	sr_DstColHeader+cth_ColorTable(a5),di_ColorHdr+cth_ColorTable(a1)
+	move.l	sr_DstColHeader+cth_ColorFunc(a5),di_ColorHdr+cth_ColorFunc(a1)
+
+	move.w	sri_DestWidth(a4),d0
+	move.l	d0,-(sp)
+	move.l	a1,-(sp)
+	jsr	_AllocDither
+	adda.w	#8,sp
+	movem.l	(sp)+,d0-d7/a0-a6
+
+	bsr.w	DoPrecalc
+	movea.l	sri_SrcBitMap(a4),a0
+	cmpi.b	#24,bm24_Depth(a0)
+	beq.w	DoScaleAndDither24	
+	bra.w	DoScaleAndDither
+
+.noDither	lea.l	sr_SrcColHeader(a5),a0
+	move.l	sri_SrcViewModes(a4),d1
+	jsr	_CMapToUBYTES
+	lea.l	sr_DstColHeader(a5),a0
+	move.l	sri_DstViewModes(a4),d1
+	jsr	_CMapToUBYTES
+
+	bsr.w	ObtainDestPenInfo
+	bsr.w	DoPrecalc
+	movea.l	sri_SrcBitMap(a4),a0
+	cmpi.b	#24,bm24_Depth(a0)
+	beq.w	DoScaleAndRemap24	
+	bra.w	DoScaleAndRemap
+
+ScaleRemapDone
+	tst.w	sri_DitherMode(a4)
+	beq	.noDither
+	pea.l	sr_DitherInfo(a5)
+	jsr	_FreeDither
+	addq.l	#4,sp
+.noDither	movea.l	sr_BufferMem(a5),a1
+	jsr	_FreeRememberMP
+	moveq.l	#TRUE,d0
+xitSR	movem.l	(sp)+,d1-d7/a0-a6
+	unlk	a5
+	rts
+
+
+
+
+DoScaleAndRemap
+.nxtln	move.l	sr_ScaleFactor(a5),d1
+	move.w	sr_DeltaY(a5),d2
+	ext.l	d2
+	jsr	Mulu32
+	swap.w	d1
+
+	bsr.w	PlanarToChunky
+	bsr.w	ChunkyToPensAndRGB
+	bsr.w	ScaleBuffer
+	bsr.w	RemapRGBToChunky
+	bsr.w	ChunkyToPlanar
+
+	addi.w	#1,sr_DeltaY(a5)
+	move.w	sr_DeltaY(a5),d5
+	cmp.w	sri_DestHeight(a4),d5
+	bne.w	.nxtln
+	bra.w	ScaleRemapDone
+
+
+DoScaleAndDither
+	moveq.l	#0,d1
+	bsr.w	PlanarToChunky
+	bsr.w	ChunkyToPensAndRGB
+	bsr.w	ScaleBuffer
+
+	move.l	sr_SrcRGBbytesU(a5),d3
+	move.l	sr_SrcRGBbytesL(a5),sr_SrcRGBbytesU(a5)
+	move.l	d3,sr_SrcRGBbytesL(a5)
+	move.l	sr_DstRGBbytesU(a5),d3
+	move.l	sr_DstRGBbytesL(a5),sr_DstRGBbytesU(a5)
+	move.l	d3,sr_DstRGBbytesL(a5)
+
+.nxtln	move.l	sr_ScaleFactor(a5),d1
+	move.w	sr_DeltaY(a5),d2
+	addq.w	#1,d2
+	ext.l	d2
+	jsr	Mulu32
+	swap.w	d1
+
+	bsr.w	PlanarToChunky
+	bsr.w	ChunkyToPensAndRGB
+	bsr.w	ScaleBufferRGB
+
+	move.l	sr_SrcRGBbytesU(a5),d3
+	move.l	sr_SrcRGBbytesL(a5),sr_SrcRGBbytesU(a5)
+	move.l	d3,sr_SrcRGBbytesL(a5)
+	move.l	sr_DstRGBbytesU(a5),d3
+	move.l	sr_DstRGBbytesL(a5),sr_DstRGBbytesU(a5)
+	move.l	d3,sr_DstRGBbytesL(a5)
+
+	move.l	sr_DstRGBbytesU(a5),sr_DitherInfo+di_RGBupper(a5)
+	move.l	sr_DstChunkyBytesU(a5),sr_DitherInfo+di_PenDest(a5)
+	pea.l	sr_DitherInfo(a5)
+	jsr	_PerformDither
+	addq.l	#4,sp
+
+	bsr.w	ChunkyToPlanar
+
+	addi.w	#1,sr_DeltaY(a5)
+	move.w	sr_DeltaY(a5),d5
+	cmp.w	sri_DestHeight(a4),d5
+	bne.w	.nxtln
+	bra.w	ScaleRemapDone
+
+
+
+
+DoScaleAndRemap24
+.nxtln	move.l	sr_ScaleFactor(a5),d1
+	move.w	sr_DeltaY(a5),d2
+	ext.l	d2
+	jsr	Mulu32
+	swap.w	d1
+
+	bsr.w	PlanarToRGB
+	bsr.w	ScaleBufferRGB
+	bsr.w	RemapRGBToChunky
+	bsr.w	ChunkyToPlanar
+
+	addi.w	#1,sr_DeltaY(a5)
+	move.w	sr_DeltaY(a5),d5
+	cmp.w	sri_DestHeight(a4),d5
+	bne.w	.nxtln
+	bra.w	ScaleRemapDone	
+
+
+
+DoScaleAndDither24
+	moveq.l	#0,d1
+	bsr.w	PlanarToRGB
+	bsr.w	ScaleBufferRGB
+
+	move.l	sr_SrcRGBbytesU(a5),d3
+	move.l	sr_SrcRGBbytesL(a5),sr_SrcRGBbytesU(a5)
+	move.l	d3,sr_SrcRGBbytesL(a5)
+	move.l	sr_DstRGBbytesU(a5),d3
+	move.l	sr_DstRGBbytesL(a5),sr_DstRGBbytesU(a5)
+	move.l	d3,sr_DstRGBbytesL(a5)
+
+.nxtln	move.l	sr_ScaleFactor(a5),d1
+	move.w	sr_DeltaY(a5),d2
+	addq.w	#1,d2
+	ext.l	d2
+	jsr	Mulu32
+	swap.w	d1
+
+	bsr.w	PlanarToRGB
+	bsr.w	ScaleBufferRGB
+
+	move.l	sr_SrcRGBbytesU(a5),d3
+	move.l	sr_SrcRGBbytesL(a5),sr_SrcRGBbytesU(a5)
+	move.l	d3,sr_SrcRGBbytesL(a5)
+	move.l	sr_DstRGBbytesU(a5),d3
+	move.l	sr_DstRGBbytesL(a5),sr_DstRGBbytesU(a5)
+	move.l	d3,sr_DstRGBbytesL(a5)
+
+	move.l	sr_DstRGBbytesU(a5),sr_DitherInfo+di_RGBupper(a5)
+	move.l	sr_DstChunkyBytesU(a5),sr_DitherInfo+di_PenDest(a5)
+	pea.l	sr_DitherInfo(a5)
+	jsr	_PerformDither
+	addq.l	#4,sp
+
+	bsr.w	ChunkyToPlanar
+
+	addi.w	#1,sr_DeltaY(a5)
+	move.w	sr_DeltaY(a5),d5
+	cmp.w	sri_DestHeight(a4),d5
+	bne.w	.nxtln
+	bra.w	ScaleRemapDone	
+
+
+*****************************************************************************
+ChunkyToPlanar
+	movea.l	sr_DstChunkyBytesU(a5),a0
+	movea.l	sri_DstBitMap(a4),a1
+	moveq.l	#0,d0
+	move.w	sr_DeltaY(a5),d1
+	move.w	sri_DestWidth(a4),d6
+	moveq.l	#1,d7
+	jmp	_ChunkyToPlanar
+*****************************************************************************
+
+
+*****************************************************************************
+PlanarToChunky
+	movea.l	sri_SrcBitMap(a4),a0
+	movea.l	sr_SrcChunkyBytesU(a5),a1
+	move.w	sri_SrcWidth(a4),d6
+	cmp.w	bm24_Rows(a0),d1
+	bge.b	.clrcac
+	moveq.l	#1,d7
+	jmp	_PlanarToChunky
+
+.clrcac	subq.w	#1,d6
+.loop10	clr.b	(a1)+
+	dbra	d6,.loop10
+	rts
+*****************************************************************************
+
+
+*****************************************************************************
+PlanarToRGB
+	movea.l	sri_SrcBitMap(a4),a0
+	movea.l	sr_SrcRGBbytesU(a5),a1
+	move.w	sri_SrcWidth(a4),d6
+	cmp.w	bm24_Rows(a0),d1
+	bge.b	.clrcac
+	moveq.l	#1,d7
+	jmp	_PlanarToChunky24
+
+.clrcac	subq.w	#1,d6
+.loop10	clr.b	(a1)+
+	clr.b	(a1)+
+	clr.b	(a1)+
+	dbra	d6,.loop10
+	rts
+*****************************************************************************
+
+
+
+*****************************************************************************
+ChunkyToPensAndRGB
+
+	movea.l	sr_SrcColHeader+cth_ColorTable(a5),a0
+	movea.l	sr_SrcRGBbytesU(a5),a3
+	movea.l	sr_SrcChunkyBytesU(a5),a2
+	movea.l	sr_SrcPenWordsU(a5),a6
+	movea.l	sr_DstPens(a5),a1
+	cmpa.w	#0,a2
+	bne.b	.skip
+	rts
+
+.skip	move.w	sri_SrcWidth(a4),d4
+	subq.w	#1,d4
+
+	move.w	sri_SrcViewModes+2(a4),d0
+	andi.w	#V_HAM,d0
+	bne.b	.HAM
+
+.loop01	moveq.l	#0,d3
+	move.b	(a2)+,d3
+	lsl.w	#1,d3
+	move.w	(a1,d3.w),(a6)+
+	lsl.w	#1,d3
+	move.b	1(a0,d3.w),(a3)+
+	move.b	2(a0,d3.w),(a3)+
+	move.b	3(a0,d3.w),(a3)+
+	dbra	d4,.loop01
+	rts
+
+
+.HAM	pea.l	sr_SrcColHeader(a5)
+	jsr	_InitBaseColor
+	addq.l	#4,sp
+	move.w	sr_SrcColHeader+cth_BaseRED(a5),d0
+	move.w	sr_SrcColHeader+cth_BaseGRN(a5),d1
+	move.w	sr_SrcColHeader+cth_BaseBLU(a5),d2
+	moveq.l	#0,d3
+
+	movem.l	a0,-(sp)
+	movea.l	sri_SrcBitMap(a4),a0
+	cmp.b	#8,bm24_Depth(a0)
+	movem.l	(sp)+,a0
+	beq.w	.loopH8
+
+
+.loopH6	move.b	(a2)+,d3
+	bclr.l	#5,d3
+	bne.b	.modRG6
+	bclr.l	#4,d3
+	bne.b	.modB6
+
+.base6	lsl.w	#1,d3
+	move.w	(a1,d3.w),(a6)+
+	lsl.w	#1,d3
+	move.b	1(a0,d3.w),d0
+	move.b	2(a0,d3.w),d1
+	move.b	3(a0,d3.w),d2
+	move.b	d0,(a3)+
+	move.b	d1,(a3)+
+	move.b	d2,(a3)+
+	dbra	d4,.loopH6
+	rts
+
+.modRG6	bclr.l	#4,d3
+	bne.b	.modG6
+
+.modR6	move.b	.Xpand(pc,d3.w),d0
+	move.b	d0,(a3)+
+	move.b	d1,(a3)+
+	move.b	d2,(a3)+
+	move.w	#-1,(a6)+
+	dbra	d4,.loopH6
+	rts
+
+.modG6	move.b	.Xpand(pc,d3.w),d1
+	move.b	d0,(a3)+
+	move.b	d1,(a3)+
+	move.b	d2,(a3)+
+	move.w	#-1,(a6)+
+	dbra	d4,.loopH6
+	rts
+
+.modB6	move.b	.Xpand(pc,d3.w),d2
+	move.b	d0,(a3)+
+	move.b	d1,(a3)+
+	move.b	d2,(a3)+
+	move.w	#-1,(a6)+
+	dbra	d4,.loopH6
+	rts
+
+.Xpand	dc.b	$00,$11,$22,$33,$44,$55,$66,$77
+	dc.b	$88,$99,$AA,$BB,$CC,$DD,$EE,$FF
+
+
+.loopH8	move.b	(a2)+,d3
+	bclr.l	#7,d3
+	bne.b	.modRG8
+	bclr.l	#6,d3
+	bne.b	.modB8
+
+.base8	lsl.w	#1,d3
+	move.w	(a1,d3.w),(a6)+
+	lsl.w	#1,d3
+	move.b	1(a0,d3.w),d0
+	move.b	2(a0,d3.w),d1
+	move.b	3(a0,d3.w),d2
+	move.b	d0,(a3)+
+	move.b	d1,(a3)+
+	move.b	d2,(a3)+
+	moveq.l	#0,d3
+	dbra	d4,.loopH8
+	rts
+
+.modRG8	bclr.l	#6,d3
+	bne.b	.modG8
+
+.modR8	lsl.w	#2,d3
+	move.b	d3,d0
+	move.b	d0,(a3)+
+	move.b	d1,(a3)+
+	move.b	d2,(a3)+
+	move.w	#-1,(a6)+
+	dbra	d4,.loopH8
+	rts
+
+.modG8	lsl.w	#2,d3
+	move.b	d3,d1
+	move.b	d0,(a3)+
+	move.b	d1,(a3)+
+	move.b	d2,(a3)+
+	move.w	#-1,(a6)+
+	dbra	d4,.loopH8
+	rts
+
+.modB8	lsl.w	#2,d3
+	move.b	d3,d2
+	move.b	d0,(a3)+
+	move.b	d1,(a3)+
+	move.b	d2,(a3)+
+	move.w	#-1,(a6)+
+	dbra	d4,.loopH8
+	rts
+*****************************************************************************
+
+
+
+
+*****************************************************************************
+ScaleBuffer
+
+	movea.l	sr_SrcRGBbytesU(a5),a0
+	movea.l	sr_DstRGBbytesU(a5),a1
+	movea.l	sr_SrcPenWordsU(a5),a2
+	movea.l	sr_DstPenWordsU(a5),a3
+	movea.l	sr_HorPrecalcAddr(a5),a6
+
+	move.w	sri_SrcWidth(a4),d5
+	cmp.w	sri_DestWidth(a4),d5
+	beq.w	.Copy
+	blt.w	.Enlrge
+
+
+;--------------------------------------------------------
+.Shrink	btst.b	#SCAREMB_USE_AVERAGE,sri_Flags+3(a4)
+	bne.b	.avg
+
+.fast	move.w	sri_DestWidth(a4),d5
+	subq.w	#1,d5
+.loop10	move.w	(a6)+,d6
+	move.w	d6,d4
+	add.w	d4,d6
+	add.w	d4,d6
+	move.b	0(a0,d6.w),(a1)+
+	move.b	1(a0,d6.w),(a1)+
+	move.b	2(a0,d6.w),(a1)+
+	add.w	d4,d4
+	cmpa.w	#0,a3
+	beq.b	.skip11
+	cmpa.w	#0,a2
+	beq.b	.skip10
+	move.w	(a2,d4.w),(a3)+
+	dbra	d5,.loop10
+	rts
+.skip10	move.w	#-1,(a3)+
+.skip11	dbra	d5,.loop10
+	rts
+
+
+.avg	moveq.l	#0,d0
+	moveq.l	#0,d2
+	moveq.l	#0,d1
+	moveq.l	#0,d4
+	clr.l	sr_AvgVars1(a5)
+	clr.l	sr_AvgVars2(a5)
+
+.loop20	move.b	(a0)+,d0
+	move.b	(a0)+,d1
+	move.b	(a0)+,d2
+	add.w	d0,sr_AverageRED(a5)
+	add.w	d1,sr_AverageGRN(a5)
+	add.w	d2,sr_AverageBLU(a5)
+	addi.w	#1,sr_AverageCount(a5)
+
+	cmp.w	(a6),d4
+	bne.b	.NoWrit
+
+.Write	move.w	sr_AverageRED(a5),d0
+	move.w	sr_AverageGRN(a5),d1
+	move.w	sr_AverageBLU(a5),d2
+	move.w	sr_AverageCount(a5),d3
+	divu.w	d3,d0
+	divu.w	d3,d1
+	divu.w	d3,d2
+	move.b	d0,(a1)+
+	move.b	d1,(a1)+
+	move.b	d2,(a1)+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+	cmpa.w	#0,a3
+	beq.b	.skip20
+	move.w	#-1,(a3)+
+.skip20	clr.l	sr_AvgVars1(a5)
+	clr.l	sr_AvgVars2(a5)
+	adda.w	#2,a6
+.NoWrit	addq.w	#1,d4
+	cmp.w	sri_SrcWidth(a4),d4
+	bne.b	.loop20
+	rts
+
+.Enlrge	move.w	sri_DestWidth(a4),d5
+	subq.w	#1,d5
+.loop30	move.w	(a6)+,d6
+	move.w	d6,d4
+	add.w	d4,d6
+	add.w	d4,d6
+	move.b	0(a0,d6.w),(a1)+
+	move.b	1(a0,d6.w),(a1)+
+	move.b	2(a0,d6.w),(a1)+
+	add.w	d4,d4
+	cmpa.w	#0,a3
+	beq.b	.skip31
+	cmpa.w	#0,a2
+	beq.b	.skip30
+	move.w	(a2,d4.w),(a3)+
+	dbra	d5,.loop30
+	rts
+.skip30	move.w	#-1,(a3)+
+.skip31	dbra	d5,.loop30
+	rts
+
+.Copy	move.w	sri_DestWidth(a4),d5
+	subq.w	#1,d5
+.loop40	move.b	(a0)+,(a1)+
+	move.b	(a0)+,(a1)+
+	move.b	(a0)+,(a1)+
+	cmpa.w	#0,a3
+	beq.b	.skip41
+	cmpa.w	#0,a2
+	beq.b	.skip40
+	move.w	(a2)+,(a3)+
+	dbra	d5,.loop40
+	rts
+.skip40	move.w	#-1,(a3)+
+.skip41	dbra	d5,.loop40
+	rts
+*****************************************************************************
+
+
+
+
+
+*****************************************************************************
+ScaleBufferRGB
+
+	movea.l	sr_SrcRGBbytesU(a5),a0
+	movea.l	sr_DstRGBbytesU(a5),a1
+	movea.l	sr_HorPrecalcAddr(a5),a6
+
+	move.w	sri_SrcWidth(a4),d5
+	cmp.w	sri_DestWidth(a4),d5
+	beq.w	.Copy
+	blt.w	.Enlrge
+
+;--------------------------------------------------------
+.Shrink	btst.b	#SCAREMB_USE_AVERAGE,sri_Flags+3(a4)
+	bne.b	.avg
+
+.fast	move.w	sri_DestWidth(a4),d5
+	subq.w	#1,d5
+.loop10	move.w	(a6)+,d6
+	move.w	d6,d4
+	add.w	d4,d6
+	add.w	d4,d6
+	move.b	0(a0,d6.w),(a1)+
+	move.b	1(a0,d6.w),(a1)+
+	move.b	2(a0,d6.w),(a1)+
+	dbra	d5,.loop10
+	rts
+
+
+.avg	moveq.l	#0,d0
+	moveq.l	#0,d2
+	moveq.l	#0,d1
+	moveq.l	#0,d4
+	clr.l	sr_AvgVars1(a5)
+	clr.l	sr_AvgVars2(a5)
+
+.loop20	move.b	(a0)+,d0
+	move.b	(a0)+,d1
+	move.b	(a0)+,d2
+	add.w	d0,sr_AverageRED(a5)
+	add.w	d1,sr_AverageGRN(a5)
+	add.w	d2,sr_AverageBLU(a5)
+	addi.w	#1,sr_AverageCount(a5)
+
+	cmp.w	(a6),d4
+	bne.b	.NoWrit
+
+.Write	move.w	sr_AverageRED(a5),d0
+	move.w	sr_AverageGRN(a5),d1
+	move.w	sr_AverageBLU(a5),d2
+	move.w	sr_AverageCount(a5),d3
+	divu.w	d3,d0
+	divu.w	d3,d1
+	divu.w	d3,d2
+	move.b	d0,(a1)+
+	move.b	d1,(a1)+
+	move.b	d2,(a1)+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+	cmpa.w	#0,a3
+	beq	.skip20
+.skip20	clr.l	sr_AvgVars1(a5)
+	clr.l	sr_AvgVars2(a5)
+	adda.w	#2,a6
+.NoWrit	addq.w	#1,d4
+	cmp.w	sri_SrcWidth(a4),d4
+	bne.b	.loop20
+	rts
+
+.Enlrge	move.w	sri_DestWidth(a4),d5
+	subq.w	#1,d5
+.loop30	move.w	(a6)+,d6
+	move.w	d6,d4
+	add.w	d4,d6
+	add.w	d4,d6
+	move.b	0(a0,d6.w),(a1)+
+	move.b	1(a0,d6.w),(a1)+
+	move.b	2(a0,d6.w),(a1)+
+	dbra	d5,.loop30
+	rts
+
+.Copy	move.w	sri_DestWidth(a4),d5
+	subq.w	#1,d5
+.loop40	move.b	(a0)+,(a1)+
+	move.b	(a0)+,(a1)+
+	move.b	(a0)+,(a1)+
+	dbra	d5,.loop40
+	rts
+*****************************************************************************
+
+
+
+
+
+*****************************************************************************
+RemapRGBToChunky
+
+	clr.w	sr_RedValue(a5)
+	tst.l	sr_DstColHeader+cth_ColorTable(a5)
+	bne.b	.skip
+	rts
+
+.skip	move.w	sri_DstViewModes+2(a4),d0
+	andi.w	#V_HAM,d0
+	bne.w	RGB_2_HAM
+
+	movea.l	sr_DstPenWordsU(a5),a0
+	movea.l	sr_DstRGBbytesU(a5),a1
+	movea.l	sr_DstChunkyBytesU(a5),a2
+	movea.l	sr_DstColHeader(a5),a3
+
+	move.w	sri_DestWidth(a4),d5
+	subq.w	#1,d5
+	moveq.l	#0,d4
+
+.loop	move.w	(a0)+,d3
+	bmi.b	.find
+	move.b	d3,(a2)+
+	adda.w	#3,a1
+	dbra	d5,.loop
+	rts
+
+.find	movem.l	d5/a3,-(sp)
+	moveq.l	#0,d5
+	move.b	(a1)+,sr_RedValue+1(a5)
+	move.b	(a1)+,d4
+	move.b	(a1)+,d5
+	moveq.l	#-1,d3
+	move.w	#256+256+256,d7			; bestmatch so far
+	moveq.l	#0,d6
+
+	btst.b	#SCAREMB_TRANSPARENT,sri_Flags+3(a4)
+	beq.b	.loop10
+
+	addq.w	#1,d6
+	adda.w	#4,a3
+
+.loop10	moveq.l	#0,d1
+	moveq.l	#0,d2
+	move.w	(a3)+,d0
+	move.b	(a3)+,d1
+	move.b	(a3)+,d2
+
+	sub.w	sr_RedValue(a5),d0
+	bpl.b	*+4
+	neg.w	d0
+
+	sub.w	d4,d1
+	bpl.b	*+4
+	neg.w	d1
+
+	sub.w	d5,d2
+	bpl.b	*+4
+	neg.w	d2
+
+	add.w	d1,d0
+	add.w	d2,d0
+	cmp.w	d0,d7
+	bls.b	.next10
+
+	move.w	d6,d3		; current color to best match
+	move.w	d0,d7		; set best-match-amount
+	beq.b	.found		; if equal to zero- perfect match
+
+.next10	addq.w	#1,d6
+	cmp.w	sr_DstColHeader+cth_Size+2(a5),d6
+	blt.b	.loop10
+
+.found	moveq.l	#0,d0
+	move.b	d3,(a2)+
+	movem.l	(sp)+,d5/a3
+	dbra	d5,.loop
+	rts
+
+
+RGB_2_HAM	pea.l	sr_DstColHeader(a5)
+	jsr	_InitBaseColor
+	addq.l	#4,sp
+	movea.l	sri_DstBitMap(a4),a0
+	lea.l	FindHAM6color(pc),a6
+	cmpi.b	#8,bm24_Depth(a0)
+	bne.b	.skip
+	lea.l	FindHAM8color(pc),a6
+.skip	move.l	a6,sr_DstColHeader+cth_ColorFunc(a5)
+	movea.l	sr_DstPenWordsU(a5),a0
+	movea.l	sr_DstRGBbytesU(a5),a1
+	movea.l	sr_DstChunkyBytesU(a5),a2
+	movea.l	sr_DstColHeader(a5),a3
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+	moveq.l	#0,d3
+	moveq.l	#0,d4
+	moveq.l	#0,d5
+
+	move.w	sri_DestWidth(a4),d7
+	subq.w	#1,d7
+
+.loop	move.w	(a0)+,d6
+	bmi.b	.find
+	move.b	(a1)+,cth_BaseRED+1(a3)
+	move.b	(a1)+,cth_BaseGRN+1(a3)
+	move.b	(a1)+,cth_BaseBLU+1(a3)
+	move.b	d6,(a2)+
+	dbra	d7,.loop
+	rts
+
+.find	move.b	(a1)+,d0
+	move.b	(a1)+,d1
+	move.b	(a1)+,d2
+	jsr	(a6)
+	move.b	d6,(a2)+
+	dbra	d7,.loop
+	rts
+
+*****************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+FindHAM6color		; convert true RGB to HAM6 equivalent. 4 bits/color.
+
+	move.w	cth_BaseRED(a3),d3
+	move.w	cth_BaseGRN(a3),d4
+	move.w	cth_BaseBLU(a3),d5
+
+	sub.w	d0,d3
+	bpl.b	*+4
+	neg.w	d3
+	sub.w	d1,d4
+	bpl.b	*+4
+	neg.w	d4
+	sub.w	d2,d5
+	bpl.b	*+4
+	neg.w	d5
+
+	cmp.w	d4,d5
+	bls.b	.r_or_g
+	cmp.w	d5,d3
+	bhi.b	.modRED
+	bra.b	.modBLU
+.r_or_g	cmp.w	d3,d4
+	bhi.b	.modGRN
+
+.modRED	move.w	d0,d6
+	move.b	d0,cth_BaseRED+1(a3)
+	lsr.w	#4,d6
+	ori.w	#%100000,d6
+	rts
+
+.modGRN	move.w	d1,d6
+	move.b	d1,cth_BaseGRN+1(a3)
+	lsr.w	#4,d6
+	ori.w	#%110000,d6
+	rts
+
+.modBLU	move.w	d2,d6
+	move.b	d2,cth_BaseBLU+1(a3)
+	lsr.w	#4,d6
+	ori.w	#%010000,d6
+	rts
+
+
+
+FindHAM8color		; convert true RGB to HAM8 equivalent. 6 bits/color.
+
+	move.w	cth_BaseRED(a3),d3
+	move.w	cth_BaseGRN(a3),d4
+	move.w	cth_BaseBLU(a3),d5
+
+	sub.w	d0,d3
+	bpl.b	*+4
+	neg.w	d3
+	sub.w	d1,d4
+	bpl.b	*+4
+	neg.w	d4
+	sub.w	d2,d5
+	bpl.b	*+4
+	neg.w	d5
+
+	cmp.w	d4,d5
+	bls.b	.r_or_g
+	cmp.w	d5,d3
+	bhi.b	.modRED
+	bra.b	.modBLU
+.r_or_g	cmp.w	d3,d4
+	bhi.b	.modGRN
+
+.modRED	move.w	d0,d6
+	move.b	d0,cth_BaseRED+1(a3)
+	lsr.w	#2,d6
+	ori.w	#%10000000,d6
+	rts
+
+.modGRN	move.w	d1,d6
+	move.b	d1,cth_BaseGRN+1(a3)
+	lsr.w	#2,d6
+	ori.w	#%11000000,d6
+	rts
+
+.modBLU	move.w	d2,d6
+	move.b	d2,cth_BaseBLU+1(a3)
+	lsr.w	#2,d6
+	ori.w	#%01000000,d6
+	rts
+*****************************************************************************
+
+
+	IFNE	0
+
+
+
+.GetPenNormal
+
+	movem.l	d6-d7/a3/a6,-(sp)
+	clr.w	sr_RedValue(a5)
+	movea.l	sr_DstCols32(a5),a3
+	movea.l	a3,a6
+
+	moveq.l	#0,d4
+
+	move.w	#256+256+256,d7			; bestmatch so far
+	moveq.l	#0,d6
+
+	btst.b	#SCAREMB_TRANSPARENT,sri_Flags+3(a4)
+	beq.b	.loop10
+	addq.w	#1,d6
+	adda.w	#4,a3
+
+.loop10	moveq.l	#0,d1
+	moveq.l	#0,d2
+	move.w	(a3)+,d0
+	move.b	(a3)+,d1
+	move.b	(a3)+,d2
+
+	sub.w	d3,d0
+	bpl.b	*+4
+	neg.w	d0
+	cmp.w	d0,d7
+	bls.b	.next10
+
+	sub.w	d4,d1
+	bpl.b	*+4
+	neg.w	d1
+	add.w	d1,d0
+	cmp.w	d0,d7
+	bls.b	.next10
+
+	sub.w	d5,d2
+	bpl.b	*+4
+	neg.w	d2
+	add.w	d2,d0
+
+	cmp.w	d0,d7
+	bls.b	.next10
+
+	lea.l	-4(a3),a6	; current color to best match
+	move.w	d0,d7		; set best-match-amount
+	beq.b	.found		; if equal to zero- perfect match
+
+.next10	addq.w	#1,d6
+	cmp.w	sr_DstPaletteSize+2(a5),d6
+	blt.b	.loop10
+
+.found	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+	move.b	1(a6),d0
+	move.b	2(a6),d1
+	move.b	3(a6),d2
+	movem.l	(sp)+,d6-d7/a3/a6
+	rts
+
+
+
+
+
+.GetPenHAM6
+	movea.l	sr_DstPenWordsU(a5),a0
+	movea.l	sr_DstRGBbytesU(a5),a1
+	movea.l	sr_DstCols32(a5),a3
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+	moveq.l	#0,d2
+	moveq.l	#0,d3
+	moveq.l	#0,d4
+	moveq.l	#0,d5
+
+	move.w	sri_DestWidth(a4),d7
+	subq.w	#1,d7
+
+.loop	move.w	(a0),d6
+	bmi.b	.find
+	move.w	d6,(a0)+
+	dbra	d7,.loop
+	rts
+
+.find	move.b	(a1)+,d0
+	move.b	(a1)+,d1
+	move.b	(a1)+,d2
+	bsr.w	FindHAM6color
+	move.w	d6,(a0)+
+	dbra	d7,.loop
+	rts
+
+*****************************************************************************
+
+	ENDC
+
+
+
+
+;--------------------------------------------------------------------------
+; VOID ObtainDestPenInfo( VOID )
+;--------------------------------------------------------------------------
+; Attempt to find the appropriate colors for each source pen ...
+;--------------------------------------------------------------------------
+
+;for ( i=0; i<SrcPaletteSize; i++ )
+;  {
+;  if ( i<DstPaletteSize && (SourceRGB[i] == DestRGB[i]) )
+;    SrcPens[i] = i;
+;  else
+;    SrcPens[i] = MatchThisPen( i );
+;  }
+	
+ObtainDestPenInfo
+	clr.w	sr_RedValue(a5)
+	clr.w	sr_GrnValue(a5)
+	clr.w	sr_BluValue(a5)
+
+	moveq.l	#0,d0				; i = 0
+	movea.l	sr_SrcColHeader+cth_ColorTable(a5),a0
+	movea.l	sr_DstColHeader+cth_ColorTable(a5),a1
+	movea.l	sr_DstPens(a5),a2
+	cmpa.w	#0,a0
+	beq.w	.exit
+	cmpa.w	#0,a1
+	beq.w	.exit
+	cmpa.w	#0,a2
+	beq.w	.exit
+
+.loop	cmpm.l	(a0)+,(a1)+
+	bne.b	.else
+	cmp.w	sr_DstColHeader+cth_Size+2(a5),d0	; && i<DstPaletteSize
+	bge.b	.else
+	move.w	d0,(a2)+
+	addq.w	#1,d0				; i++
+	cmp.w	sr_SrcColHeader+cth_Size+2(a5),d0	; i<SrcPaletteSize
+	bne.b	.loop				; for( i= ...)
+	bra.w	.exit
+
+.else	movea.l	sr_DstColHeader+cth_ColorTable(a5),a3
+	moveq.l	#-1,d6
+	move.b	-3(a0),sr_RedValue+1(a5)
+	move.b	-2(a0),sr_GrnValue+1(a5)
+	move.b	-1(a0),sr_BluValue+1(a5)
+	move.w	#256+256+256,d7			; bestmatch so far
+	moveq.l	#0,d3
+	moveq.l	#0,d4
+	moveq.l	#0,d1
+	btst.b	#SCAREMB_TRANSPARENT,sri_Flags+3(a4)
+	beq.b	.loop10
+	moveq.l	#1,d1
+	adda.w	#4,a3
+	tst.w	d0
+	bne.b	.loop10
+	moveq.l	#0,d6
+	bra.b	.xit
+.loop10	moveq.l	#0,d3
+	moveq.l	#0,d4
+	move.w	(a3)+,d2
+	move.b	(a3)+,d3
+	move.b	(a3)+,d4
+	sub.w	sr_RedValue(a5),d2
+	bpl.b	*+4
+	neg.w	d2
+	sub.w	sr_GrnValue(a5),d3
+	bpl.b	*+4
+	neg.w	d3
+	sub.w	sr_BluValue(a5),d4
+	bpl.b	*+4
+	neg.w	d4
+	add.w	d3,d2
+	add.w	d4,d2
+	cmp.w	d2,d7
+	bls.b	.next10
+	move.w	d1,d6	; current color to best match
+	move.w	d2,d7	; set best match to current color
+	beq.b	.xit
+.next10	addq.w	#1,d1
+	cmp.w	sr_DstColHeader+cth_Size+2(a5),d1
+	blt.b	.loop10
+
+	move.w	sri_DstViewModes+2(a4),d3
+	andi.w	#V_HAM,d3
+	beq.b	.xit
+	cmp.w	#0,d7
+	ble.b	.xit
+	moveq.l	#-1,d6
+
+.xit	move.w	d6,(a2)+
+	addq.w	#1,d0				; i++
+	cmp.w	sr_SrcColHeader+cth_Size+2(a5),d0	; i<SrcPaletteSize
+	bne.w	.loop				; for( i= ...)
+.exit	rts
+
+
+
+
+AllocBuffer
+	moveq.l	#0,d0
+
+	move.l	d0,sr_HorPrecalcAddr(a5)
+	moveq.l	#0,d1
+	move.w	sri_DestWidth(a4),d1
+	lsl.l	#1,d1
+	add.l	d1,d0
+
+	clr.l	sr_SrcColHeader+cth_ColorTable(a5)
+	clr.l	sr_DstPens(a5)
+	clr.l	sr_SrcPenWordsU(a5)
+	clr.l	sr_SrcPenWordsL(a5)
+	clr.l	sr_SrcChunkyBytesU(a5)
+	move.l	sr_SrcColHeader+cth_Size(a5),d1
+	tst.l	sr_SrcColHeader+cth_ColorMap(a5)
+	beq.b	.src24a
+
+	move.l	d0,sr_SrcColHeader+cth_ColorTable(a5)
+	lsl.l	#2,d1		; SrcPaletteSize*4
+	add.l	d1,d0
+
+	move.l	d0,sr_DstPens(a5)
+	lsr.l	#1,d1		; SrcPaletteSize*2
+	add.l	d1,d0
+
+	move.l	d0,sr_SrcPenWordsU(a5)
+	moveq.l	#0,d1
+	move.w	sri_SrcWidth(a4),d1
+	lsl.w	#1,d1
+	add.l	d1,d0
+
+	move.l	d0,sr_SrcPenWordsL(a5)
+	add.l	d1,d0
+
+	move.l	d0,sr_SrcChunkyBytesU(a5)
+	moveq.l	#0,d1
+	move.w	sri_SrcWidth(a4),d1
+	addq.l	#7,d1
+	andi.l	#$FFFFFFF8,d1
+	add.l	d1,d0
+
+.src24a	clr.l	sr_DstColHeader+cth_ColorTable(a5)
+	clr.l	sr_DstPenWordsU(a5)
+	clr.l	sr_DstPenWordsL(a5)
+	clr.l	sr_DstChunkyBytesU(a5)
+	move.l	sr_DstColHeader+cth_Size(a5),d1
+	tst.l	sr_DstColHeader+cth_ColorMap(a5)
+	beq.b	.dst24a
+
+	tst.w	sri_DitherMode(a4)
+	beq.b	.noDither
+
+.Dither	move.l	d0,sr_DstColHeader+cth_ColorTable(a5)
+	lsl.l	#3,d1		; DstPaletteSize*8
+	add.l	d1,d0
+	bra.b	.doPens
+
+.noDither	move.l	d0,sr_DstColHeader+cth_ColorTable(a5)
+	lsl.l	#2,d1		; DstPaletteSize*4
+	add.l	d1,d0
+
+.doPens	move.l	d0,sr_DstPenWordsU(a5)
+	moveq.l	#0,d1
+	move.w	sri_DestWidth(a4),d1
+	lsl.w	#1,d1
+	add.l	d1,d0
+
+	move.l	d0,sr_DstPenWordsL(a5)
+	add.l	d1,d0
+
+	move.l	d0,sr_DstChunkyBytesU(a5)
+	moveq.l	#0,d1
+	move.w	sri_DestWidth(a4),d1
+	addq.l	#7,d1
+	andi.l	#$FFFFFFF8,d1
+	add.l	d1,d0
+
+.dst24a	move.l	d0,sr_SrcRGBbytesU(a5)
+	moveq.l	#0,d1
+	move.w	sri_SrcWidth(a4),d1
+	addq.l	#8,d1			; 4 bytes at start, 4 at end extra
+	mulu.w	#3,d1			; for R, G and B
+	addi.l	#12,sr_SrcRGBbytesU(a5)	; skip 3*4 bytes
+	add.l	d1,d0
+
+	move.l	d0,sr_SrcRGBbytesL(a5)
+	addi.l	#12,sr_SrcRGBbytesL(a5)	; skip 3*4 bytes
+	add.l	d1,d0
+
+	move.l	d0,sr_DstRGBbytesU(a5)
+	moveq.l	#0,d1
+	move.w	sri_DestWidth(a4),d1
+	addq.l	#8,d1			; 4 bytes at start, 4 at end extra
+	mulu.w	#3,d1			; for R, G and B
+	addi.l	#12,sr_DstRGBbytesU(a5)	; skip 3*4 bytes
+	add.l	d1,d0
+
+	move.l	d0,sr_DstRGBbytesL(a5)
+	addi.l	#12,sr_DstRGBbytesL(a5)	; skip 3*4 bytes
+	add.l	d1,d0
+
+	addq.l	#3,d0
+	andi.l	#$FFFFFFFC,d0
+
+	move.l	#MEMF_ANY,d1
+	jsr	_AllocRememberMP
+	tst.l	d0
+	beq.b	.exit
+
+	tst.l	sr_SrcColHeader+cth_ColorTable(a5)
+	beq.b	.skip00
+	add.l	d0,sr_SrcColHeader+cth_ColorTable(a5)
+	add.l	d0,sr_DstPens(a5)
+	add.l	d0,sr_SrcPenWordsU(a5)
+	add.l	d0,sr_SrcPenWordsL(a5)
+	add.l	d0,sr_SrcChunkyBytesU(a5)
+
+.skip00	tst.l	sr_DstColHeader+cth_ColorTable(a5)
+	beq.b	.skip01
+	add.l	d0,sr_DstColHeader+cth_ColorTable(a5)
+	move.l	sr_DstColHeader+cth_ColorTable(a5),d1
+	add.l	d0,sr_DstPenWordsU(a5)
+	add.l	d0,sr_DstPenWordsL(a5)
+	add.l	d0,sr_DstChunkyBytesU(a5)
+
+.skip01	add.l	d0,sr_SrcRGBbytesU(a5)
+	add.l	d0,sr_SrcRGBbytesL(a5)
+	add.l	d0,sr_DstRGBbytesU(a5)
+	add.l	d0,sr_DstRGBbytesL(a5)
+	add.l	d0,sr_HorPrecalcAddr(a5)
+
+.exit	rts
+
+
+
+
+GetDestinationSizes
+	move.w	sri_SrcWidth(a4),d0
+	mulu.w	sri_XDestFactor(a4),d0
+	divu.w	sri_XSrcFactor(a4),d0
+	move.w	d0,sri_DestWidth(a4)
+
+	move.w	sri_SrcHeight(a4),d0
+	mulu.w	sri_YDestFactor(a4),d0
+	divu.w	sri_YSrcFactor(a4),d0
+	move.w	d0,sri_DestHeight(a4)
+	rts
+
+
+
+DoPrecalc	movea.l	sr_HorPrecalcAddr(a5),a0
+	move.w	sri_SrcWidth(a4),d3
+	move.w	sri_DestWidth(a4),d4
+	ext.l	d3
+	ext.l	d4
+	swap.w	d3
+	move.l	d3,d1
+	move.l	d4,d2
+	jsr	Divs32
+	move.l	d1,sr_ScaleFactor(a5)
+
+	moveq.l	#0,d3
+.loop	move.l	sr_ScaleFactor(a5),d1
+	move.l	d3,d2
+	jsr	Mulu32
+	swap.w	d1
+	move.w	d1,d5
+	add.w	sri_SrcX(a4),d5
+	move.w	d5,(a0)+
+	addq.w	#1,d3
+	cmp.w	sri_DestWidth(a4),d3
+	bne.b	.loop
+
+	move.w	sri_SrcHeight(a4),d1
+	move.w	sri_DestHeight(a4),d2
+	ext.l	d1
+	ext.l	d2
+	swap	d1
+	jsr	Divs32
+	move.l	d1,sr_ScaleFactor(a5)
+	clr.w	sr_DeltaY(a5)
+	rts
+	
+
+
+;-- END OF FILE ----------------------------------------------------------

@@ -1,0 +1,5 @@
+;run sys:system/nofastmem
+run work:cees/tools/enforcer/enforcer
+work:cees/tools/enforcer/lawbreaker
+;hard:debug/watchdog/mungwall
+;work:cees/tools/enforcer/enforcer OFF

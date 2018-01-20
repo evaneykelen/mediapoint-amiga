@@ -1,0 +1,27 @@
+CC = sc
+
+CFLAGS = DEFINE=TINY CODE=FAR DATA=FAR STRMERGE GST=nb:all.sym NMINC NOSTKCHK IDIR=nb: NOICONS DEBUG=LINE
+LFLAGS = NODEBUG SMALLCODE SMALLDATA
+
+XAPPNAME = psamp
+
+APP1 = psamp
+
+APP10 = $(APP1).o loadsamp.o diskplay.o
+.SUFFIXES:	.o	.c	.h
+
+all: $(XAPPNAME)
+
+$(XAPPNAME): $(APP10) 
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:sc.lib lib:amiga.lib lib:debug.lib
+TO $(XAPPNAME) $(LFLAGS)
+MAP $(APP1).map H
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $*.a

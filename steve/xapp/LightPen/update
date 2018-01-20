@@ -1,0 +1,3 @@
+del setup.o
+del set_mouse.o
+del worklight.o

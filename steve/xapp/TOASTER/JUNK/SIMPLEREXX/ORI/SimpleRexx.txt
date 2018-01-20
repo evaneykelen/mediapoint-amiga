@@ -1,0 +1,173 @@
+
+SimpleRexx: A Simple ARexx Interface
+
+by Michael Sinz
+
+The ability to handle scripts is a powerful feature for any
+application.  Whenever users have a repetitive, well-defined job to do
+with application software, script capabilities allow them to perform
+the job automatically without any user intervention.  For example,
+many communication programs allow the user to set up a script which
+will automatically dial up a host system, login to it, and check for
+messages to download.  To encourage the development of more
+applications which have this powerful feature, Commodore has added
+ARexx to V2.0 of the Amiga system software.
+
+
+
+What Is ARexx?
+
+ARexx is the Amiga implementation of the REXX language.  Like BASIC,
+ARexx is an interpreted language.  ARexx can be used alone for almost
+any programming job, but the real power of ARexx is unleashed when it
+is used with applications as a system-level scripting language.  With
+the addition of its own ARexx port and a small amount of code, an
+application can gain all the power scripting capabilities offer.
+There are other benefits as well.  The burden of writing code to
+handle scripts is reduced significantly.  Also, ARexx helps provide a
+consistent interface to the user.  Without it, every developer who
+implements scripts must invent their own scripting language, forcing
+the user to learn several different scripting languages rather than
+just one.
+
+Perhaps best of all is that applications which support ARexx can
+"talk" to each other by sending commands and sharing data - even if
+they are from different vendors.  For instance, a communications
+program with an ARexx port could be set up to automatically download
+data from a financial bulletin board and then pass the data to a
+spreadsheet application to create a graph or financial model.  The
+ability of applications to "talk" to one another on a multitasking
+computer is known as Inter-process Communication (IPC).
+
+Because it interprets scripts and passes strings, ARexx has been
+optimized for string processing.  Almost all ARexx interactions
+involve passing a string; numbers are even passed as ASCII
+representations in most situations.
+
+ARexx has enhanced abilities to send and receive control messages to
+and from many sources.  An application that supports ARexx can send
+and receive these control messages.  The messages contain text strings
+that are either interpreted directly by ARexx itself or that are
+passed on as commands to be processed by the destination application.
+
+ARexx also supplies methods for applications to send and recieve data
+through an ARexx port.  The data can be sent in a message or via the
+ARexx RVI (Rexx Variable Interface).  In either case, data can be
+transferred to and from ARexx.  A complete ARexx supporting
+application would need to be able to send data to a requesting ARexx
+program/script and get data from that program.
+
+
+
+The SimpleRexx Routines
+
+Adding an ARexx interface to an application can be difficult,
+especially when working with it for the first time.  SimpleRexx was
+written to serve not only as an example of how to implement an ARexx
+interface but also as a "wrapper" to be incorporated into other code.
+It contains routines to take care of the lower level ARexx work. It
+can be used to add minimal ARexx support to many applications in a
+backwards-compatible fashion.  In other words, an application that
+uses SimpleRexx will still work on systems without ARexx (but won't be
+able to execute ARexx scripts).
+
+The code below consists of SimpleRexx.c, the "wrapper" code that makes
+up the ARexx interface, and an example, SimpleRexxExample.c, which
+illustrates the use of the wrapper.  The test.rexx script is an
+example ARexx script to execute while SimpleRexxExample is running.
+It will send commands to SimpleRexxExample in order to control it.
+The test.results file shows the output of test.rexx.
+
+In addition to the code examples listed here, you will need to install
+the rexxsyslib.library and rexxsupport.library in the libs: directory
+of the target machine.  Don't forget to give the rexxmast command
+either in your startup-sequence or from the CLI in order to start
+ARexx.
+
+
+
+Overview of Functions
+
+The source to SimpleRexx is a single file, SimpleRexx.c.  The header
+file, SimpleRexx.h, contains the type definitions and prototypes for
+the functions.
+
+The SimpleRexx functions are used as follows:
+
+    rexx_context=InitARexx(AppBaseName, Extension)
+
+    This allocates and initializes a SimpleRexx ARexxContext
+    structure.  This context is much like a file handle in
+    that it will be used in all other calls that make use of
+    this SimpleRexx context.  Since all SimpleRexx calls
+    correctly check the rexx_context before doing work,
+    you do not need to check the return result of this call.
+    If ARexx is not available on your system, SimpleRexx
+    won't do anything.
+
+
+    port_name=ARexxName(rexx_context)
+
+    This function returns a pointer to the name of the ARexx
+    port's context.  The name is based on the AppBaseName
+    plus an invocation number allowing multiple copies of an
+    application to run at the same time.  If you have no
+    ARexx port, it returns NULL.
+
+
+    sigmask=ARexxSignal(rexx_context)
+
+    This function returns the signal bit mask of your
+    context's ARexx port.  This should be combined with
+    other signal masks to produce the argument to the Wait()
+    call.  This returns NULL if there is no signal mask.
+
+    rmsg=GetARexxMsg(rexx_context)
+
+    This function returns the next ARexx message that is
+    waiting.  rmsg=NULL if there is no message or ARexx is
+    not around.  rmsg=REXX_RETURN_ERROR if a message sent to
+    ARexx via SendARexxMsg() returns an error.
+
+    ReplyARexxMsg(rexx_context, rmsg, result, error)
+
+    This function sends back the ARexx message received via
+    GetARexxMsg().  The result field is a pointer to a
+    result string that is returned via OPTIONS RESULTS in
+    the RESULT ARexx variable.  If you have no result, set
+    this to NULL.  Error is the error severity level.  If
+    this is 0, the result string will be returned.  If this
+    is non-zero, the error level will be returned in RC.
+
+    worked=SendARexxMsg(rexx_context, string, StringFileFlag)
+
+    This function sends a string to ARexx.  It sets the
+    default host to the context and sets the RXFB_STRING bit
+    in the message if the StringFileFlag is set.  This
+    routine returns FALSE if the message was not sent.
+
+    worked=SetARexxLastError(rexx_context, rmsg, ErrorString)
+
+    This function uses the RVI (Rexx Variable Interface) to
+    set a variable named <AppBaseName>.LASTERROR to the
+    ErrorString.  This is where the error message should go
+    if there is an error.  This function returns FALSE if
+    this fails.  You must call this routine after a
+    GetARexxMsg() and before ReplyARexxMsg().
+
+    FreeARexx(rexx_context)
+
+    This closes a SimpleRexx context received from InitARexx().
+
+
+
+The Future of ARexx
+
+ARexx is much more than a system-level scripting language.  Among
+other things, ARexx can be used like glue to put together a set of
+application modules.  This frees the programmer from worrying about
+data sharing between modules so that more effort can be put into
+refining the code modules themselves. It also allows a user who
+understands ARexx to add their own refinements creating a truly custom
+environment.  This customizability is also ideal for VARs or dealers
+who want to sell vertical market solutions.

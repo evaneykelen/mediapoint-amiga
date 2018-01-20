@@ -1,0 +1,33 @@
+CC = sc
+
+CFLAGS = DATA=NEAR GST=nb:all.sym NMINC STRMERGE STREQ NOSTKCHK IDIR=nb:
+AFLAGS = 
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+AS = asm
+WA = wa:
+SG = sg:
+
+# these are my applications
+APP1 = rexx
+
+# the modules needed by each application
+APP10 = $(APP1).o lib:/source/wumain.o ph:rexxvars.o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:sc.lib lib:amiga.lib
+TO $(APP1) $(LFLAGS)
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

@@ -1,0 +1,41 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR NMINC NOSTKCHK
+AFLAGS = -iINCLUDE
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+# these are my applications
+APP1 = test
+APP2 = test2
+
+# the modules needed by each application
+APP10 = simplerexxexample.o simplerexx.o
+APP20 = simplerexxexample2.o simplerexx.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1) $(APP2)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:sc.lib lib:amiga.lib lib:debug.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+
+$(APP2): $(APP20)
+	slink <WITH <
+FROM lib:c.o $(APP20)
+LIBRARY lib:sc.lib lib:amiga.lib lib:debug.lib
+TO $(APP2) $(LFLAGS)
+MAP $(APP2).map H
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

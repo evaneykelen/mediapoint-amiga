@@ -1,0 +1,6 @@
+del #?.o
+del #?pragma#?
+del mediapoint.library
+del nb:system/mediapoint.library
+del temp_lmk.tmp
+fd2pragma medialinklib_lib.fd medialinklib_pragma.h

@@ -1,0 +1,157 @@
+IMPORTANT: Be sure that you work with MediaPoint ß118. If you don't have
+this version download it from the Activa BBS on monday 12-07-93.
+
+
+                     How the translation works
+                     -------------------------
+
+The following files are used in the translation process:
+
+alltexts            --> ASCII file which contains all languages LINE BY LINE.
+texts.English       --> special file with only the English lines extracted.
+texts.Nederlands    --> special file with only the Dutch lines extracted
+                        (example).
+texts.YOUR_LANGUAGE --> special file with only the lines extracted in YOUR
+                        language (THIS FILE WILL BE MADE BY YOU!).
+trans               --> program which extracts lines from 'alltexts' into
+                        a texts file.
+
+MediaPoint uses a separate file which contains all the texts used in the
+program and the xapps. With MediaPoint a German, French etc. version
+of this translation file will be bundled, making it possible for the user
+to choose his preferred language.
+
+The translation is made in a normal ASCII file (called 'alltexts') which
+must be transformed into a special language file. This is done by the
+program 'trans'. This program extracts from the file 'alltexts' the
+lines of 1 language and stores them into a separate file called 'texts'.
+The program trans will append to the filename 'texts' the name of your
+language (e.g. texts.Deutsch, texts.Español etc.). These 'texts' files
+are copied to the system directory of MediaPoint. The preferences of
+MediaPoint can be used to select the preferred language. 
+
+Let's take a look at a few lines as they appear in the file 'alltexts': 
+
+1 "OK"
+2 "OK"
+1 "Cancel"      --> This is English (I bet you already knew that...)
+2 "Annuleer"    --> This is 'Cancel' in Dutch (strange word, ain't it?)
+1 "More"
+2 "Meer"
+
+At the top of the file 'alltexts' you can see which number your language
+has. Let's assume that you are going to make the german translation, which
+has code 3. This means that after all the lines starting with 2, you will
+insert a line with code 3:
+
+1 "OK"
+2 "OK"
+3 "OK"          --> this line is inserted
+1 "Cancel"
+2 "Annuleer"
+3 "Abbrechen"   --> this line is inserted
+1 "More"
+2 "Meer"
+3 "Mehr"        --> this line is inserted
+
+Lines with code 0 must not be translated, they contain texts which should
+be the same, regardless the language you're using.
+
+While translating you must keep the following things in mind:
+
+- The translated word should be of about the same size as the English word.
+- The translation should follow the Locale version of the word as used
+  by the Workbench (at least the words OK, Cancel, Open, Save etc. should
+  be the same).
+- You'll sometimes notice that the same word appears twice in the list
+  (in the future we'll clean up this list). Make these words the same for
+  now.
+- Spell the words right!
+
+Another important issue are the cycle buttons (the buttons which offer
+e.g. 10 options when you press the @ character on the button:
+
+  +---+-----------+
+  | @ |  640×512  |   --> this is a cycle button
+  +---+-----------+
+
+The options for these cycle buttons are stored in a long string. The
+string looks like this:
+
+1 "Landscape|       Landscape 4x4|   Portrait|        Portrait 4x4|    "
+2 "Liggend|         Liggend 4x4|     Staand|          Staand 4x4|      "
+ /*-----------------+++++++++++++++++-----------------+++++++++++++++++*/
+
+Assume again that the German translation is inserted. You must be very
+careful in NOT using tabs, ending the word with a '|' character and
+not forgetting any white spaces. Also the length of the words are
+important.
+
+1 "Landscape|       Landscape 4x4|   Portrait|        Portrait 4x4|    "
+2 "Liggend|         Liggend 4x4|     Staand|          Staand 4x4|      "
+3 "Quer|            Quer 4x4|        Normal|          Normal 4x4|      "
+ /*-----------------+++++++++++++++++-----------------+++++++++++++++++*/
+
+When your finished with the translation, you can use the program 'trans'
+to create the real translation. The German version can be created as
+follows:
+
+> Type 'trans' in the Shell, the following is printed on screen:
+
+-------------------------------------------------------------------
+File Translator © 1993 by 1001 Software Development.                
+                                                                    
+Usage: "trans FileName LanguageCode"                                
+where LanguageCode is: 1 = English                                  
+                       2 = Nederlands                               
+                       3 = Deutsch                                  
+                       4 = Français                                 
+                       5 = Español                                  
+                       6 = Italiano                                 
+                       7 = Português                                
+                       8 = Dansk                                    
+                       9 = Svenska                                  
+                      10 = Norsk                                    
+                                                                    
+E.g. "trans alltexts 1" will create a file "texts.English"
+-------------------------------------------------------------------
+
+> Type: trans alltexts 3
+
+The following will be printed on screen:
+
+> Written translation to 'texts.Deutsch'
+
+You see that 'trans' appends '.Deutsch' to 'texts', showing you that you
+used the right code for your translated lines.
+
+When your MediaPoint is stored on 'work:MediaPoint' you can type 
+'copy texts.Deutsch work:MediaPoint/System'. DON'T FORGET THIS!!!!!!
+
+These last two steps (running trans and copying the file) can be done
+as many times as needed. After testing MediaPoint you can go back
+to modify 'alltexts' and repeat these steps. Don't forget to quit
+MediaPoint in order to reload the texts file.
+
+After that you can test MediaPoint. Don't forget to set the desired 
+language in the preferences! Testing MediaPoint means that you'll have
+to call up all requesters and xapps, this is a lot of work and we'll
+understand that you may not be able find all texts at this moment (some
+texts only appear in stress situations). Therefore it is important to
+send the files to us as soon as possible, so that we also can test it over
+here.
+
+Thank you very much for investing time and effort in MediaPoint!
+
+If you experience any problems, don't hesitate to call us:
+
+1001 Software Development/MediaPoint
+attn. Erik van Eykelen, System Engineer
+Nieuwendam 10
+1621 AP Hoorn
+Tel. +31 2290 17638
+Fax. +31 2290 47587
+
+or leave a message at the Activa BBS to 1001SD.
+
+------------------------------ E O F ----------------------------------

@@ -1,0 +1,34 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR NMINC NOSTKCHK SAVEDS GST=nb:all.sym
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+APP1  = RemoteAccess
+APP10 = buttontask.o icon.o parse.o parsesession.o setup.o upload.o\
+				mra:ECP/cdf.o\
+				msm:parse1.o msm:parse2.o msm:parse4.o\
+				sc:source/_main.o\
+				nb:parser.o mpri:times.o\
+				mpri:errors.o\
+				demo:gen/wait50hz.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:scm.lib lib:sc.lib lib:amiga.lib
+# lib:debug.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

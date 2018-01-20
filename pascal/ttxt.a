@@ -1,0 +1,1645 @@
+
+;--- ttxt.a -------------------------------------------------------------+
+; MediaPoint Text Render Function. Code written by B.O.M.B. AudioVisual  |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/ttxt.a 02.004 (29.03.94)
+
+
+	TTL	ttxt.a
+	IDNT	ttxt.a
+
+
+NO_TEXTEDIT_INFO	SET	1
+
+
+	INCDIR "include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"exec/strings.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/text.i"
+	INCLUDE	"graphics/rastport.i"
+	INCLUDE	"graphics/graphics_lib.i"
+	INCLUDE	"hardware/blit.i"
+
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"ttxt.i"
+	INCLUDE	"txed.i"
+	INCLUDE	"macros.i"
+	INCLUDE	"txedstyles.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"editwindow.i"
+	INCLUDE	"antialias.i"
+	INCLUDE	"toolslib.i"
+
+
+	XREF	_AntiAlias
+	XREF	GetTrueRGBTable
+	XREF	GetBestPenTable
+
+	XREF	_PlanarToChunky
+	XREF	_ChunkyToPlanar
+	XREF	_InitBitMap24
+
+	XREF	@TEExtraSpace
+	XREF	@TECalcFitChars
+	XREF	@TECalcLineWidth
+	XREF	@TECalcLineHeight
+	XREF	@TECalcTopOffset
+	XREF	@TECalcLineOffset
+	XREF	@GetPaletteSize
+
+
+
+
+	XDEF	_DrawText
+
+
+	XREF	KPrintF
+
+
+
+AbsExecBase	EQU	$4
+
+
+	SECTION	TEXT,CODE
+
+;-------------------------------------------------------------------------
+; function : APTR _DrawText( APTR TDInfo (a0) )
+;-------------------------------------------------------------------------
+; Uses information in structure to draw the specified line of text.
+; When finished, text is rendered and ready to be blitted.
+; Returned height of -1 indicates failure, 0 end of text.
+;-------------------------------------------------------------------------
+
+  STACKSTRUCT DrawTextStack,1		; 1 parameter on stack
+	_ULONG	dt_TDInfo
+	_APTR	dt__ReturnAddress
+	_APTR	dt__OldAnAddress
+
+	_UWORD	dt_addX
+	_UWORD	dt_dstXStart
+	_UWORD	dt_dstYStart
+	_APTR	dt_editWindow
+	_APTR	dt_maskPtr
+	_UWORD	dt_charStart
+	_UWORD	dt_extraSpace
+	_UWORD	dt_extraTopSpace
+	_STRUCT	dt_aaInfo,aa_SIZEOF
+	_STRUCT	dt_RGBtripletsBGND,3*4
+	_STRUCT	dt_RGBtripletsTEXT,3*4
+	_APTR	dt_org_a4
+	_STRUCT	dt_textBM,bm24_SIZEOF
+	_STRUCT	dt_maskBM,bm24_SIZEOF
+	_STRUCT	dt_xtraBM,bm24_SIZEOF
+	_APTR	dt_SysBase
+	_APTR	dt_GfxBase
+	_APTR	dt_TextData
+	_ULONG	dt_aaAllocSize
+	_WORD	dt_resultHeight
+	_LABEL	dt_STACKSIZE
+
+
+_DrawText	link	a5,#dt_STACKSIZE
+	movem.l	d0-d7/a0-a6,-(sp)
+	move.l	a4,dt_org_a4(a5)
+	movea.l	a0,a3
+
+	move.l	tdi_SysBase(a3),dt_SysBase(a5)
+	move.l	tdi_GfxBase(a3),dt_GfxBase(a5)
+
+	movea.l	tdi_editWindow(a3),a4
+	move.l	a4,dt_editWindow(a5)
+
+	move.l	a4,a0
+	jsr	@TEExtraSpace
+	move.w	d0,d5
+	move.w	d0,dt_extraSpace(a5)
+
+	movea.l	tdi_textData(a3),a1
+	clr.w	tdi_resultHeight(a3)
+	clr.w	dt_resultHeight(a5)
+	move.w	tdi_renderLine(a3),d0
+	moveq.l	#0,d1			; counter for current line
+
+
+.loop	movem.l	a0-a2/d0-d1,-(sp)
+
+	move.l	a4,a0
+	movea.l	a1,a2
+	jsr	@TECalcFitChars		; UWORD TECalcFitChars( struct EditWindow *ew, struct TEChar *text );
+	move.w	d0,d3
+	move.l	a4,a0
+	movea.l	a2,a1
+	jsr	@TECalcLineWidth	; UWORD TECalcLineWidth( struct EditWindow *ew, struct TEChar *text, UWORD length );
+	move.w	d0,tdi_resultWidth(a3)
+	movea.l	a2,a0
+	move.w	d3,d0
+	jsr	@TECalcLineHeight	; ULONG TECalcLineHeight( struct TEChar *text, UWORD length );
+	move.w	d0,tdi_lineHeight(a3)
+	swap.w	d0
+	move.w	d0,tdi_baseLine(a3)
+
+
+	lsl.w	#tec_SHIFTSIZE,d3
+	tst.w	d0
+	movem.l	(sp)+,a0-a2/d0-d1		; status reg unchanged
+	beq	.test
+
+
+	move.w	d0,-(sp)
+
+	move.w	tdi_lineHeight(a3),d0
+	move.w	d0,dt_resultHeight(a5)
+	add.w	d5,d0
+	add.w	ew_ySpacing(a4),d0
+	move.w	d0,tdi_resultHeight(a3)
+
+	move.w	tdi_lineHeight(a3),d0
+	move.w	d5,d0
+	tst.w	ew_ySpacing(a4)
+	bmi.b	.skip
+	add.w	ew_ySpacing(a4),d0
+.skip	add.w	d0,dt_resultHeight(a5)
+	move.w	(sp)+,d0
+
+	cmp.w	d1,d0
+	beq	.test
+
+	addq.w	#1,d1
+	adda.w	d3,a1
+	bra	.loop
+
+.test	tst.w	d3
+	beq	.eotext
+	tst.w	tdi_lineHeight(a3)
+	beq	.eotext
+
+	tst.w	tdi_resultWidth(a3)		; skip empty lines
+	beq	.exit
+	move.w	ew_Height(a4),d1
+	sub.w	ew_TopMargin(a4),d1
+	sub.w	ew_BottomMargin(a4),d1
+	bmi	.error
+
+	move.l	#MAGIC_COOKIE_BM24,d0
+	move.l	d0,dt_textBM+bm24_MagicCookie(a5)
+	move.l	d0,dt_maskBM+bm24_MagicCookie(a5)
+	move.l	d0,dt_xtraBM+bm24_MagicCookie(a5)
+
+	move.w	tdi_dstYPos(a3),d0
+	sub.w	ew_Y(a4),d0
+	move.w	ew_Height(a4),d1
+	sub.w	ew_BottomMargin(a4),d1
+	sub.w	d0,d1
+	move.w	tdi_lineHeight(a3),d0
+	add.w	dt_extraSpace(a5),d0
+	cmp.w	d0,d1
+	blt	.error
+	move.w	d1,dt_dstYStart(a5)
+
+********** bitmap initializations ************
+
+	moveq.l	#0,d0
+	movea.l	tdi_dstBitMap(a3),a0
+	move.b	bm_Depth(a0),d0		; Depth = dstBM.Depth
+
+	move.w	dt_resultHeight(a5),d2	; total height of line
+	addq.w	#4,d2			; add 2 at top/bottom for antialiasing
+
+	move.w	ew_Width(a4),d1		; total width of line
+	add.w	tdi_lineHeight(a3),d1	; extra space for italics
+	addi.w	#16,d1			; extra 8 pix at start/end
+
+	tst.l	tdi_chipMem(a3)
+	beq	.error
+
+	movem.l	d0-d1/a1,-(sp)
+	move.l	#BM24F_SET_RASSIZE,-(sp)	; calc size of planes
+	move.l	#MEMF_CHIP,-(sp)		; the buffer must be CHIP
+	moveq.l	#0,d1
+	move.w	tdi_resultHeight(a3),d1
+	move.l	d1,-(sp)
+	move.w	ew_Width(a4),d1
+	move.l	d1,-(sp)
+	move.l	d0,-(sp)			; depth
+	pea.l	dt_xtraBM(a5)			; struct BitMap24 *
+	jsr	_InitBitMap24(pc)
+	lea	(4*6)(sp),sp
+	movem.l	(sp)+,d0-d1/a1
+
+	movem.l	d0-d1/a1,-(sp)
+	move.l	#BM24F_CHUNKY,-(sp)		; flags -> chunky
+	move.l	#MEMF_FAST!MEMF_PUBLIC,-(sp)	; if no FAST, fall back to buffer later
+	move.l	d2,-(sp)			; height
+	move.l	d1,-(sp)			; width
+	move.l	d0,-(sp)			; depth
+	pea.l	dt_textBM(a5)			; struct BitMap24 *
+	bsr	AllocPlanes24
+	lea	(4*6)(sp),sp
+	movem.l	(sp)+,d0-d1/a1
+
+	move.l	a1,-(sp)
+	move.l	#BM24F_CHUNKY,-(sp)		; flags -> chunky
+	move.l	#MEMF_FAST!MEMF_PUBLIC,-(sp)	; if no FAST, fall back to buffer later
+	move.l	d2,-(sp)			; height
+	move.l	d1,-(sp)			; width
+	move.l	#1,-(sp)			; depth
+	pea.l	dt_maskBM(a5)			; struct BitMap24 *
+	bsr	AllocPlanes24
+	lea	(4*6)(sp),sp
+	move.l	(sp)+,a1
+
+	move.l	tdi_chipMem(a3),d0
+	move.l	tdi_chipSize(a3),d2
+
+
+	tst.l	dt_textBM+bm24_Planes(a5)
+	bne	.textOK
+
+	move.l	dt_textBM+bm24_rasSize(a5),d1
+	cmp.l	d2,d1
+	bhi	.textOK
+
+	move.l	d0,dt_textBM+bm24_Planes(a5)
+	add.l	d1,d0				; increase pointer
+	sub.l	d1,d2				; decrease available space
+
+.textOK	tst.l	dt_maskBM+bm24_Planes(a5)
+	bne	.maskOK
+
+	move.l	dt_maskBM+bm24_rasSize(a5),d1
+	cmp.l	d2,d1
+	bhi	.maskOK
+
+	move.l	d0,dt_maskBM+bm24_Planes(a5)
+	add.l	d1,d0
+	sub.l	d1,d2
+
+.maskOK	move.l	dt_xtraBM+bm24_rasSize(a5),d1
+	cmp.l	d2,d1
+	bhi	.freeMem
+	move.l	d0,tdi_maskBitMap(a3)
+	add.l	d1,d0
+	sub.l	d1,d2
+
+	move.l	d0,-(sp)
+	move.l	dt_xtraBM+bm24_rasSize(a5),d0
+	moveq.l	#0,d1
+	move.b	dt_xtraBM+bm24_Depth(a5),d1
+	mulu.w	d0,d1
+	move.l	(sp)+,d0
+	cmp.l	d2,d1
+	bhi	.freeMem
+
+	moveq.l	#0,d2
+	move.b	dt_xtraBM+bm24_Depth(a5),d2
+	subq.w	#1,d2
+	lea.l	dt_xtraBM+bm24_Planes(a5),a0
+
+.nxtPlane	move.l	d0,(a0)+
+	add.l	dt_xtraBM+bm24_rasSize(a5),d0
+	dbra	d2,.nxtPlane
+
+
+
+******** initializations done, now fill the bitmap with text *********
+
+	tst.l	dt_textBM+bm24_Planes(a5)
+	beq	.freeMem
+	tst.l	dt_maskBM+bm24_Planes(a5)
+	beq	.freeMem
+	tst.l	tdi_maskBitMap(a3)
+	beq	.freeMem
+
+	move.l	a1,-(sp)
+	movea.l	a4,a0
+	move.w	tdi_resultWidth(a3),d0
+	jsr	@TECalcLineOffset(pc)
+	move.l	(sp)+,a1
+
+	move.w	dt_dstYStart(a5),d1
+	bsr	tdText
+
+.freeMem	move.l	tdi_chipMem(a3),d0
+	move.l	d0,d1
+	add.l	tdi_chipSize(a3),d1
+
+	move.l	dt_textBM+bm24_Planes(a5),d2
+	cmp.l	d2,d0
+	bhi	.freeTxt
+	cmp.l	d1,d2
+	bhi	.freeTxt
+	bra	.nFreeTxt
+
+.freeTxt	pea.l	dt_textBM(a5)
+	bsr	FreePlanes24
+	addq.w	#4,sp
+
+.nFreeTxt	move.l	dt_maskBM+bm24_Planes(a5),d2
+	cmp.l	d2,d0
+	bhi	.freeMsk
+	cmp.l	d1,d2
+	bhi	.freeMsk
+	bra	.nFreeMsk
+
+.freeMsk	pea.l	dt_maskBM(a5)
+	bsr	FreePlanes24
+	addq.w	#4,sp
+
+.nFreeMsk
+
+
+.exit	movem.l	(sp)+,d0-d7/a0-a6
+	unlk	a5
+	rts
+
+.error	move.w	#-1,tdi_resultHeight(a3)
+	bra.b	.exit
+.eotext	clr.w	tdi_resultHeight(a3)
+	bra.b	.exit
+
+*******************************************************************
+
+
+
+
+* VOID tdText(     (APTR) TDInfo (a3), (APTR) charStart (a1), (UWORD) to (d3),
+*		(UWORD) dstX (d0), (UWORD) dstY (d1), (APTR) EditWindow (a4)
+*		(UWORD) extraSpace (d5) - taken by shadow
+
+tdText	movem.l	d1/d3/d5/a4,-(sp)
+	move.l	a1,dt_TextData(a5)
+	move.w	d1,dt_dstYStart(a5)
+	move.w	d5,dt_extraSpace(a5)
+
+**** Determine text offset from top of block ****
+
+	movem.l	d0-d1/a0-a1,-(sp)
+	movea.l	a4,a0
+	jsr	@TECalcTopOffset(pc)
+	move.w	d0,dt_extraTopSpace(a5)
+	movem.l	(sp)+,d0-d1/a0-a1
+
+**** Code to fill text & mask bitmaps with bgnd ****
+
+	movea.l	dt_maskBM+bm24_Planes(a5),a1
+	move.l	dt_maskBM+bm24_rasSize(a5),d2
+	lsr.l	#2,d2
+.clrloop	clr.l	(a1)+
+	subq.l	#1,d2
+	bne	.clrloop
+
+**** Test if character must be drawn, otherwise exit ****
+
+	moveq.l	#0,d2
+
+NextCH	cmp.w	d2,d3			; if all characters are done, proceed
+	bls	Drawed
+
+	movea.l	dt_TextData(a5),a1
+	lea.l	(a1,d2.w),a1
+	movea.l	tec_charFont(a1),a0
+	cmpa.w	#0,a0
+	beq	Drawed
+
+**** Force character into real character or undefined ****
+
+.offset	moveq.l	#0,d6
+	move.b	tec_charCode(a1),d6
+	move.b	tf_LoChar(a0),d4
+	move.b	tf_HiChar(a0),d5
+	cmp.b	d6,d4			; if LoChar > char
+	bhi	.otble1
+	cmp.b	d5,d6			; if char > HiChar
+	bhi	.otble1
+.itble1	sub.b	d4,d6			; char -= LoChar
+	bra	.ofsdne
+.otble1	sub.b	d4,d5
+	addq.b	#1,d5
+	move.b	d5,d6
+.ofsdne
+
+**** Set parameters according to fixed or proportional space font ****
+
+	move.l	a3,-(sp)
+	move.w	d0,dt_charStart(a5)
+	lsl.w	#1,d6
+
+	btst.b	#FPB_PROPORTIONAL,tf_Flags(a0)
+	bne	.proportW
+
+.fixedW	move.w	tf_XSize(a0),dt_addX(a5)
+	movea.l	tf_CharKern(a0),a3
+	cmpa.w	#0,a3
+	beq	.bothW
+	move.w	(a3,d6.w),d1
+	add.w	d1,d0		; increase horizontal destx
+	sub.w	d1,dt_addX(a5)
+	bra	.bothW
+
+.proportW	movea.l	tf_CharKern(a0),a3
+	cmpa.w	#0,a3
+	beq	.noKern
+	add.w	(a3,d6.w),d0		; increase horizontal destx
+.noKern	movea.l	tf_CharSpace(a0),a3
+	move.w	tf_XSize(a0),d4
+	cmpa.w	#0,a3
+	beq	.noSpace
+	move.w	(a3,d6.w),d4
+.noSpace	move.w	d4,dt_addX(a5)
+
+.bothW	moveq.l	#0,d1
+	tst.w	d0
+	bpl	.noCorr01
+	neg.w	d0
+	move.w	d0,d1
+	moveq.l	#0,d0
+.noCorr01	lsl.w	#1,d6
+	movea.l	tf_CharLoc(a0),a3
+	move.w	0(a3,d6.w),d4		; charOffset
+	move.w	2(a3,d6.w),d5		; charBitWidth
+	add.w	d1,d4
+	sub.w	d1,d5
+	movea.l	(sp)+,a3
+
+**** Test whether character really should be displayed ****
+
+	tst.w	d5
+	beq	.incPos			; if width = 0 no display
+	bmi	.incPos			; and if width < 0 no display
+	cmp.b	#31,tec_charCode(a1)	; if control code no display
+	bls	.incPos
+
+**** Perform setting of location of character, correct if needed ****
+
+	movem.l	d0-d3/a0-a4/a6,-(sp)
+	moveq.l	#0,d6
+
+	btst.b	#MFSB_ITALIC,tec_charStyle(a1)
+	beq	.addOffs
+	btst.b	#FSB_ITALIC,tf_Style(a0)
+	bne	.addOffs
+
+	move.w	tf_YSize(a0),d6
+	sub.w	tf_Baseline(a0),d6
+	neg.w	d6
+	muls.w	ew_slantValue(a4),d6
+	divs.w	ew_slantAmount(a4),d6
+.addOffs	add.w	d6,d0
+
+**** Initialize pointer to chunky bitmap data ****
+
+	move.w	tdi_baseLine(a3),d6
+	add.w	tf_YSize(a0),d6
+	sub.w	tf_Baseline(a0),d6
+	lea.l	dt_textBM(a5),a2
+	lea.l	dt_maskBM(a5),a3
+	cmpi.b	#SHADOWTYPE_TRANSPARENT,ew_shadowType(a4)
+	bne	.skipTr
+	movea.l	a3,a2
+.skipTr	movea.l	bm24_Planes(a2),a4
+	movea.l	bm24_Planes(a3),a3
+	add.w	dt_extraTopSpace(a5),d6		; move text down for shadow
+	addq.w	#1,d6
+	mulu.w	bm24_Modulo(a2),d6
+	adda.l	d6,a4
+	adda.l	d6,a3
+	adda.w	d0,a4
+	adda.w	d0,a3
+	addq.w	#8,a4
+	addq.w	#8,a3
+	move.l	a3,dt_maskPtr(a5)
+
+**** Initialize pointer to font bitmap data ****
+
+	movea.l	tf_CharData(a0),a3
+	move.w	tf_YSize(a0),d6
+	subq.w	#1,d6
+	mulu.w	tf_Modulo(a0),d6
+	adda.l	d6,a3
+	move.w	d4,d6
+	lsr.w	#4,d6
+	lsl.w	#1,d6
+	adda.w	d6,a3
+
+**** Perform actual 'blitting' of character ****
+
+	lea.l	tdBlitCharNormal(pc),a6
+	move.b	tec_charStyle(a1),d6
+	andi.b	#~MFSF_UNDERLINED,d6
+	beq	.bltchar
+.special	lea.l	tdBlitCharSpecial(pc),a6
+.bltchar	jsr	(a6)
+	movem.l	(sp)+,d0-d3/a0-a4/a6
+
+**** Increment position for next character ****
+
+.incPos	add.w	dt_addX(a5),d0
+	add.w	ew_xSpacing(a4),d0
+	addq.w	#tec_SIZE,d2
+
+	btst.b	#MFSB_BOLD,tec_charStyle(a1)
+	beq	.nobold
+	btst.b	#FSB_BOLD,tf_Style(a0)
+	bne	.nobold
+	add.w	tf_BoldSmear(a0),d0
+.nobold	btst.b	#MFSB_UNDERLINED,tec_charStyle(a1)
+	beq	NextCH
+	btst.b	#FSB_UNDERLINED,tf_Style(a0)
+	bne	NextCH
+	cmp.b	#31,tec_charCode(a1)
+	bls	NextCH
+	bsr	tdDrawUnderline
+	bra	NextCH
+
+
+**** The last character is 'blitted', now blit the line ****
+
+Drawed	bsr	PerformAntiAlias
+	andi.l	#$0000FFFF,d3
+	add.l	d3,dt_TextData(a5)
+	tst.b	ew_shadowType(a4)
+	beq	tdShadowTypeNormal
+	cmp.b	#SHADOWTYPE_CAST,ew_shadowType(a4)
+	beq	tdShadowTypeCast
+	cmp.b	#SHADOWTYPE_SOLID,ew_shadowType(a4)
+	beq	tdShadowTypeSolid
+	cmp.b	#SHADOWTYPE_OUTLINE,ew_shadowType(a4)
+	beq	tdShadowTypeOutline
+	cmp.b	#SHADOWTYPE_TRANSPARENT,ew_shadowType(a4)
+	beq	tdShadowTypeTransparent
+	bra	tdShadowTypeNormal
+
+TextExit	movem.l	(sp)+,d1/d3/d5/a4
+	rts
+
+
+
+
+
+
+
+tdShadowTypeNormal
+	lea.l	dt_textBM(a5),a2
+	lea.l	dt_xtraBM(a5),a1
+	move.w	ew_Width(a4),d6
+	move.w	tdi_resultHeight(a3),d7
+	subq.w	#1,d7
+	beq	TextExit
+	bmi	TextExit
+	movea.l	bm24_Planes(a2),a0
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a0
+	addq.w	#8,a0
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+.loopY	movem.l	d0-d1/a0-a1,-(sp)
+	jsr	_ChunkyToPlanar
+	movem.l	(sp)+,d0-d1/a0-a1
+	adda.w	bm24_Modulo(a2),a0
+	addq.w	#1,d1
+	dbra	d7,.loopY
+
+
+	lea.l	dt_maskBM(a5),a2
+	movea.l	bm24_Planes(a2),a0
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a0
+	addq.w	#8,a0
+	movea.l	tdi_maskBitMap(a3),a1
+
+	move.w	dt_xtraBM+bm24_Modulo(a5),d1
+	lsr.w	#1,d1
+	subq.w	#1,d1			; dbra width counter
+	bmi	TextExit
+
+	move.w	tdi_resultHeight(a3),d7
+	subq.w	#1,d7
+
+.loopY2	moveq.l	#15,d0			; bit counter
+	moveq.l	#0,d3			; destination word
+	movem.l	d1/a0-a1,-(sp)
+
+.loopX2	tst.b	(a0)+
+	beq.b	.noSetBit
+	bset.l	d0,d3
+.noSetBit	dbra	d0,.loopX2
+	moveq.l	#15,d0
+	move.w	d3,(a1)+
+	moveq.l	#0,d3
+	dbra	d1,.loopX2
+
+	movem.l	(sp)+,d1/a0-a1
+	adda.w	dt_maskBM+bm24_Modulo(a5),a0
+	adda.w	dt_xtraBM+bm24_Modulo(a5),a1
+	dbra	d7,.loopY2
+
+	bra	tdFinalBlit
+
+
+
+
+
+tdDirectionTable
+	dc.w	01,01		; south-east
+	dc.w	00,01		; south
+	dc.w	-1,01		; south-west
+	dc.w	-1,00		;       west
+	dc.w	-1,-1		; north-west
+	dc.w	00,-1		; north
+	dc.w	01,-1		; north-east
+	dc.w	01,00		;       east
+
+
+
+
+tdShadowTypeCast
+	lea.l	dt_maskBM(a5),a1
+	lea.l	dt_textBM(a5),a2
+	movea.l	bm24_Planes(a1),a0
+	movea.l	bm24_Planes(a2),a1
+	move.w	bm24_Modulo(a2),d6
+	add.w	d6,d6
+	adda.w	d6,a0
+	adda.w	d6,a1
+
+**** initialize offset for shadow ****
+
+	move.l	a2,-(sp)
+	move.w	bm24_Modulo(a2),d3
+	lea.l	tdDirectionTable(pc),a2
+	moveq.l	#0,d7
+	move.b	ew_shadowDirection(a4),d7
+	lsl.w	#2,d7
+	lea.l	(a2,d7.w),a2
+
+	move.b	ew_shadowDepth(a4),d7
+	addq.w	#1,d7
+
+	move.w	d7,-(sp)
+	mulu.w	d3,d7
+	muls.w	2(a2),d7
+	move.w	d7,d3
+	move.w	(sp)+,d7
+	muls.w	0(a2),d7
+	add.w	d7,d3
+	move.l	(sp)+,a2
+
+**** initialize other parameters ****
+
+	moveq.l	#1,d2			; value in mask where shadow is drawn
+	move.b	ew_shadowPen(a4),d4	; color which is written as shadow
+
+	move.w	tdi_resultHeight(a3),d0
+	subq.w	#1,d0
+	bmi	TextExit
+	move.w	bm24_Modulo(a2),d1
+	subq.w	#1,d1
+
+.loopY	movem.l	a0-a1/d1,-(sp)
+
+.loopX	tst.b	(a0)
+	bpl	.skip
+	tst.b	(a0,d3.w)
+	bne	.skip
+	move.b	d2,(a0,d3.w)
+	move.b	d4,(a1,d3.w)
+.skip	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d1,.loopX
+
+	movem.l	(sp)+,a0-a1/d1
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY
+
+	bra	tdShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+tdShadowTypeSolid
+	lea.l	dt_maskBM(a5),a1
+	lea.l	dt_textBM(a5),a2
+	movea.l	bm24_Planes(a1),a0
+	movea.l	bm24_Planes(a2),a1
+	move.w	bm24_Modulo(a2),d6
+	add.w	d6,d6
+	adda.w	d6,a0
+	adda.w	d6,a1
+
+**** initialize offset for shadow ****
+
+	moveq.l	#0,d6
+	move.b	ew_shadowDepth(a4),d6
+
+	moveq.l	#1,d2			; value in mask where shadow is drawn
+	move.b	ew_shadowPen(a4),d4	; color which is written as shadow
+
+	move.w	tdi_lineHeight(a3),d0
+	add.w	dt_extraSpace(a5),d0
+	add.w	ew_ySpacing(a4),d0
+	subq.w	#1,d0
+	bmi	tdFinalBlit
+	move.w	bm24_Modulo(a2),d1
+	subq.w	#1,d1
+
+	move.l	a3,-(sp)
+	lea.l	tdDirectionTable(pc),a3
+	moveq.l	#0,d7
+	move.b	ew_shadowDirection(a4),d7
+	lsl.w	#2,d7
+	lea.l	(a3,d7.w),a3
+
+.solid_lp	movem.l	d0/a0-a1,-(sp)
+
+	move.w	bm24_Modulo(a2),d3
+	moveq.l	#0,d7
+	move.b	d6,d7
+	addq.w	#1,d7
+	move.w	d7,-(sp)
+	mulu.w	d3,d7
+	muls.w	2(a3),d7
+	move.w	d7,d3
+	move.w	(sp)+,d7
+	muls.w	0(a3),d7
+	add.w	d7,d3
+
+.loopY	movem.l	a0-a1/d1,-(sp)
+.loopX	tst.b	(a0)
+	bpl	.skip
+	tst.b	(a0,d3.w)
+	bne	.skip
+	move.b	d2,(a0,d3.w)
+	move.b	d4,(a1,d3.w)
+.skip	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d1,.loopX
+	movem.l	(sp)+,a0-a1/d1
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY
+
+	movem.l	(sp)+,d0/a0-a1
+
+	dbra	d6,.solid_lp
+
+	move.l	(sp)+,a3
+	bra	tdShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+
+tdShadowTypeOutline:
+	lea.l	dt_maskBM(a5),a1
+	lea.l	dt_textBM(a5),a2
+	movea.l	bm24_Planes(a1),a0
+	movea.l	bm24_Planes(a2),a1
+	move.w	bm24_Modulo(a2),d6
+	adda.w	d6,a0
+	adda.w	d6,a1
+
+	move.w	bm24_Modulo(a2),d3
+	move.w	d3,d4
+	neg.w	d3
+	move.w	d3,d2
+	add.w	d2,d2
+	adda.w	d4,a0
+	adda.w	d4,a1
+	move.w	d4,d5
+	add.w	d5,d5
+
+**** initialize offset for shadow ****
+
+	moveq.l	#1,d6			; value in mask where shadow is drawn
+	move.b	ew_shadowPen(a4),d7	; color which is written as shadow
+
+	move.w	tdi_lineHeight(a3),d0
+	add.w	dt_extraSpace(a5),d0
+	add.w	ew_ySpacing(a4),d0
+	subq.w	#1,d0
+	bmi	tdFinalBlit
+
+	tst.b	ew_shadowDepth(a4)
+	bne	.loopY2
+
+.loopY	movem.l	a0-a1/d0,-(sp)
+	move.w	bm24_Modulo(a2),d0
+	subq.w	#1,d0
+
+.loopX	tst.b	(a0)
+	bpl	.skip
+
+	tst.b	-1(a0)
+	bne	.skip00
+	move.b	d6,-1(a0)
+	move.b	d7,-1(a1)
+.skip00	tst.b	01(a0)
+	bne	.skip01
+	move.b	d6,01(a0)
+	move.b	d7,01(a1)
+.skip01	tst.b	(a0,d3.w)
+	bne	.skip02
+	move.b	d6,00(a0,d3.w)
+	move.b	d7,00(a1,d3.w)
+.skip02	tst.b	(a0,d4.w)
+	bne	.skip
+	move.b	d6,00(a0,d4.w)
+	move.b	d7,00(a1,d4.w)
+
+.skip	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d0,.loopX
+
+	movem.l	(sp)+,a0-a1/d0
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY
+
+	bra	tdShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+.loopY2	movem.l	a0-a1/d0,-(sp)
+	move.w	bm24_Modulo(a2),d0
+	subq.w	#1,d0
+
+.loopX2	tst.b	(a0)			; is the mask set for this byte ?
+	bpl	.skip2			; no -> go to next byte
+
+	tst.b	00(a0,d3.w)
+	bne	.skip10a
+	move.b	d6,00(a0,d3.w)
+	move.b	d7,00(a1,d3.w)
+.skip10a	tst.b	00(a0,d2.w)
+	bne	.skip10b
+	move.b	d6,00(a0,d2.w)
+	move.b	d7,00(a1,d2.w)
+.skip10b
+	tst.b	00(a0,d4.w)
+	bne	.skip11
+	move.b	d6,00(a0,d4.w)
+	move.b	d7,00(a1,d4.w)
+	tst.b	00(a0,d5.w)
+	bne	.skip11
+	move.b	d6,00(a0,d5.w)
+	move.b	d7,00(a1,d5.w)
+.skip11
+	tst.b	-2(a0)
+	bne	.skip12
+	move.b	d6,-2(a0)
+	move.b	d7,-2(a1)
+	tst.b	-1(a0)
+	bne	.skip12
+	move.b	d6,-1(a0)
+	move.b	d7,-1(a1)
+.skip12
+	tst.b	01(a0)
+	bne	.skip13
+	move.b	d6,01(a0)
+	move.b	d7,01(a1)
+	tst.b	02(a0)
+	bne	.skip13
+	move.b	d6,02(a0)
+	move.b	d7,02(a1)
+.skip13
+
+	tst.b	-1(a0,d2.w)
+	bne	.skip14
+	move.b	d6,-1(a0,d2.w)
+	move.b	d7,-1(a1,d2.w)
+.skip14	tst.b	01(a0,d2.w)
+	bne	.skip15
+	move.b	d6,01(a0,d2.w)
+	move.b	d7,01(a1,d2.w)
+.skip15
+	tst.b	-1(a0,d3.w)
+	bne	.skip17
+	move.b	d6,-1(a0,d3.w)
+	move.b	d7,-1(a1,d3.w)
+	tst.b	-2(a0,d3.w)
+	bne	.skip17
+	move.b	d6,-2(a0,d3.w)
+	move.b	d7,-2(a1,d3.w)
+.skip17	tst.b	01(a0,d3.w)
+	bne	.skip18
+	move.b	d6,01(a0,d3.w)
+	move.b	d7,01(a1,d3.w)
+.skip18	tst.b	02(a0,d3.w)
+	bne	.skip19
+	move.b	d6,02(a0,d3.w)
+	move.b	d7,02(a1,d3.w)
+.skip19
+	tst.b	-1(a0,d4.w)
+	bne	.skip21
+	move.b	d6,-1(a0,d4.w)
+	move.b	d7,-1(a1,d4.w)
+	tst.b	-2(a0,d4.w)
+	bne	.skip21
+	move.b	d6,-2(a0,d4.w)
+	move.b	d7,-2(a1,d4.w)
+.skip21	tst.b	01(a0,d4.w)
+	bne	.skip22
+	move.b	d6,01(a0,d4.w)
+	move.b	d7,01(a1,d4.w)
+.skip22	tst.b	02(a0,d4.w)
+	bne	.skip23
+	move.b	d6,02(a0,d4.w)
+	move.b	d7,02(a1,d4.w)
+.skip23
+	tst.b	-1(a0,d5.w)
+	bne	.skip24
+	move.b	d6,-1(a0,d5.w)
+	move.b	d7,-1(a1,d5.w)
+.skip24	tst.b	01(a0,d5.w)
+	bne	.skip2
+	move.b	d6,01(a0,d5.w)
+	move.b	d7,01(a1,d5.w)
+
+.skip2	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d0,.loopX2
+
+	movem.l	(sp)+,a0-a1/d0
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY2
+
+
+	bra	tdShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+
+tdShadowTypeTransparent:
+	lea.l	dt_maskBM(a5),a1
+	lea.l	dt_textBM(a5),a2
+	movea.l	bm24_Planes(a1),a0
+	movea.l	bm24_Planes(a2),a1
+	move.w	bm24_Modulo(a2),d6
+	adda.w	d6,a0
+	adda.w	d6,a1
+
+	move.w	bm24_Modulo(a2),d3
+	move.w	d3,d4
+	neg.w	d3
+	move.w	d3,d2
+	add.w	d2,d2
+	adda.w	d4,a0
+	adda.w	d4,a1
+	move.w	d4,d5
+	add.w	d5,d5
+
+**** initialize offset for shadow ****
+
+	moveq.l	#1,d6			; value in mask where shadow is drawn
+	move.b	ew_shadowPen(a4),d7	; color which is written as shadow
+
+	move.w	tdi_lineHeight(a3),d0
+	add.w	dt_extraSpace(a5),d0
+	add.w	ew_ySpacing(a4),d0
+	subq.w	#1,d0
+	bmi	tdFinalBlit
+
+	tst.b	ew_shadowDepth(a4)
+	bne	.loopY2
+
+.loopY	movem.l	a0-a1/d0,-(sp)
+	move.w	bm24_Modulo(a2),d0
+	subq.w	#1,d0
+
+.loopX	tst.b	(a0)
+	bpl	.skip
+
+	tst.b	-1(a0)
+	bne	.skip00
+	move.b	d6,-1(a0)
+	move.b	d7,-1(a1)
+.skip00	tst.b	01(a0)
+	bne	.skip01
+	move.b	d6,01(a0)
+	move.b	d7,01(a1)
+.skip01	tst.b	(a0,d3.w)
+	bne	.skip02
+	move.b	d6,(a0,d3.w)
+	move.b	d7,(a1,d3.w)
+.skip02	tst.b	(a0,d4.w)
+	bne	.skip03
+	move.b	d6,(a0,d4.w)
+	move.b	d7,(a1,d4.w)
+.skip03
+
+.skip	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d0,.loopX
+
+	movem.l	(sp)+,a0-a1/d0
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY
+
+
+	movea.l	dt_maskBM+bm24_Planes(a5),a1
+	move.l	dt_maskBM+bm24_rasSize(a5),d2
+.clrloop	tst.b	(a1)+
+	bpl	.nxt
+	clr.b	-1(a1)
+.nxt	subq.l	#1,d2
+	bne	.clrloop
+
+	bra	tdShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+.loopY2	movem.l	a0-a1/d0,-(sp)
+	move.w	bm24_Modulo(a2),d0
+	subq.w	#1,d0
+
+.loopX2	tst.b	(a0)			; is the mask set for this byte ?
+	bpl	.skip2			; no -> go to next byte
+
+	tst.b	00(a0,d3.w)
+	bne	.skip10a
+	move.b	d6,00(a0,d3.w)
+	move.b	d7,00(a1,d3.w)
+.skip10a	tst.b	00(a0,d2.w)
+	bne	.skip10b
+	move.b	d6,00(a0,d2.w)
+	move.b	d7,00(a1,d2.w)
+.skip10b
+	tst.b	00(a0,d4.w)
+	bne	.skip11
+	move.b	d6,00(a0,d4.w)
+	move.b	d7,00(a1,d4.w)
+	tst.b	00(a0,d5.w)
+	bne	.skip11
+	move.b	d6,00(a0,d5.w)
+	move.b	d7,00(a1,d5.w)
+.skip11
+	tst.b	-2(a0)
+	bne	.skip12
+	move.b	d6,-2(a0)
+	move.b	d7,-2(a1)
+	tst.b	-1(a0)
+	bne	.skip12
+	move.b	d6,-1(a0)
+	move.b	d7,-1(a1)
+.skip12
+	tst.b	01(a0)
+	bne	.skip13
+	move.b	d6,01(a0)
+	move.b	d7,01(a1)
+	tst.b	02(a0)
+	bne	.skip13
+	move.b	d6,02(a0)
+	move.b	d7,02(a1)
+.skip13
+
+	tst.b	-1(a0,d2.w)
+	bne	.skip14
+	move.b	d6,-1(a0,d2.w)
+	move.b	d7,-1(a1,d2.w)
+.skip14	tst.b	01(a0,d2.w)
+	bne	.skip15
+	move.b	d6,01(a0,d2.w)
+	move.b	d7,01(a1,d2.w)
+.skip15
+	tst.b	-1(a0,d3.w)
+	bne	.skip17
+	move.b	d6,-1(a0,d3.w)
+	move.b	d7,-1(a1,d3.w)
+	tst.b	-2(a0,d3.w)
+	bne	.skip17
+	move.b	d6,-2(a0,d3.w)
+	move.b	d7,-2(a1,d3.w)
+.skip17	tst.b	01(a0,d3.w)
+	bne	.skip18
+	move.b	d6,01(a0,d3.w)
+	move.b	d7,01(a1,d3.w)
+.skip18	tst.b	02(a0,d3.w)
+	bne	.skip19
+	move.b	d6,02(a0,d3.w)
+	move.b	d7,02(a1,d3.w)
+.skip19
+	tst.b	-1(a0,d4.w)
+	bne	.skip21
+	move.b	d6,-1(a0,d4.w)
+	move.b	d7,-1(a1,d4.w)
+	tst.b	-2(a0,d4.w)
+	bne	.skip21
+	move.b	d6,-2(a0,d4.w)
+	move.b	d7,-2(a1,d4.w)
+.skip21	tst.b	01(a0,d4.w)
+	bne	.skip22
+	move.b	d6,01(a0,d4.w)
+	move.b	d7,01(a1,d4.w)
+.skip22	tst.b	02(a0,d4.w)
+	bne	.skip23
+	move.b	d6,02(a0,d4.w)
+	move.b	d7,02(a1,d4.w)
+.skip23
+	tst.b	-1(a0,d5.w)
+	bne	.skip24
+	move.b	d6,-1(a0,d5.w)
+	move.b	d7,-1(a1,d5.w)
+.skip24	tst.b	01(a0,d5.w)
+	bne	.skip2
+	move.b	d6,01(a0,d5.w)
+	move.b	d7,01(a1,d5.w)
+
+.skip2	addq.w	#1,a0
+	addq.w	#1,a1
+	dbra	d0,.loopX2
+
+	movem.l	(sp)+,a0-a1/d0
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d0,.loopY2
+
+	movea.l	dt_maskBM+bm24_Planes(a5),a1
+	move.l	dt_maskBM+bm24_rasSize(a5),d2
+.clrloop2	tst.b	(a1)+
+	bpl	.nxt2
+	clr.b	-1(a1)
+.nxt2	subq.l	#1,d2
+	bne	.clrloop2
+
+	bra	tdShadowTypeNormal	; this one just does a chunky to planar
+
+
+
+
+
+tdFinalBlit
+	lea.l	dt_xtraBM(a5),a0		; src bitmap
+	movea.l	tdi_dstRPort(a3),a1		; dst rastport
+	moveq.l	#0,d0				; srcx
+	moveq.l	#0,d1				; srcy
+	move.w	tdi_dstXPos(a3),d2		; dstx
+	move.w	tdi_dstYPos(a3),d3		; dsty
+	move.w	ew_Width(a4),d4			; sizex
+	move.w	tdi_resultHeight(a3),d5		; sizey
+	bmi	TextExit
+	beq	TextExit
+	move.w	#(ABC!ABNC!ANBC),d6		; minterm
+	movea.l	tdi_maskBitMap(a3),a2		; maskplane
+	movea.l	dt_GfxBase(a5),a6
+	CALLLIB	_LVOBltMaskBitMapRastPort
+	bra	TextExit
+
+
+
+
+
+
+*******************************************************************
+tdBlitCharNormal
+	movem.l	a1/d6/d7,-(sp)
+	move.w	tf_YSize(a0),d2
+	subq.w	#1,d2
+	subq.w	#1,d5
+	move.w	d5,d6
+	
+	not.w	d4
+	andi.w	#15,d4
+	move.w	d4,d7
+	move.b	tec_charColor(a1),d0
+	move.l	dt_maskPtr(a5),a1
+	moveq	#-1,d1
+
+.loopY	movem.l	a1/a3/a4,-(sp)
+
+	move.w	(a3)+,d3		; prefetch font data
+
+.loopX	btst.l	d4,d3			; is bit set
+	beq	.pixDone		; if clear, don't write
+	move.b	d0,(a4)			; write color to chunky
+	move.b	d1,(a1)			; set mask if text data
+.pixDone
+	dbra	d4,.noForce		; decr bit counter
+
+	moveq.l	#15,d4			; reset bit counter
+	move.w	(a3)+,d3		; fetch font data
+
+.noForce
+	addq.w	#1,a4			; next chunky byte textbm
+	addq.w	#1,a1			; next chunky byte maskbm
+
+	dbra	d5,.loopX		; loop until all x done
+
+	movem.l	(sp)+,a1/a3/a4
+	move.w	d6,d5
+	move.w	d7,d4
+
+	suba.w	tf_Modulo(a0),a3
+	suba.w	bm24_Modulo(a2),a4
+	suba.w	bm24_Modulo(a2),a1
+	dbra	d2,.loopY
+
+	movem.l	(sp)+,a1/d6/d7
+	rts
+*******************************************************************
+
+
+
+
+*******************************************************************
+tdBlitCharSpecial
+	movem.l	a0,-(sp)
+	movea.l	dt_editWindow(a5),a6
+	move.w	tf_YSize(a0),d1
+	subq.w	#1,d1
+	subq.w	#1,d5
+	moveq.l	#0,d7
+	not.w	d4
+	andi.w	#15,d4
+	move.b	tec_charColor(a1),d2
+
+	move.w	d0,d6
+	btst.b	#MFSB_BOLD,tec_charStyle(a1)
+	beq	.setMaskP
+	btst.b	#FSB_BOLD,tf_Style(a0)
+	bne	.setMaskP
+	add.w	tf_BoldSmear(a0),d6
+.setMaskP	movea.l	dt_maskPtr(a5),a0
+	suba.w	d0,a0
+	suba.w	d0,a4
+
+.loopY	movem.l	d0-d1/d4-d6/a3,-(sp)
+	moveq.l	#-1,d1
+.skipX	tst.w	d0
+	bpl	.fetch
+	dbra	d4,.skip
+	moveq.l	#15,d4
+	adda.w	#2,a3
+.skip	addq.w	#1,d0
+	addq.w	#1,d6
+	dbra	d5,.skipX
+	bra	.nextY
+
+.fetch	move.w	(a3)+,d3		; prefetch font data
+
+.loopX	btst.l	d4,d3			; is bit set
+	beq	.pixDone		; if clear, don't write
+	move.b	d2,(a4,d0.w)		; write color to chunky
+	move.b	d2,(a4,d6.w)		; write color for boldsmear
+	move.b	d1,(a0,d0.w)		; write mask to chunky
+	move.b	d1,(a0,d6.w)		; write mask for boldsmear
+.pixDone	dbra	d4,.noForce		; decr bit counter
+	moveq.l	#15,d4			; reset bit counter
+	move.w	(a3)+,d3		; fetch font data
+.noForce	addq.w	#1,d0			; next chunky byte
+	addq.w	#1,d6
+	dbra	d5,.loopX		; loop until all x done
+
+.nextY	movem.l	(sp)+,d0-d1/d4-d6/a3
+	suba.w	bm24_Modulo(a2),a4
+	suba.w	bm24_Modulo(a2),a0
+
+	move.l	a0,-(sp)
+	movea.l	tec_charFont(a1),a0
+	suba.w	tf_Modulo(a0),a3
+	btst.b	#MFSB_ITALIC,tec_charStyle(a1)
+	beq	.incrY
+	btst.b	#FSB_ITALIC,tf_Style(a0)
+	bne	.incrY
+	addq.w	#1,d7
+	cmp.w	ew_slantAmount(a6),d7
+	bne	.incrY
+	moveq.l	#0,d7
+	add.w	ew_slantValue(a6),d0
+	add.w	ew_slantValue(a6),d6
+.incrY	move.l	(sp)+,a0
+
+	dbra	d1,.loopY
+	movem.l	(sp)+,a0
+	rts
+*******************************************************************
+
+
+
+
+*******************************************************************
+tdDrawUnderline
+	movem.l	d1-d4/d6/a0-a2,-(sp)
+	move.b	tec_underlineColor(a1),d4
+	moveq.l	#-1,d6
+
+	lea.l	dt_maskBM(a5),a1
+	lea.l	dt_textBM(a5),a2
+	movea.l	bm24_Planes(a1),a1
+	movea.l	bm24_Planes(a2),a0
+	cmp.b	#SHADOWTYPE_TRANSPARENT,ew_shadowType(a4)
+	bne	.noTrans
+	movea.l	a1,a0
+.noTrans	move.w	tdi_baseLine(a3),d1
+	add.w	dt_extraTopSpace(a5),d1
+	addq.w	#2,d1
+	add.w	ew_underLineOffset(a4),d1
+
+	mulu.w	bm24_Modulo(a2),d1
+	adda.l	d1,a0
+	adda.l	d1,a1
+	adda.w	dt_charStart(a5),a0
+	adda.w	dt_charStart(a5),a1
+	addq.w	#8,a0
+	addq.w	#8,a1
+
+	move.w	tdi_lineHeight(a3),d5
+	sub.w	tdi_baseLine(a3),d5
+	sub.w	ew_underLineOffset(a4),d5
+	bmi	.exit
+
+	move.w	ew_underLineHeight(a4),d2
+
+	cmp.w	d2,d5
+	bhi	.skip
+	move.w	d5,d2
+.skip	subq.w	#1,d2
+	bmi	.exit
+	move.w	d0,d3
+	sub.w	dt_charStart(a5),d3		; for underline drawing
+	subq.l	#1,d3
+
+.loopY	movem.l	d3/a0/a1,-(sp)
+
+.loopX	tst.b	(a1)
+	bmi.b	.skip01
+	move.b	d4,(a0)+
+	move.b	d6,(a1)+
+	dbra	d3,.loopX
+	bra.b	.next
+
+.skip01	addq.l	#1,a0
+	addq.l	#1,a1
+	dbra	d3,.loopX
+
+.next	movem.l	(sp)+,d3/a0/a1
+	adda.w	bm24_Modulo(a2),a0
+	adda.w	bm24_Modulo(a2),a1
+	dbra	d2,.loopY
+
+.exit	movem.l	(sp)+,d1-d4/d6/a0-a2
+	rts
+*******************************************************************
+
+
+
+
+
+*******************************************************************
+PerformAntiAlias:
+	movem.l	d0-d7/a0-a4,-(sp)
+	tst.b	ew_antiAliasLevel(a4)
+	beq	.exit
+
+	lea.l	dt_textBM(a5),a0
+	lea.l	dt_maskBM(a5),a1
+	move.l	a0,dt_aaInfo+aa_SrcBitMap(a5)
+	move.l	a1,dt_aaInfo+aa_MskBitMap(a5)
+
+	move.w	ew_Width(a4),dt_aaInfo+aa_Width(a5)
+	move.w	tdi_lineHeight(a3),d1
+	add.w	dt_extraSpace(a5),d1
+	move.w	d1,dt_aaInfo+aa_Height(a5)
+	move.b	ew_antiAliasLevel(a4),dt_aaInfo+aa_Level(a5)
+
+	move.l	tdi_viewModes(a3),d0
+	move.l	d0,dt_aaInfo+aa_ViewModes(a5)
+	movem.l	d1/a0-a1,-(sp)
+	jsr	@GetPaletteSize(pc)
+	movem.l	(sp)+,d1/a0-a1
+	move.l	d0,dt_aaInfo+aa_PaletteSize(a5)
+	lsl.l	#2,d0
+	addq.l	#4,d0
+	move.l	d0,dt_aaAllocSize(a5)
+	move.l	#MEMF_PUBLIC!MEMF_CLEAR,d1
+	movem.l	a0/a1,-(sp)
+	LINKLIB	_LVOAllocMem,dt_SysBase(a5)
+	movem.l	(sp)+,a0/a1
+	move.l	d0,dt_aaInfo+aa_ColorConversion(a5)
+	beq	.exit
+
+	moveq.l	#0,d2
+
+.loop00	cmp.w	d2,d3
+	bls	.lpend
+	movem.w	d2/d3,-(sp)
+
+	movea.l	dt_TextData(a5),a1
+	movea.l	dt_aaInfo+aa_ColorConversion(a5),a2
+
+	cmp.b	#31,tec_charCode(a1,d2.w)	
+	bls	.skip05
+
+.loop01	move.b	(a2),d0
+	bne	.skip02
+	tst.b	1(a2)
+	beq	.skip03
+.skip02	cmp.b	tec_charColor(a1,d2.w),d0
+	beq	.skip05
+	adda.w	#4,a2
+	bra	.loop01
+
+.skip03	movea.l	tdi_colorMap(a3),a0
+	moveq.l	#0,d0
+	move.b	tec_charColor(a1,d2.w),d0
+	move.b	d0,(a2)+
+	lea.l	dt_RGBtripletsTEXT(a5),a1
+	move.l	dt_aaInfo+aa_ViewModes(a5),d1
+	move.l	d1,d2
+	move.l	d1,-(sp)
+	jsr	GetTrueRGBTable(pc)
+	move.l	(sp)+,d1
+
+	moveq.l	#0,d0
+	tst.w	ew_BackFillType(a4)
+	bne	.doIt
+	move.w	ew_BackFillColor(a4),d0
+
+.doIt	lea.l	dt_RGBtripletsBGND(a5),a1
+	jsr	GetTrueRGBTable(pc)
+
+	move.l	a3,-(sp)
+	moveq.l	#0,d3
+	moveq.l	#0,d7
+	lea.l	dt_RGBtripletsTEXT(a5),a1
+	lea.l	dt_RGBtripletsBGND(a5),a3
+
+	moveq.l	#0,d4
+	move.w	0(a1),d4
+	move.w	0(a3),d7
+	sub.l	d7,d4
+
+	moveq.l	#0,d5
+	move.w	4(a1),d5
+	move.w	4(a3),d7
+	sub.l	d7,d5
+
+	moveq.l	#0,d6
+	move.w	8(a1),d6
+	move.w	8(a3),d7
+	sub.l	d7,d6
+
+	asr.l	#2,d4		; div by four
+	asr.l	#2,d5
+	asr.l	#2,d6
+
+	move.l	0(a3),0(a1)
+	move.l	4(a3),4(a1)
+	move.l	8(a3),8(a1)
+
+	add.w	d4,0(a1)
+	add.w	d5,4(a1)
+	add.w	d6,8(a1)
+
+	move.b	-1(a2),d0
+	move.l	dt_aaInfo+aa_PaletteSize(a5),d1
+
+	move.l	d0,-(sp)
+	jsr	GetBestPenTable(pc)
+	move.b	d0,(a2)+
+	move.l	(sp)+,d0
+
+	add.w	d4,0(a1)
+	add.w	d5,4(a1)
+	add.w	d6,8(a1)
+
+	move.l	d0,-(sp)
+	jsr	GetBestPenTable(pc)
+	move.b	d0,(a2)+
+	move.l	(sp)+,d0
+
+	add.w	d4,0(a1)
+	add.w	d5,4(a1)
+	add.w	d6,8(a1)
+
+	move.l	d0,-(sp)
+	jsr	GetBestPenTable(pc)
+	move.b	d0,(a2)+
+	move.l	(sp)+,d0
+	move.l	(sp)+,a3
+
+.skip05	movem.w	(sp)+,d2/d3
+	addq.w	#tec_SIZE,d2
+	bra	.loop00
+
+
+.lpend	pea.l	dt_aaInfo(a5)
+	jsr	_AntiAlias(pc)
+	lea.l	4(sp),sp
+
+	movea.l	dt_aaInfo+aa_ColorConversion(a5),a1
+	cmpa.w	#0,a1
+	beq	.exit
+	move.l	dt_aaAllocSize(a5),d0
+	LINKLIB	_LVOFreeMem,dt_SysBase(a5)
+
+.exit	movem.l	(sp)+,d0-d7/a0-a4
+	rts
+*******************************************************************
+
+
+
+
+
+
+
+
+;-------------------------------------------------------------------------
+; BOOL AllocPlanes24( struct BitMap24 *bitmap, UBYTE depth, UWORD width,
+;	UWORD height, ULONG memtype, ULONG flags );
+;-------------------------------------------------------------------------
+AllocPlanes24
+	link	a4,#0
+	movem.l	d2-d3/a2/a3,-(sp)
+
+	movea.l	_1stParam(a4),a2
+	cmpa.w	#0,a2
+	beq	.exit
+;-------------------------------------------------------
+	moveq.l	#23,d0
+	lea.l	bm24_Planes(a2),a0
+.lp1_24	clr.l	(a0)+
+	dbra	d0,.lp1_24
+;-------------------------------------------------------
+	move.w	#BM24F_CHUNKY,bm24_Flags24(a2)
+
+	move.b	_2ndParam+3(a4),bm24_Depth(a2)		; depth
+	move.w	_3rdParam+2(a4),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addq.w	#7,d0
+	andi.w	#$FFF8,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a4),d1			; height
+	move.w	d1,bm24_Rows(a2)
+	mulu.w	d1,d0
+	move.l	d0,bm24_rasSize(a2)
+	move.l	d0,d2
+
+.8bit	cmpi.b	#8,bm24_Depth(a2)
+	bls.b	.skip8
+	move.b	#8,bm24_Depth(a2)
+.skip8	move.l	d2,d0
+	move.l	_5thParam(a4),d1			; memType
+	LINKLIB	_LVOAllocMem,dt_SysBase(a5)
+	move.l	d0,bm24_Planes(a2)
+	beq	.error
+;-------------------------------------------------------
+.exit	moveq.l	#TRUE,d0
+.xit	movem.l	(sp)+,d2-d3/a2/a3
+	unlk	a4
+	rts
+.error	moveq.l	#FALSE,d0
+	bra.b	.xit
+
+
+
+;-------------------------------------------------------------------------
+; VOID FreePlanes24( struct BitMap24 *bitmap );
+;-------------------------------------------------------------------------
+FreePlanes24
+	movea.l	4(sp),a2
+	movem.l	d2-d3/a2-a3,-(sp)
+	cmpa.w	#0,a2
+	beq	.exit
+	LINKLIB	_LVOWaitBlit,dt_GfxBase(a5)
+;-------------------------------------------------------
+	movea.l	bm24_Planes(a2),a1
+	cmpa.w	#0,a1
+	beq	.clr24
+	move.l	bm24_rasSize(a2),d0
+	beq	.clr24
+	LINKLIB	_LVOFreeMem,dt_SysBase(a5)
+;-------------------------------------------------------
+.clr24	moveq.l	#23,d0
+	lea.l	bm24_Planes(a2),a0
+.lp1_24	clr.l	(a0)+
+	dbra	d0,.lp1_24
+;-------------------------------------------------------
+.exit	movem.l	(sp)+,d2-d3/a2-a3
+	rts
+
+
+;---- END OF FILE ----------------------------------------------------------

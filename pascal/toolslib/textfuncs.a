@@ -1,0 +1,385 @@
+
+;--- textfuncs.a --------------------------------------------------------+
+; MediaPoint Text Functions. Code written by B.O.M.B. AudioVisual        |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/textfuncs.a 01.006 (10.03.94)
+
+
+	TTL	textfuncs.a
+	IDNT	textfuncs.a
+
+
+NO_TEXTEDIT_INFO	SET	1
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/strings.i"
+	INCLUDE	"graphics/text.i"
+
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"editwindow.i"
+	INCLUDE	"txed.i"
+	INCLUDE	"txedstyles.i"
+
+
+
+	XDEF	_TECharWidth
+	XDEF	@TECharWidth
+	XDEF	_TEExtraSpace
+	XDEF	@TEExtraSpace
+	XDEF	_TECalcFitChars
+	XDEF	@TECalcFitChars
+	XDEF	_TECalcLineWidth
+	XDEF	@TECalcLineWidth
+	XDEF	_TECalcLineHeight
+	XDEF	@TECalcLineHeight
+	XDEF	_TECalcLineOffset
+	XDEF	@TECalcLineOffset
+	XDEF	_TECalcTopOffset
+	XDEF	@TECalcTopOffset
+
+
+
+
+	SECTION	TextFuncs,CODE
+
+
+* UWORD TECharWidth( struct TEChar *text )
+* calculates pixelwidth of specified character
+
+_TECharWidth:
+	move.l	4(sp),a0
+
+@TECharWidth:
+	movem.l	d3-d5/a2,-(sp)
+	moveq.l	#0,d0
+	cmp.b	#31,tec_charCode(a0)
+	bls	.exit
+	movea.l	tec_charFont(a0),a2
+	btst.b	#FPB_PROPORTIONAL,tf_Flags(a2)
+	beq	.nominal
+
+.propor	moveq.l	#0,d3
+	move.b	tec_charCode(a0),d3
+	move.b	tf_LoChar(a2),d4
+	move.b	tf_HiChar(a2),d5
+	cmp.b	d3,d4			; if LoChar > char
+	bhi	.otble1
+	cmp.b	d5,d3			; if char > HiChar
+	bhi	.otble1
+.itble1	sub.b	d4,d3			; char -= LoChar
+	bra	.ofsdne
+.otble1	sub.b	d4,d5
+	addq.b	#1,d5
+	move.b	d5,d3
+
+.ofsdne	lsl.w	#1,d3
+	movea.l	tf_CharKern(a2),a1
+	cmpa.w	#0,a1
+	beq	.skip00
+	add.w	(a1,d3.w),d0		; increase horizontal destX
+.skip00	movea.l	tf_CharSpace(a2),a1
+	cmpa.w	#0,a1
+	bne	.skip01
+	add.w	tf_XSize(a2),d0
+	bra	.tstbld
+.skip01	add.w	(a1,d3.w),d0
+	bra	.tstbld
+
+.nominal	move.w	tf_XSize(a2),d0
+
+.tstbld	btst.b	#MFSB_BOLD,tec_charStyle(a0)
+	beq	.exit
+	btst.b	#FSB_BOLD,tf_Style(a2)
+	bne	.exit
+	add.w	tf_BoldSmear(a2),d0
+
+.exit	movem.l	(sp)+,d3-d5/a2
+	rts
+
+
+
+
+
+* UWORD TEExtraSpace( struct EditWindow * )
+* calculates extra space needed for the shadow in the line
+
+_TEExtraSpace:
+	move.l	4(sp),a0
+
+@TEExtraSpace:
+	moveq.l	#0,d0
+	move.b	ew_shadowType(a0),d1
+	beq	.exit
+	cmp.b	#SHADOWTYPE_CAST,d1
+	beq	.cast
+	cmp.b	#SHADOWTYPE_SOLID,d1
+	beq	.solid
+	cmp.b	#SHADOWTYPE_OUTLINE,d1
+	beq	.outline
+	cmp.b	#SHADOWTYPE_TRANSPARENT,d1
+	beq	.transp
+.exit	rts
+
+.cast
+.solid	cmp.b	#LIGHTSOURCE_E,ew_shadowDirection(a0)
+	beq	.exit
+	cmp.b	#LIGHTSOURCE_W,ew_shadowDirection(a0)
+	beq	.exit
+	move.b	ew_shadowDepth(a0),d0
+	addq.w	#1,d0
+	bra	.exit
+
+.outline
+.transp	moveq.l	#2,d0
+	tst.b	ew_shadowDepth(a0)
+	beq	.exit
+	moveq.l	#4,d0
+	bra	.exit
+
+
+
+* UWORD TECalcFitChars( struct EditWindow *ew, struct TEChar *techar );
+* returns amount of chars fitting in editwindow, start at techar.
+
+
+_TECalcFitChars:
+	move.l	4(sp),a0
+	move.l	8(sp),a1
+
+@TECalcFitChars:
+	movem.l	d3-d5,-(sp)
+
+	move.w	ew_Width(a0),d3
+	sub.w	ew_LeftMargin(a0),d3
+	sub.w	ew_RightMargin(a0),d3
+	moveq.l	#-1,d4			; last space found
+	moveq.l	#0,d0			; character counter
+
+.loop00	move.b	tec_charCode(a1),d5
+	beq	.exit
+	cmp.b	#32,d5
+	bne	.skip00
+	move.w	d0,d4
+.skip00	cmp.b	#LF,d5			; Linefeed ?
+	beq	.exitlf
+
+	movem.l	d0/a0-a1,-(sp)
+	movea.l	a1,a0
+	bsr	@TECharWidth
+	move.w	d0,d1
+	movem.l	(sp)+,d0/a0-a1
+
+	sub.w	d1,d3
+	bmi.b	.tstspc
+	move.w	ew_xSpacing(a0),d1
+	sub.w	d1,d3
+	beq.b	.tstspc
+	bmi.b	.tstspc
+	adda.w	#tec_SIZE,a1
+	addq.w	#1,d0
+	bra.w	.loop00
+
+.tstspc	tst.w	d4			; is there a space found ?
+	bmi	.exit			; if not, we truncate the word
+	move.w	d4,d0			; last character is space
+.exitlf	addq.w	#1,d0
+.exit	movem.l	(sp)+,d3-d5
+	rts
+
+
+* UWORD TECalcLineWidth( struct EditWindow *ew, struct TEChar *techar, UWORD length );
+* returns size of chars techar[0] to techar[length].
+
+_TECalcLineWidth:
+	move.l	04(sp),a0
+	move.l	08(sp),a1
+	move.w	14(sp),d0
+
+@TECalcLineWidth:
+	movem.l	d2,-(sp)
+
+	move.w	d0,d2
+	moveq.l	#0,d0
+
+	subq.w	#1,d2
+	bmi	.exit
+
+.loopX	cmpi.b	#LF,tec_charCode(a1)
+	beq	.exit
+	tst.b	tec_charCode(a1)
+	beq	.exit
+	cmpi.b	#31,tec_charCode(a1)
+	bls	.next
+	cmpi.b	#32,tec_charCode(a1)
+	bne	.chWidth
+	cmpi.b	#31,tec_charCode+tec_SIZE(a1)
+	bls	.exit
+	tst.w	d2
+	beq	.exit
+.chWidth	movem.l	d0/a0-a1,-(sp)
+	movea.l	a1,a0
+	bsr	@TECharWidth
+	move.w	d0,d1
+	movem.l	(sp)+,d0/a0-a1
+	add.w	d1,d0
+.next	addq.w	#tec_SIZE,a1
+	tst.w	d2
+	beq	.exit
+	add.w	ew_xSpacing(a0),d0
+	dbra	d2,.loopX
+
+.exit	movem.l	(sp)+,d2
+	rts
+
+
+
+* ULONG TECalcLineHeight( struct TEChar *text, UWORD length );
+* returns: bits 32:16 - baseLine offset, bits 15:0  - lineHeight
+
+_TECalcLineHeight:
+	move.l	04(sp),a0
+	move.w	10(sp),d0
+
+@TECalcLineHeight:
+	movem.l	d2/a2,-(sp)
+
+	move.w	d0,d2
+	moveq.l	#0,d0
+
+	subq.w	#1,d2
+	bmi	.exit2
+
+	tst.b	tec_charCode(a0)
+	beq	.exit2
+
+	move.l	a0,a2
+
+	cmpi.b	#LF,tec_charCode(a0)
+	bne	.loopX
+	movea.l	tec_charFont(a0),a1
+	move.w	tf_Baseline(a1),d0
+	swap.w	d0
+	move.w	tf_YSize(a1),d0
+	bra	.exit2
+
+.loopX	cmpi.b	#31,tec_charCode(a0)
+	bls	.next
+
+	movea.l	tec_charFont(a0),a1
+.chk_hi	swap.w	d0
+	cmp.w	tf_Baseline(a1),d0
+	bhi	.chk_lo
+	move.w	tf_Baseline(a1),d0
+
+.chk_lo	swap.w	d0
+	move.w	tf_YSize(a1),d1
+	sub.w	tf_Baseline(a1),d1
+	cmp.w	d0,d1
+	bls	.next
+	move.w	d1,d0
+
+.next	addq.w	#tec_SIZE,a0
+	dbra	d2,.loopX
+
+
+.exit	move.l	d0,d1
+	swap.w	d1
+	add.w	d1,d0
+	beq	.empty				; if no printable scan backw.
+.exit2	movem.l	(sp)+,d2/a2
+	rts
+
+
+.empty	move.l	a2,a0
+.empty02	subq.w	#8,a0
+	cmpa.l	a0,a2
+	bhi	.exit2
+	cmpi.b	#31,tec_charCode(a0)
+	bls	.empty02
+	movea.l	tec_charFont(a0),a1
+	move.w	tf_Baseline(a1),d0
+	swap.w	d0
+	move.w	tf_YSize(a1),d0
+	bra	.exit2
+
+
+
+* UWORD TECalcLineOffset( struct EditWindow *ew, UWORD width );
+* returns the size from the left border of the window to the text in pixels
+
+_TECalcLineOffset
+	move.l	04(sp),a0
+	move.w	10(sp),d0
+@TECalcLineOffset
+	move.w	d0,d1
+
+	move.w	ew_LeftMargin(a0),d0
+	cmp.b	#JUSTIFICATION_LEFT,ew_justification(a0)
+	beq	.exit
+	move.w	ew_Width(a0),d0
+	sub.w	ew_RightMargin(a0),d0
+	cmp.b	#JUSTIFICATION_RIGHT,ew_justification(a0)
+	beq	.right
+
+.center	sub.w	ew_LeftMargin(a0),d0		; take total space available
+	lsr.w	#1,d0				; divide by two
+	add.w	ew_LeftMargin(a0),d0		; correct left margin (we're at center)
+	lsr.w	#1,d1				; divide space for text by two
+.right	sub.w	d1,d0				; move the offset to the left
+.exit	rts
+
+
+
+
+* UWORD TECalcTopOffset( struct EditWindow *ew );
+* returns the size from the top of line to the text
+
+_TECalcTopOffset
+	move.l	04(sp),a0
+@TECalcTopOffset
+	moveq.l	#0,d0
+	tst.b	ew_shadowType(a0)
+	beq	.exit
+	cmpi.b	#SHADOWTYPE_TRANSPARENT,ew_shadowType(a0)
+	beq	.setTrOut
+	cmpi.b	#SHADOWTYPE_OUTLINE,ew_shadowType(a0)
+	beq	.setTrOut
+
+	cmpi.b	#LIGHTSOURCE_W,ew_shadowDirection(a0)
+	bls	.exit
+	cmpi.b	#LIGHTSOURCE_NE,ew_shadowDirection(a0)
+	bhi	.exit
+	moveq.l	#1,d0
+	add.b	ew_shadowDepth(a0),d0
+	bra	.exit
+
+.setTrOut	moveq.l	#1,d0
+	tst.b	ew_shadowDepth(a0)
+	beq	.exit
+	addq.w	#1,d0
+.exit	rts
+
+
+
+	END
+
+
+
+****************** END OF FILE *******************

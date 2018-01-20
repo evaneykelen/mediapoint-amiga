@@ -1,0 +1,50 @@
+cd gen:
+update
+
+; xapps
+
+cd ion:
+del #?.o
+smake >ram:ion
+cop
+
+cd cdtv:
+del #?.o
+smake >ram:cdtv
+cop
+
+cd pdev:
+del #?.o
+smake >ram:pdev
+cop
+
+cd iv24:
+del #?.o
+smake >ram:iv24
+cop
+
+cd cdxl:
+update
+smake >ram:cdxl
+cop
+
+cd sample:
+update
+smake >ram:sample
+cop
+
+cd s16:
+update
+smake >ram:s16
+cop
+
+cd midi:
+update
+smake >ram:midi
+cop
+
+cd art:
+update
+smake >ram:art
+cop
+

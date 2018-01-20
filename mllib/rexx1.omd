@@ -1,0 +1,516 @@
+SAS AMIGA 680x0OBJ Module Disassembler V6.01
+Copyright © 1992 SAS Institute, Inc.
+
+
+Amiga Object File Loader V1.00
+68000 Instruction Set
+
+EXTERNAL DEFINITIONS
+
+_LIBUA_IssueRexxCmd_V1 0000-00    _GetARexxMsg_V1 00B6-00    
+_ReplyARexxMsg_V1 011E-00    _SendARexxMsg_V1 0194-00    _FreeARexx_V1 028E-00
+_SetARexxLastError 0352-00
+
+SECTION 00 "text" 000003AC BYTES
+;   1: #include "mllib_includes.h"
+;   2: #include <clib/rexxsyslib_protos.h>
+;   3: #include <clib/alib_protos.h>
+;   4: #include <rexx/errors.h>
+;   5: #include <rexx/storage.h>
+;   6: #include <rexx/rxslib.h>
+;   7: #include "rexx.h"
+;   8: 
+;   9: /*******************************************************************/
+;  10: /*
+;  11:  *   PUBLIC FUNCTIONS
+;  12:  *
+;  13:  *******************************************************************/
+;  14: 
+;  15: BOOL __saveds __asm LIBUA_IssueRexxCmd_V1(register __a0 STRPTR appName,
+;  16: 																					register __a1 STRPTR command,
+;  17: 																					register __a2 STRPTR result,
+;  18: 																					register __d0 BOOL resultWanted,
+;  19: 																					register __d1 int max )
+;  20: {
+       | 0000  9EFC 000C                      SUBA.W      #000C,A7
+       | 0004  48E7 3F3E                      MOVEM.L     D2-D7/A2-A6,-(A7)
+       | 0008  2C01                           MOVE.L      D1,D6
+       | 000A  2E00                           MOVE.L      D0,D7
+       | 000C  2649                           MOVEA.L     A1,A3
+       | 000E  2A48                           MOVEA.L     A0,A5
+       | 0010  49EE  0000-XX.2                LEA         _LinkerDB(A6),A4
+;  21: AREXXCONTEXT *RexxStuff;
+;  22: struct FileHandle *FH;
+;  23: BOOL retval = FALSE;
+       | 0014  7A00                           MOVEQ       #00,D5
+       | 0016  2F4E 002C                      MOVE.L      A6,002C(A7)
+;  24: int read;
+;  25: 
+;  26: 	if ( resultWanted )
+       | 001A  4A47                           TST.W       D7
+       | 001C  671E                           BEQ.B       003C
+;  27: 		FH = (struct FileHandle *)Open("T:RC",MODE_NEWFILE);
+       | 001E  41EC  0000-01.2                LEA         01.00000000(A4),A0
+       | 0022  2208                           MOVE.L      A0,D1
+       | 0024  2C6C  0000-XX.2                MOVEA.L     _DOSBase(A4),A6
+       | 0028  243C 0000 03EE                 MOVE.L      #000003EE,D2
+       | 002E  4EAE FFE2                      JSR         FFE2(A6)
+       | 0032  2C6F 002C                      MOVEA.L     002C(A7),A6
+       | 0036  2F40 0030                      MOVE.L      D0,0030(A7)
+       | 003A  6004                           BRA.B       0040
+;  28: 	else
+;  29: 		FH = NULL;
+       | 003C  42AF 0030                      CLR.L       0030(A7)
+;  30: 
+;  31: 	RexxStuff=InitARexx(appName);
+       | 0040  2F0D                           MOVE.L      A5,-(A7)
+       | 0042  2C6F 0030                      MOVEA.L     0030(A7),A6
+       | 0046  4EBA  0000-XX.1                JSR         _InitARexx(PC)
+       | 004A  584F                           ADDQ.W      #4,A7
+       | 004C  2F40 0034                      MOVE.L      D0,0034(A7)
+;  32: 
+;  33: 	if (RexxStuff)
+       | 0050  6744                           BEQ.B       0096
+;  34: 	{
+;  35: 		retval = SendARexxMsg_V1(RexxStuff,command,FH);
+       | 0052  2F2F 0030                      MOVE.L      0030(A7),-(A7)
+       | 0056  2F0B                           MOVE.L      A3,-(A7)
+       | 0058  2F00                           MOVE.L      D0,-(A7)
+       | 005A  6100 0138                      BSR.W       0194
+       | 005E  2A00                           MOVE.L      D0,D5
+;  36: 		FreeARexx_V1(RexxStuff);
+       | 0060  2EAF 0040                      MOVE.L      0040(A7),(A7)
+       | 0064  6100 0228                      BSR.W       028E
+       | 0068  4FEF 000C                      LEA         000C(A7),A7
+;  37: 		if ( resultWanted )
+       | 006C  4A47                           TST.W       D7
+       | 006E  6726                           BEQ.B       0096
+;  38: 		{
+;  39: 			Seek((BPTR)FH,0,OFFSET_BEGINNING);
+       | 0070  202F 0030                      MOVE.L      0030(A7),D0
+       | 0074  2200                           MOVE.L      D0,D1
+       | 0076  2C6C  0000-XX.2                MOVEA.L     _DOSBase(A4),A6
+       | 007A  7400                           MOVEQ       #00,D2
+       | 007C  76FF                           MOVEQ       #FF,D3
+       | 007E  4EAE FFBE                      JSR         FFBE(A6)
+;  40: 			read = Read((BPTR)FH,result,max);
+       | 0082  202F 0030                      MOVE.L      0030(A7),D0
+       | 0086  2200                           MOVE.L      D0,D1
+       | 0088  240A                           MOVE.L      A2,D2
+       | 008A  2606                           MOVE.L      D6,D3
+       | 008C  4EAE FFD6                      JSR         FFD6(A6)
+       | 0090  2800                           MOVE.L      D0,D4
+;  41: 			result[read]='\0';			
+       | 0092  4232 4800                      CLR.B       00(A2,D4.L)
+       | 0096  2C6F 002C                      MOVEA.L     002C(A7),A6
+;  42: 		}
+;  43: 	}
+;  44: 
+;  45: 	if ( FH )
+       | 009A  202F 0030                      MOVE.L      0030(A7),D0
+       | 009E  670A                           BEQ.B       00AA
+;  46: 		Close((BPTR)FH);
+       | 00A0  2200                           MOVE.L      D0,D1
+       | 00A2  2C6C  0000-XX.2                MOVEA.L     _DOSBase(A4),A6
+       | 00A6  4EAE FFDC                      JSR         FFDC(A6)
+;  47: 
+;  48: 	return(retval);
+       | 00AA  3005                           MOVE.W      D5,D0
+;  49: }
+       | 00AC  4CDF 7CFC                      MOVEM.L     (A7)+,D2-D7/A2-A6
+       | 00B0  DEFC 000C                      ADDA.W      #000C,A7
+       | 00B4  4E75                           RTS
+;  50: 
+;  51: /*******************************************************************/
+;  52: /*
+;  53:  *   PRIVATE FUNCTIONS
+;  54:  *
+;  55:  *******************************************************************/
+;  56: 
+;  57: struct RexxMsg *GetARexxMsg_V1(AREXXCONTEXT *RexxContext)
+;  58: {
+       | 00B6  594F                           SUBQ.W      #4,A7
+       | 00B8  48E7 0116                      MOVEM.L     D7/A3/A5-A6,-(A7)
+       | 00BC  2A6F 0018                      MOVEA.L     0018(A7),A5
+;  59: register struct RexxMsg *tmp=NULL;
+       | 00C0  97CB                           SUBA.L      A3,A3
+       | 00C2  2F4E 0010                      MOVE.L      A6,0010(A7)
+;  60: register short flag;
+;  61: 
+;  62: 	if (RexxContext)
+       | 00C6  200D                           MOVE.L      A5,D0
+       | 00C8  674A                           BEQ.B       0114
+;  63: 	{
+;  64: 		if (tmp=(struct RexxMsg *)GetMsg(RexxContext->ARexxPort))
+       | 00CA  2055                           MOVEA.L     (A5),A0
+       | 00CC  2C6C  0000-XX.2                MOVEA.L     _SysBase(A4),A6
+       | 00D0  4EAE FE8C                      JSR         FE8C(A6)
+       | 00D4  2640                           MOVEA.L     D0,A3
+       | 00D6  2C6F 0010                      MOVEA.L     0010(A7),A6
+       | 00DA  200B                           MOVE.L      A3,D0
+       | 00DC  6736                           BEQ.B       0114
+;  65: 		{
+;  66: 			if (tmp->rm_Node.mn_Node.ln_Type==NT_REPLYMSG)
+       | 00DE  7007                           MOVEQ       #07,D0
+       | 00E0  B02B 0008                      CMP.B       0008(A3),D0
+       | 00E4  662E                           BNE.B       0114
+;  67: 			{
+;  68:         flag=FALSE;
+       | 00E6  7E00                           MOVEQ       #00,D7
+;  69:         if (tmp->rm_Result1) flag=TRUE;
+       | 00E8  4AAB 0020                      TST.L       0020(A3)
+       | 00EC  6702                           BEQ.B       00F0
+       | 00EE  7E01                           MOVEQ       #01,D7
+;  70:         DeleteArgstring(tmp->rm_Args[0]);
+       | 00F0  206B 0028                      MOVEA.L     0028(A3),A0
+       | 00F4  2C6D 0004                      MOVEA.L     0004(A5),A6
+       | 00F8  4EAE FF7C                      JSR         FF7C(A6)
+;  71:         DeleteRexxMsg(tmp);
+       | 00FC  204B                           MOVEA.L     A3,A0
+       | 00FE  4EAE FF6A                      JSR         FF6A(A6)
+;  72:         RexxContext->Outstanding-=1;
+       | 0102  53AD 0008                      SUBQ.L      #1,0008(A5)
+;  73:         tmp=flag ? REXX_RETURN_ERROR : NULL;
+       | 0106  4A47                           TST.W       D7
+       | 0108  6708                           BEQ.B       0112
+       | 010A  307C FFFF                      MOVEA.W     #FFFF,A0
+       | 010E  2648                           MOVEA.L     A0,A3
+       | 0110  6002                           BRA.B       0114
+       | 0112  97CB                           SUBA.L      A3,A3
+;  74: 			}
+;  75: 		}
+;  76: 	}
+;  77:   return(tmp);
+       | 0114  200B                           MOVE.L      A3,D0
+;  78: }
+       | 0116  4CDF 6880                      MOVEM.L     (A7)+,D7/A3/A5-A6
+       | 011A  584F                           ADDQ.W      #4,A7
+       | 011C  4E75                           RTS
+;  79: 
+;  80: void ReplyARexxMsg_V1(AREXXCONTEXT *RexxContext, struct RexxMsg *rmsg, char *RString, LONG Error)
+;  81: {
+       | 011E  514F                           SUBQ.W      #8,A7
+       | 0120  48E7 0116                      MOVEM.L     D7/A3/A5-A6,-(A7)
+       | 0124  2E2F 0028                      MOVE.L      0028(A7),D7
+       | 0128  266F 0020                      MOVEA.L     0020(A7),A3
+       | 012C  2A6F 001C                      MOVEA.L     001C(A7),A5
+;  82: 	if ((RexxContext) && (rmsg) && (rmsg!=REXX_RETURN_ERROR))
+       | 0130  2F4E 0014                      MOVE.L      A6,0014(A7)
+       | 0134  200D                           MOVE.L      A5,D0
+       | 0136  6754                           BEQ.B       018C
+       | 0138  200B                           MOVE.L      A3,D0
+       | 013A  6750                           BEQ.B       018C
+       | 013C  307C FFFF                      MOVEA.W     #FFFF,A0
+       | 0140  B7C8                           CMPA.L      A0,A3
+       | 0142  6748                           BEQ.B       018C
+;  83: 	{
+;  84: 		rmsg->rm_Result2=0;
+       | 0144  42AB 0024                      CLR.L       0024(A3)
+;  85: 		if (!(rmsg->rm_Result1=Error))
+       | 0148  2007                           MOVE.L      D7,D0
+       | 014A  2740 0020                      MOVE.L      D0,0020(A3)
+       | 014E  6632                           BNE.B       0182
+;  86: 		{
+;  87: 			if ((rmsg->rm_Action & (1L << RXFB_RESULT)) && (RString))
+       | 0150  082B 0011 001D                 BTST        #0011,001D(A3)
+       | 0156  672A                           BEQ.B       0182
+       | 0158  4AAF 0024                      TST.L       0024(A7)
+       | 015C  6724                           BEQ.B       0182
+;  88: 			{
+;  89: 				rmsg->rm_Result2=(LONG)CreateArgstring(RString,(LONG)strlen(RString));
+       | 015E  206F 0024                      MOVEA.L     0024(A7),A0
+       | 0162  2008                           MOVE.L      A0,D0
+       | 0164  4A18                           TST.B       (A0)+
+       | 0166  66FC                           BNE.B       0164
+       | 0168  5388                           SUBQ.L      #1,A0
+       | 016A  91C0                           SUBA.L      D0,A0
+       | 016C  2F48 0010                      MOVE.L      A0,0010(A7)
+       | 0170  2040                           MOVEA.L     D0,A0
+       | 0172  202F 0010                      MOVE.L      0010(A7),D0
+       | 0176  2C6D 0004                      MOVEA.L     0004(A5),A6
+       | 017A  4EAE FF82                      JSR         FF82(A6)
+       | 017E  2740 0024                      MOVE.L      D0,0024(A3)
+;  90: 			}
+;  91: 		}
+;  92: 		ReplyMsg((struct Message *)rmsg);
+       | 0182  224B                           MOVEA.L     A3,A1
+       | 0184  2C6C  0000-XX.2                MOVEA.L     _SysBase(A4),A6
+       | 0188  4EAE FE86                      JSR         FE86(A6)
+;  93: 	}
+;  94: }
+       | 018C  4CDF 6880                      MOVEM.L     (A7)+,D7/A3/A5-A6
+       | 0190  504F                           ADDQ.W      #8,A7
+       | 0192  4E75                           RTS
+;  95: 
+;  96: short SendARexxMsg_V1(AREXXCONTEXT *RexxContext, char *RString, struct FileHandle *FH)
+;  97: {
+       | 0194  514F                           SUBQ.W      #8,A7
+       | 0196  48E7 0136                      MOVEM.L     D7/A2-A3/A5-A6,-(A7)
+;  98: register struct MsgPort *RexxPort;
+;  99: register struct RexxMsg *rmsg;
+; 100: register short flag=FALSE;
+       | 019A  7E00                           MOVEQ       #00,D7
+; 101: 
+; 102: 	if ((RexxContext) && (RString))
+       | 019C  2F4E 0018                      MOVE.L      A6,0018(A7)
+       | 01A0  4AAF 0020                      TST.L       0020(A7)
+       | 01A4  6700 00DE                      BEQ.W       0284
+       | 01A8  4AAF 0024                      TST.L       0024(A7)
+       | 01AC  6700 00D6                      BEQ.W       0284
+; 103: 	{
+; 104: 		if (rmsg=CreateRexxMsg(RexxContext->ARexxPort, RexxContext->Extension,
+       | 01B0  206F 0020                      MOVEA.L     0020(A7),A0
+       | 01B4  2248                           MOVEA.L     A0,A1
+       | 01B6  D2FC 0040                      ADDA.W      #0040,A1
+       | 01BA  45E8 000C                      LEA         000C(A0),A2
+; 105: 				RexxContext->PortName))
+       | 01BE  200A                           MOVE.L      A2,D0
+       | 01C0  2050                           MOVEA.L     (A0),A0
+       | 01C2  2C6F 0020                      MOVEA.L     0020(A7),A6
+       | 01C6  2C6E 0004                      MOVEA.L     0004(A6),A6
+       | 01CA  4EAE FF70                      JSR         FF70(A6)
+       | 01CE  2640                           MOVEA.L     D0,A3
+       | 01D0  2C6F 0018                      MOVEA.L     0018(A7),A6
+       | 01D4  200B                           MOVE.L      A3,D0
+       | 01D6  6700 00AC                      BEQ.W       0284
+; 106: 		{
+; 107: 			rmsg->rm_Action=RXCOMM | (1L << RXFB_STRING);
+       | 01DA  277C 0104 0000 001C            MOVE.L      #01040000,001C(A3)
+; 108: 			if (rmsg->rm_Args[0]=CreateArgstring(RString,(LONG)strlen(RString)))
+       | 01E2  206F 0024                      MOVEA.L     0024(A7),A0
+       | 01E6  2008                           MOVE.L      A0,D0
+       | 01E8  4A18                           TST.B       (A0)+
+       | 01EA  66FC                           BNE.B       01E8
+       | 01EC  5388                           SUBQ.L      #1,A0
+       | 01EE  91C0                           SUBA.L      D0,A0
+       | 01F0  2F48 0014                      MOVE.L      A0,0014(A7)
+       | 01F4  2040                           MOVEA.L     D0,A0
+       | 01F6  202F 0014                      MOVE.L      0014(A7),D0
+       | 01FA  2C6F 0020                      MOVEA.L     0020(A7),A6
+       | 01FE  2C6E 0004                      MOVEA.L     0004(A6),A6
+       | 0202  4EAE FF82                      JSR         FF82(A6)
+       | 0206  2740 0028                      MOVE.L      D0,0028(A3)
+       | 020A  2C6F 0018                      MOVEA.L     0018(A7),A6
+       | 020E  6766                           BEQ.B       0276
+; 109: 			{
+; 110: 				if ( FH )
+       | 0210  202F 0028                      MOVE.L      0028(A7),D0
+       | 0214  6704                           BEQ.B       021A
+; 111: 				{
+; 112: 					rmsg->rm_Stdout = (LONG)FH;
+       | 0216  2740 0078                      MOVE.L      D0,0078(A3)
+; 113: 				}
+; 114: 				Forbid();
+       | 021A  2C6C  0000-XX.2                MOVEA.L     _SysBase(A4),A6
+       | 021E  4EAE FF7C                      JSR         FF7C(A6)
+; 115: 				if(RexxPort=FindPort(RXSDIR))
+       | 0222  43EC  0006-01.2                LEA         01.00000006(A4),A1
+       | 0226  4EAE FE7A                      JSR         FE7A(A6)
+       | 022A  2A40                           MOVEA.L     D0,A5
+       | 022C  2C6F 0018                      MOVEA.L     0018(A7),A6
+       | 0230  200D                           MOVE.L      A5,D0
+       | 0232  6716                           BEQ.B       024A
+; 116: 				{
+; 117: 					PutMsg(RexxPort,(struct Message *)rmsg);
+       | 0234  204D                           MOVEA.L     A5,A0
+       | 0236  224B                           MOVEA.L     A3,A1
+       | 0238  2C6C  0000-XX.2                MOVEA.L     _SysBase(A4),A6
+       | 023C  4EAE FE92                      JSR         FE92(A6)
+; 118: 					RexxContext->Outstanding+=1;
+       | 0240  206F 0020                      MOVEA.L     0020(A7),A0
+       | 0244  52A8 0008                      ADDQ.L      #1,0008(A0)
+; 119: 					flag=TRUE;
+       | 0248  7E01                           MOVEQ       #01,D7
+; 120: 				}
+; 121: 				Permit();
+       | 024A  2C6C  0000-XX.2                MOVEA.L     _SysBase(A4),A6
+       | 024E  4EAE FF76                      JSR         FF76(A6)
+; 122: 				if(!RexxPort)
+       | 0252  200D                           MOVE.L      A5,D0
+       | 0254  2C6F 0018                      MOVEA.L     0018(A7),A6
+       | 0258  6616                           BNE.B       0270
+; 123: 				{
+; 124: 					DeleteArgstring(rmsg->rm_Args[0]);
+       | 025A  206B 0028                      MOVEA.L     0028(A3),A0
+       | 025E  2C6F 0020                      MOVEA.L     0020(A7),A6
+       | 0262  2C6E 0004                      MOVEA.L     0004(A6),A6
+       | 0266  4EAE FF7C                      JSR         FF7C(A6)
+; 125: 					DeleteRexxMsg(rmsg);
+       | 026A  204B                           MOVEA.L     A3,A0
+       | 026C  4EAE FF6A                      JSR         FF6A(A6)
+       | 0270  2C6F 0018                      MOVEA.L     0018(A7),A6
+       | 0274  600E                           BRA.B       0284
+; 126: 				}
+; 127: 			}
+; 128: 			else
+; 129: 			{
+; 130: 				DeleteRexxMsg(rmsg);
+       | 0276  204B                           MOVEA.L     A3,A0
+       | 0278  2C6F 0020                      MOVEA.L     0020(A7),A6
+       | 027C  2C6E 0004                      MOVEA.L     0004(A6),A6
+       | 0280  4EAE FF6A                      JSR         FF6A(A6)
+; 131: 			}
+; 132: 		}
+; 133: 	}
+; 134:   return(flag);
+       | 0284  3007                           MOVE.W      D7,D0
+; 135: } 
+       | 0286  4CDF 6C80                      MOVEM.L     (A7)+,D7/A2-A3/A5-A6
+       | 028A  504F                           ADDQ.W      #8,A7
+       | 028C  4E75                           RTS
+; 136: 
+; 137: void FreeARexx_V1(AREXXCONTEXT *RexxContext)
+; 138: {
+       | 028E  594F                           SUBQ.W      #4,A7
+       | 0290  48E7 0016                      MOVEM.L     A3/A5-A6,-(A7)
+       | 0294  2A6F 0014                      MOVEA.L     0014(A7),A5
+       | 0298  2F4E 000C                      MOVE.L      A6,000C(A7)
+; 139: register struct RexxMsg *rmsg;
+; 140: 
+; 141: 	if (RexxContext)
+       | 029C  200D                           MOVE.L      A5,D0
+       | 029E  6700 00AA                      BEQ.W       034A
+; 142: 	{
+; 143: 		RexxContext->PortName[0]='\0';
+       | 02A2  422D 000C                      CLR.B       000C(A5)
+; 144: 		while (RexxContext->Outstanding)
+       | 02A6  4AAD 0008                      TST.L       0008(A5)
+       | 02AA  6744                           BEQ.B       02F0
+; 145: 		{
+; 146: 			WaitPort(RexxContext->ARexxPort);
+       | 02AC  2055                           MOVEA.L     (A5),A0
+       | 02AE  2C6C  0000-XX.2                MOVEA.L     _SysBase(A4),A6
+       | 02B2  4EAE FE80                      JSR         FE80(A6)
+       | 02B6  2C6F 000C                      MOVEA.L     000C(A7),A6
+; 147: 			while (rmsg=GetARexxMsg_V1(RexxContext))
+       | 02BA  2F0D                           MOVE.L      A5,-(A7)
+       | 02BC  6100 FDF8                      BSR.W       00B6
+       | 02C0  584F                           ADDQ.W      #4,A7
+       | 02C2  2640                           MOVEA.L     D0,A3
+       | 02C4  200B                           MOVE.L      A3,D0
+       | 02C6  67DE                           BEQ.B       02A6
+; 148: 			{
+; 149: 				if (rmsg!=REXX_RETURN_ERROR)
+       | 02C8  307C FFFF                      MOVEA.W     #FFFF,A0
+       | 02CC  B1CB                           CMPA.L      A3,A0
+       | 02CE  67EA                           BEQ.B       02BA
+; 150: 				{
+; 151: 					SetARexxLastError(RexxContext,rmsg,"99: Port Closed!");
+       | 02D0  486C  000C-01.2                PEA         01.0000000C(A4)
+       | 02D4  2F0B                           MOVE.L      A3,-(A7)
+       | 02D6  2F0D                           MOVE.L      A5,-(A7)
+       | 02D8  6100 0078                      BSR.W       0352
+; 152: 					ReplyARexxMsg_V1(RexxContext,rmsg,NULL,100);
+       | 02DC  4878 0064                      PEA         0064
+       | 02E0  42A7                           CLR.L       -(A7)
+       | 02E2  2F0B                           MOVE.L      A3,-(A7)
+       | 02E4  2F0D                           MOVE.L      A5,-(A7)
+       | 02E6  6100 FE36                      BSR.W       011E
+       | 02EA  4FEF 001C                      LEA         001C(A7),A7
+; 153: 				}
+; 154: 			}
+       | 02EE  60CA                           BRA.B       02BA
+; 155: 		}
+; 156: 
+; 157: 		if (RexxContext->ARexxPort)
+       | 02F0  4A95                           TST.L       (A5)
+       | 02F2  6736                           BEQ.B       032A
+; 158: 		{
+; 159: 			while (rmsg=GetARexxMsg_V1(RexxContext))
+       | 02F4  2F0D                           MOVE.L      A5,-(A7)
+       | 02F6  6100 FDBE                      BSR.W       00B6
+       | 02FA  584F                           ADDQ.W      #4,A7
+       | 02FC  2640                           MOVEA.L     D0,A3
+       | 02FE  200B                           MOVE.L      A3,D0
+       | 0300  6720                           BEQ.B       0322
+; 160: 			{
+; 161: 				SetARexxLastError(RexxContext,rmsg,"99: Port Closed!");
+       | 0302  486C  001E-01.2                PEA         01.0000001E(A4)
+       | 0306  2F0B                           MOVE.L      A3,-(A7)
+       | 0308  2F0D                           MOVE.L      A5,-(A7)
+       | 030A  6100 0046                      BSR.W       0352
+; 162: 				ReplyARexxMsg_V1(RexxContext,rmsg,NULL,100);
+       | 030E  4878 0064                      PEA         0064
+       | 0312  42A7                           CLR.L       -(A7)
+       | 0314  2F0B                           MOVE.L      A3,-(A7)
+       | 0316  2F0D                           MOVE.L      A5,-(A7)
+       | 0318  6100 FE04                      BSR.W       011E
+       | 031C  4FEF 001C                      LEA         001C(A7),A7
+; 163: 			}
+       | 0320  60D2                           BRA.B       02F4
+; 164: 			DeletePort(RexxContext->ARexxPort);
+       | 0322  2F15                           MOVE.L      (A5),-(A7)
+       | 0324  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 0328  584F                           ADDQ.W      #4,A7
+       | 032A  2C6F 000C                      MOVEA.L     000C(A7),A6
+; 165: 		}
+; 166: 		if (RexxContext->RexxSysBase) CloseLibrary(RexxContext->RexxSysBase);
+       | 032E  202D 0004                      MOVE.L      0004(A5),D0
+       | 0332  670A                           BEQ.B       033E
+       | 0334  2240                           MOVEA.L     D0,A1
+       | 0336  2C6C  0000-XX.2                MOVEA.L     _SysBase(A4),A6
+       | 033A  4EAE FE62                      JSR         FE62(A6)
+; 167: 		FreeMem(RexxContext,sizeof(AREXXCONTEXT));
+       | 033E  224D                           MOVEA.L     A5,A1
+       | 0340  2C6C  0000-XX.2                MOVEA.L     _SysBase(A4),A6
+       | 0344  7048                           MOVEQ       #48,D0
+       | 0346  4EAE FF2E                      JSR         FF2E(A6)
+; 168: 	}
+; 169: }
+       | 034A  4CDF 6800                      MOVEM.L     (A7)+,A3/A5-A6
+       | 034E  584F                           ADDQ.W      #4,A7
+       | 0350  4E75                           RTS
+; 170: 
+; 171: short SetARexxLastError(AREXXCONTEXT *RexxContext, struct RexxMsg *rmsg, char *ErrorString)
+; 172: {
+       | 0352  594F                           SUBQ.W      #4,A7
+       | 0354  48E7 0114                      MOVEM.L     D7/A3/A5,-(A7)
+       | 0358  266F 0018                      MOVEA.L     0018(A7),A3
+       | 035C  2A6F 0014                      MOVEA.L     0014(A7),A5
+; 173: register short OkFlag=FALSE;
+       | 0360  7E00                           MOVEQ       #00,D7
+; 174: 
+; 175: 	if (RexxContext && rmsg && CheckRexxMsg((struct Message *)rmsg))
+       | 0362  2F4E 000C                      MOVE.L      A6,000C(A7)
+       | 0366  200D                           MOVE.L      A5,D0
+       | 0368  6738                           BEQ.B       03A2
+       | 036A  200B                           MOVE.L      A3,D0
+       | 036C  6734                           BEQ.B       03A2
+       | 036E  2F0B                           MOVE.L      A3,-(A7)
+       | 0370  4EBA  0000-XX.1                JSR         _CheckRexxMsg(PC)
+       | 0374  584F                           ADDQ.W      #4,A7
+       | 0376  4A40                           TST.W       D0
+       | 0378  6728                           BEQ.B       03A2
+; 176: 	{
+; 177: 		if (!SetRexxVar((struct Message *)rmsg,RexxContext->ErrorName,ErrorString,(long)strlen(ErrorString)))
+       | 037A  41ED 0024                      LEA         0024(A5),A0
+       | 037E  226F 001C                      MOVEA.L     001C(A7),A1
+       | 0382  2009                           MOVE.L      A1,D0
+       | 0384  4A19                           TST.B       (A1)+
+       | 0386  66FC                           BNE.B       0384
+       | 0388  5389                           SUBQ.L      #1,A1
+       | 038A  93C0                           SUBA.L      D0,A1
+       | 038C  2F09                           MOVE.L      A1,-(A7)
+       | 038E  2F00                           MOVE.L      D0,-(A7)
+       | 0390  2F08                           MOVE.L      A0,-(A7)
+       | 0392  2F0B                           MOVE.L      A3,-(A7)
+       | 0394  4EBA  0000-XX.1                JSR         _SetRexxVar(PC)
+       | 0398  4FEF 0010                      LEA         0010(A7),A7
+       | 039C  4A80                           TST.L       D0
+       | 039E  6602                           BNE.B       03A2
+; 178: 		{
+; 179: 			OkFlag=TRUE;
+       | 03A0  7E01                           MOVEQ       #01,D7
+; 180: 		}
+; 181: 	}
+; 182: 	return(OkFlag);
+       | 03A2  3007                           MOVE.W      D7,D0
+; 183: }
+       | 03A4  4CDF 2880                      MOVEM.L     (A7)+,D7/A3/A5
+       | 03A8  584F                           ADDQ.W      #4,A7
+       | 03AA  4E75                           RTS
+
+SECTION 01 "__MERGED" 00000030 BYTES
+0000 54 3A 52 43 00 00 52 45 58 58 00 00 39 39 3A 20 T:RC..REXX..99: 
+0010 50 6F 72 74 20 43 6C 6F 73 65 64 21 00 00 39 39 Port Closed!..99
+0020 3A 20 50 6F 72 74 20 43 6C 6F 73 65 64 21 00 00 : Port Closed!..

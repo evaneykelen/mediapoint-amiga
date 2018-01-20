@@ -1,0 +1,12 @@
+	section code
+
+	XDEF	_Int_GlobEProcServer
+	XREF	_Int_GlobEProcHandler
+		
+_Int_GlobEProcServer:
+	movem.l	a0/a1,-(a7)
+	jsr		_Int_GlobEProcHandler
+	addq.l	#8,a7
+	rts
+
+	END

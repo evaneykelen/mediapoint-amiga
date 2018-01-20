@@ -1,0 +1,7 @@
+del fyeview.o
+del worker.o
+del doit.o
+del getargs.o
+del setup.o
+del screen.o
+del iff.o

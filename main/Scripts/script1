@@ -1,0 +1,69 @@
+SCRIPTTALK 4, 0
+
+STARTSER
+
+	STARTSER "Root"
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Accommodation", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Aircraft", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Arrow_Down", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Arrow_Left", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Arrow_Left_Down", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Arrow_Left_Up", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Arrow_Right", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Arrow_Right_Down", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Arrow_Right_Up", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Pictograms/Arrow_Up", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+	ENDSER
+
+ENDSER

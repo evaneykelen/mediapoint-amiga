@@ -1,0 +1,10 @@
+/* */
+options results
+address 'Neptun' GET MONITOR STATUS
+say result
+address 'Neptun' GET KEY STATUS
+say result
+address 'Neptun' GET AMIGA FADER
+say result
+address 'Neptun' GET AMIGA POTI
+say result

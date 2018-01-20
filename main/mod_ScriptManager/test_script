@@ -1,0 +1,45 @@
+SCRIPTTALK 3, 0
+
+STARTSER
+
+	STARTSER "Root"
+
+		START
+			PAGE "Work:MediaPoint/Graphics/ClipArt/Answer_False", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:10:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			ANIM "Work:Media-Point/Graphics/Animations/Beam", OFF, 1, 15, OFF, OFF, 0, 20, 0, 0
+			DURATION 00:00:10:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			SOUND "Work:MediaPoint/Sounds/Modules/Dirt", 64, 0, 1, CONTINUE
+			DURATION 00:00:10:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			AREXX "WB_2.X:S/accessories", "", DEFER, SCRIPT
+			DURATION 00:00:10:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			DOS "WB_2.X:S/shell-startup", "", DEFER, SCRIPT
+			DURATION 00:00:10:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			XAPP "CDXL", "", "\"Work:MediaPoint/Graphics/Animations/pump.cdxl\" 14 1 1"
+			DURATION 00:00:10:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+	ENDSER
+
+ENDSER

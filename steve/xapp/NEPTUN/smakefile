@@ -1,0 +1,34 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK
+AFLAGS = -iINCLUDE
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+# these are my applications
+APP1 = Neptun
+
+# the modules needed by each application
+APP10 =		setup.o worker.o doit.o\
+					lib:/source/_main.o demo:gen/general.o demo:gen/support.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib 
+#lib:amiga.lib lib:debug.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

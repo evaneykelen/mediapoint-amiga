@@ -1,0 +1,8 @@
+PlaySamp                14-Nov-94 14:33:35  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text          818 playsampone.o    playsamp code            0    0       70
+                       loadsampone.o    loadsamp code           70    0      444
+                       asm/soundplay.o  <noname> code          4b4    0      2a0
+                       lib:sc.lib       _CXD33.o code          754    0       c4
+   1 __MERGED       10 loadsampone.o    loadsamp data            0    0       10

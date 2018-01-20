@@ -1,0 +1,45 @@
+	include	'exec/types.i'
+	include	'exec/resident.i'
+	include	'exec/nodes.i'
+	include	'exec/libraries.i'
+
+	include 'mpmmu_rev.i'
+
+PRI	equ	0
+
+	xref	__LibName
+	xref	RESLEN
+	xref	_BSSBAS		; linker defined base of BSS
+	xref	_BSSLEN		; linker defined length of BSS
+	xref	_LibFuncTab
+	xref	__LibInitTab
+	xref	endtag
+	xref	_LibInit
+	xdef	__LibRomTag
+	xdef	__VerString
+
+	SECTION text,CODE
+	
+	moveq	#20,d0
+	rts
+
+__VerString: VSTRING
+
+	cnop 0,2
+__LibRomTag:
+	dc.w	RTC_MATCHWORD
+	dc.l	__LibRomTag
+	dc.l	endtag
+	dc.b	RTF_AUTOINIT
+	dc.b	VERSION
+	dc.b	NT_LIBRARY
+	dc.b	PRI
+	dc.l	__LibName
+	dc.l	__VerString
+	dc.l	__LibInitTab
+
+	section __MERGED,data
+	xdef __Libmergeddata
+__Libmergeddata	dc.l 0
+	end
+	

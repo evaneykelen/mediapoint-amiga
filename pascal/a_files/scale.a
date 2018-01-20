@@ -1,0 +1,1456 @@
+
+;--- scale.a ------------------------------------------------------------+
+; MediaPoint Fast Scale Routine. Code written by B.O.M.B. AudioVisual    |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/scale.a 01.103 (19/05/93)
+
+
+	TTL	scale.a
+	IDNT	scale.a
+
+
+	INCDIR "include:"
+
+	INCLUDE "exec/types.i"
+	INCLUDE "exec/funcdef.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE "exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE "graphics/gfx.i"
+	INCLUDE	"graphics/graphics_lib.i"
+	INCLUDE "graphics/view.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE "scale.i"
+	INCLUDE	"macros.i"
+
+
+
+	xref	_SysBase
+	xref	_GfxBase
+
+	xref	_LVOGetBitMapAttr
+
+	xdef	_FastBitMapScale
+
+
+
+;-------------------------------------------------------------------------
+; func: _FastBitMapScale( struct BitScaleArgs * )
+;-------------------------------------------------------------------------
+; Fast BMScale Routine. Performs same sort of bitmap scale as the 2.0
+; function does. Limited scaling to sourcebitmap is supported. No out-of-
+; bitmap checks are performed.
+;
+; fbsa_Flags definitions :
+;
+; bit 0 - SCALE_CONVERT_TO_GRAY - Convert to 16 or less grayscales. Amount
+;   of scales is determinded from depth of destination bitmap. First 
+;   reserved longword in BSA must point to colormap of picture.
+;
+; bit 1 - SCALE_CONVERT_HAM - Convert HAM pictures (if any) to grayscales.
+;   Decision whether picture is HAM is taken from 2nd reserved longword in
+;   bitscaleargs structure, which must contain viewmodes parameter. Flag
+;   SCALE_CONVERT_TO_GRAY must also be set to enable the conversion.
+;-------------------------------------------------------------------------
+
+_FastBitMapScale
+;-------------------------------------------------------------------------
+fbs_jumptable	equ	-64
+fbs_convtabaddr	equ	-68
+fbs_convtabsize	equ	-72
+fbs_srcrows	equ	-78
+fbs_dstrows	equ	-80
+fbs_srcbytes	equ	-82
+fbs_dstbytes	equ	-84
+fbs_srcrowbytes	equ	-86
+fbs_dstrowbytes	equ	-88
+fbs_srcdepth	equ	-90
+fbs_dstdepth	equ	-92
+fbs_dstploffset	equ	-96
+fbs_srcplanes	equ	-100
+fbs_dstplanes	equ	-104
+fbs_depthcount	equ	-106
+fbs_srcypixels	equ	-108
+fbs_dstypixels	equ	-110
+fbs_deltay	equ	-114
+fbs_srcwidth	equ	-116
+fbs_precalcaddr	equ	-120
+fbs_precalcsize	equ	-124
+fbs_dstxpixels	equ	-126
+fbs_dstbitstart	equ	-128
+fbs_scalefactor	equ	-132
+fbs_srcy	equ	-134
+fbs_reg_a4	equ	-138
+fbs_stcksize	equ	-138
+
+;-------------------------------------------------------------------------
+	link	a5,#fbs_stcksize
+	movem.l	d0-d7/a0-a6,-(sp)
+	move.l	a4,fbs_reg_a4(a5)
+;-------------------------------------------------------------------------
+	clr.l	fbs_precalcaddr(a5)
+	clr.l	fbs_precalcsize(a5)
+	clr.l	fbs_convtabaddr(a5)
+	clr.l	fbs_convtabsize(a5)
+
+	move.l	_1stParam(a5),a4
+	move.l	_GfxBase,a6
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.s	.V39
+
+.V34	move.l	fbsa_SrcBitMap(a4),a0
+	clrf.l	d0
+	move.b	bm_Depth(a0),d0
+	move.w	d0,fbs_srcdepth(a5)
+	move.w	bm_Rows(a0),fbs_srcrows(a5)
+	move.w	bm_BytesPerRow(a0),d1
+	move.w	d1,fbs_srcbytes(a5)
+	IsInterleaved	a0,a1
+	bhi.b	.V34_a
+	mulu.w	d0,d1
+.V34_a	move.w	d1,fbs_srcrowbytes(a5)
+	move.l	fbsa_DestBitMap(a4),a0
+	moveq.l	#0,d0
+	move.b	bm_Depth(a0),d0
+	move.w	d0,fbs_dstdepth(a5)
+	move.w	bm_Rows(a0),fbs_dstrows(a5)
+	move.w	bm_BytesPerRow(a0),d1
+	move.w	d1,fbs_dstbytes(a5)
+	IsInterleaved	a0,a1
+	bhi.b	.V34_b
+	mulu.w	d0,d1
+.V34_b	move.w	d1,fbs_dstrowbytes(a5)
+	bra.w	.continue
+
+.V39	move.l	fbsa_SrcBitMap(a4),a0
+	move.l	#BMA_DEPTH,d1
+	CALLLIB	_LVOGetBitMapAttr
+	move.w	d0,fbs_srcdepth(a5)
+
+	move.l	fbsa_SrcBitMap(a4),a0
+	move.l	#BMA_HEIGHT,d1
+	CALLLIB	_LVOGetBitMapAttr
+	move.w	d0,fbs_srcrows(a5)
+
+	move.l	fbsa_SrcBitMap(a4),a0
+	move.l	#BMA_WIDTH,d1
+	CALLLIB	_LVOGetBitMapAttr
+	move.l	d0,d2
+	addq.l	#7,d2
+	lsr.l	#3,d2
+	move.w	d2,fbs_srcbytes(a5)
+
+	move.l	fbsa_SrcBitMap(a4),a0
+	move.l	#BMA_FLAGS,d1
+	CALLLIB	_LVOGetBitMapAttr
+	btst	#2,d0
+	beq.s	.V39_a
+	mulu	fbs_srcdepth(a5),d2
+.V39_a	move.w	d2,fbs_srcrowbytes(a5)
+
+	move.l	fbsa_DestBitMap(a4),a0
+	move.l	#BMA_DEPTH,d1
+	CALLLIB	_LVOGetBitMapAttr
+	move.w	d0,fbs_dstdepth(a5)
+
+	move.l	fbsa_DestBitMap(a4),a0
+	move.l	#BMA_HEIGHT,d1
+	CALLLIB	_LVOGetBitMapAttr
+	move.w	d0,fbs_dstrows(a5)
+
+	move.l	fbsa_DestBitMap(a4),a0
+	move.l	#BMA_WIDTH,d1
+	CALLLIB	_LVOGetBitMapAttr
+	move.l	d0,d2
+	addq.l	#7,d2
+	lsr.l	#3,d2
+	move.w	d2,fbs_dstbytes(a5)
+
+	move.l	fbsa_DestBitMap(a4),a0
+	move.l	#BMA_FLAGS,d1
+	CALLLIB	_LVOGetBitMapAttr
+	btst	#BMB_INTERLEAVED,d0
+	beq.s	.V39_b
+	mulu	fbs_dstdepth(a5),d2
+.V39_b	move.w	d2,fbs_dstrowbytes(a5)
+
+.continue
+	btst.b	#SCALEB_CONVERT_TO_GRAY,fbsa_Flags+3(a4)
+	beq.w	do_the_scale
+
+	move.w	fbs_srcdepth(a5),d2
+	moveq.l	#1,d0
+	lsl.l	d2,d0
+	move.l	d0,fbs_convtabsize(a5)
+	moveq.l	#MEMF_ANY,d1
+	LINKLIB	_LVOAllocMem,_SysBase
+	move.l	d0,fbs_convtabaddr(a5)
+	beq.w	free
+
+	move.w	fbs_dstdepth(a5),d0
+	cmp.b	#4,d0
+	bhi.w	initjumps4
+	beq.w	initjumps4
+	cmp.b	#3,d0
+	beq.w	initjumps3
+	cmp.b	#2,d0
+	beq.w	initjumps2
+	cmp.b	#1,d0
+	beq.w	initjumps1
+	bra.w	free
+;-------------------------------------------------------------------------
+convert_cmap				; rtnpoint from jumptable init
+	move.l	fbsa_SrcViewModes(a4),d1
+	andi.l	#V_HAM,d1
+	bne.w	do_the_scale
+
+	movea.l	_GfxBase,a6
+	movea.l	fbs_convtabaddr(a5),a2
+	move.w	fbs_srcdepth(a5),d0
+	moveq	#1,d5
+	lsl.l	d0,d5
+	moveq	#0,d4
+.skip02	moveq	#0,d0
+	movea.l	fbsa_SrcColorMap(a4),a0
+	move.l	d4,d0
+	CALLLIB	_LVOGetRGB4
+	move.w	d0,d2
+	move.w	d0,d3
+	and.w	#$F00,d3		; factor 3
+	and.w	#$0F0,d2		; factor 6
+	and.w	#$00F,d0		; factor 1
+	lsr.w	#8,d3
+	lsr.w	#3,d2
+	add.w	d3,d0
+	add.w	d3,d0
+	add.w	d3,d0
+	add.w	d2,d0
+	add.w	d2,d0
+	add.w	d2,d0
+	divu	#10,d0
+	move.l	d0,d2
+	swap	d2
+	tst.w	d2
+	beq.s	.skip01
+	addq.w	#1,d0
+.skip01	lsl.b	#2,d0
+	move.b	d0,(a2)+
+	addq.w	#1,d4
+	cmp.w	d4,d5
+	bne.s	.skip02
+	move.l	fbsa_SrcViewModes(a4),d1
+	andi.l	#V_EXTRA_HALFBRITE,d1
+	beq.s	do_the_scale
+	move.l	fbs_convtabaddr(a5),a0
+	move.l	fbs_convtabsize(a5),d0
+	lsr.l	#1,d0
+	lea	0(a0,d0.w),a1
+	subq.w	#1,d0
+.skip03	move.b	(a0)+,d1
+	and.b	#$1C,d1
+	move.b	d1,(a1)+
+	dbra	d0,.skip03
+;-------------------------------------------------------------------------
+; preparation for scaling / memory allocation
+;-------------------------------------------------------------------------
+do_the_scale
+	move.w	fbsa_SrcWidth(a4),d0
+	mulu.w	fbsa_XDestFactor(a4),d0
+	divu.w	fbsa_XSrcFactor(a4),d0
+	move.w	d0,fbs_dstxpixels(a5)
+	move.w	d0,fbsa_DestWidth(a4)
+	mulu.w	#6,d0
+	move.l	d0,fbs_precalcsize(a5)
+	moveq.l	#MEMF_ANY,d1
+	LINKLIB	_LVOAllocMem,_SysBase
+	move.l	d0,fbs_precalcaddr(a5)
+	beq.w	free
+;-------------------------------------------------------------------------
+	move.w	fbsa_SrcHeight(a4),d0
+	move.w	d0,fbs_srcypixels(a5)
+	mulu.w	fbsa_YDestFactor(a4),d0
+	divu.w	fbsa_YSrcFactor(a4),d0
+	move.w	d0,fbsa_DestHeight(a4)
+	move.w	d0,fbs_dstypixels(a5)
+
+	move.w	fbs_srcdepth(a5),fbs_depthcount(a5)
+	sub.w	#1,fbs_depthcount(a5)
+	move.l	fbsa_SrcBitMap(a4),a0
+	move.l	fbsa_DestBitMap(a4),a1
+	lea	bm_Planes(a0),a0
+	lea	bm_Planes(a1),a1
+	move.l	a0,fbs_srcplanes(a5)
+	move.l	a1,fbs_dstplanes(a5)
+
+	move.w	fbsa_SrcWidth(a4),fbs_srcwidth(a5)
+	movea.l	fbs_precalcaddr(a5),a3
+	move.w	fbs_srcwidth(a5),d3
+	move.w	fbs_dstxpixels(a5),d4
+	ext.l	d3
+	ext.l	d4
+	swap.w	d3
+	move.l	d3,d1
+	move.l	d4,d2
+	bsr.w	divs32
+	move.l	d1,fbs_scalefactor(a5)
+
+	moveq.l	#0,d3
+.loop10	move.l	fbs_scalefactor(a5),d1
+	move.l	d3,d2
+	bsr.w	mul
+	swap.w	d1
+	move.w	d1,d5
+	add.w	fbsa_SrcX(a4),d5
+	move.w	d5,d4
+	lsr.w	#3,d4
+	ext.l	d4
+	move.l	d4,(a3)+
+	move.w	d5,d4
+	and.w	#$0007,d4
+	moveq.l	#7,d7
+	sub.w	d4,d7
+	move.w	d7,(a3)+
+
+	inc.w	d3
+	cmp.w	fbs_dstxpixels(a5),d3
+	bne.s	.loop10
+;-------------------------------------------------------------------------
+; Actual bitmap scaling. Uses the precalculated values from the part above.
+;-------------------------------------------------------------------------
+
+	move.w	fbsa_DestY(a4),d0
+	mulu	fbs_dstrowbytes(a5),d0
+	move.l	d0,fbs_dstploffset(a5)
+	clrf.l	d0
+	move.w	fbsa_DestX(a4),d0
+	divu.w	#8,d0
+	swap.w	d0
+	move.w	#7,fbs_dstbitstart(a5)
+	sub.w	d0,fbs_dstbitstart(a5)
+	swap.w	d0
+	ext.l	d0
+	add.l	d0,fbs_dstploffset(a5)
+
+;-------------------------------------------------------------------------
+
+	movea.l	fbs_dstplanes(a5),a6
+	movea.l	(a6)+,a0
+	movea.l	(a6)+,a1
+	movea.l	(a6)+,a2
+	movea.l	(a6)+,a3
+
+	btst.b	#SCALEB_CONVERT_TO_GRAY,fbsa_Flags+3(a4)
+	beq.b	scale_no_conversion
+	move.l	fbsa_SrcViewModes(a4),d0
+	and.w	#V_HAM,d0
+	beq.w	scale_with_conversion
+	cmp.w	#8,fbs_srcdepth(a5)
+	beq.w	scale_and_convert_ham8
+	cmp.w	#6,fbs_srcdepth(a5)
+	bne.b	scale_no_conversion
+	btst	#SCALEB_CONVERT_HAM,fbsa_Flags+3(a4)
+	bne.w	scale_and_convert_ham
+	bra.w	scale_with_conversion
+
+free	move.l	fbs_precalcaddr(a5),d0
+	beq.s	.free_b
+	movea.l	d0,a1
+	move.l	fbs_precalcsize(a5),d0
+	LINKLIB	_LVOFreeMem,_SysBase
+.free_b	move.l	fbs_convtabaddr(a5),d0
+	beq.s	.exit
+	movea.l	d0,a1
+	move.l	fbs_convtabsize(a5),d0
+	LINKLIB	_LVOFreeMem,_SysBase
+.exit	movem.l	(sp)+,d0-d7/a0-a6
+	unlk	a5
+	rts
+
+;-------------------------------------------------------------------------
+
+scale_no_conversion
+
+	move.w	fbs_srcdepth(a5),d0
+	move.w	fbs_dstdepth(a5),d1
+	move.w	d1,d2
+	cmp.w	d0,d1
+	bls.s	.skip32
+	move.w	d0,d2
+.skip32	movea.l	fbs_srcplanes(a5),a0
+	movea.l	fbs_dstplanes(a5),a1
+	move.l	d2,-(sp)
+	move.w	fbs_srcypixels(a5),d1
+	move.w	fbs_dstypixels(a5),d2
+	ext.l	d1
+	ext.l	d2
+	swap	d1
+	bsr.w	divs32
+	move.l	d1,fbs_scalefactor(a5)
+	move.l	(sp)+,d2
+	bra.b	.skip37
+.loop30	movea.l	(a0)+,a2
+	movea.l	(a1)+,a3
+	clr.w	fbs_deltay(a5)
+.loop31	move.l	d2,-(sp)
+	move.l	fbs_scalefactor(a5),d1
+	move.w	fbs_deltay(a5),d2
+	bsr.w	mul
+	swap.w	d1
+	move.w	d1,d6
+	add.w	fbsa_SrcY(a4),d6
+	mulu.w	fbs_srcrowbytes(a5),d6
+	move.l	(sp)+,d2
+	move.w	fbs_dstbitstart(a5),d0
+	move.w	fbs_deltay(a5),d1
+
+	mulu.w	fbs_dstrowbytes(a5),d1
+	add.l	fbs_dstploffset(a5),d1
+
+	move.w	fbs_dstxpixels(a5),d5
+	dec.w	d5
+	movea.l	fbs_precalcaddr(a5),a6
+
+.loop32	move.l	(a6)+,d4
+	move.w	(a6)+,d7
+	add.l	d6,d4
+	btst	d7,(a2,d4.l)
+	beq.s	.bitclr
+
+.bitset	bset	d0,(a3,d1.l)
+	dbra	d0,.skip30
+	moveq	#7,d0
+	addq.l	#1,d1
+.skip30	dbra	d5,.loop32
+	bra.s	.nxtln1
+
+.bitclr	bclr	d0,0(a3,d1.l)
+	dbra	d0,.skip36
+	moveq	#7,d0
+	addq.l	#1,d1
+.skip36	dbra	d5,.loop32
+
+.nxtln1	inc.w	fbs_deltay(a5)
+	move.w	fbs_deltay(a5),d5
+	cmp.w	fbs_dstypixels(a5),d5
+	bne.b	.loop31
+
+.skip37	dbra	d2,.loop30
+	bra.w	free
+
+;-------------------------------------------------------------------------
+
+scale_with_conversion
+
+	move.w	fbsa_SrcY(a4),fbs_srcy(a5)
+
+	move.w	fbs_srcypixels(a5),d1
+	move.w	fbs_dstypixels(a5),d2
+	ext.l	d1
+	ext.l	d2
+	swap	d1
+	bsr.w	divs32
+	move.l	d1,fbs_scalefactor(a5)
+	clr.w	fbs_deltay(a5)
+
+.loop20	move.w	fbs_dstxpixels(a5),d5
+	dec.w	d5
+	move.l	fbs_precalcaddr(a5),a4
+
+	move.l	fbs_scalefactor(a5),d1
+	move.w	fbs_deltay(a5),d2
+	ext.l	d2
+	bsr.w	mul
+	swap	d1
+	move.w	d1,d6
+
+.skip21	add.w	fbs_srcy(a5),d6
+	mulu.w	fbs_srcrowbytes(a5),d6
+	move.w	fbs_dstbitstart(a5),d0
+	move.w	fbs_deltay(a5),d1
+	mulu.w	fbs_dstrowbytes(a5),d1
+	add.l	fbs_dstploffset(a5),d1
+.loop21	move.l	(a4)+,d4
+	move.w	(a4)+,d7
+	add.l	d6,d4
+	move.w	fbs_depthcount(a5),d2
+	move.l	a0,-(sp)
+	move.l	fbs_srcplanes(a5),a0
+
+.loop22	move.l	(a0)+,a6
+	btst	d7,0(a6,d4.l)
+	sne	d3
+	ror.w	#1,d3
+	dbra	d2,.loop22
+
+	clr.b	d3
+	move.w	fbs_srcdepth(a5),d2
+	rol.w	d2,d3
+
+	move.l	fbs_convtabaddr(a5),a0
+	move.b	(a0,d3.w),d3
+	ext.w	d3
+	move.l	fbs_jumptable(a5,d3.w),a6
+	move.l	(sp)+,a0
+
+	jsr	(a6)
+
+	dbra	d0,.skip20
+	moveq	#7,d0
+	addq.l	#1,d1
+.skip20	dbra	d5,.loop21
+
+	inc.w	fbs_deltay(a5)
+	move.w	fbs_deltay(a5),d5
+	cmp.w	fbs_dstypixels(a5),d5
+	bne.w	.loop20
+	bra.w	free
+
+;-------------------------------------------------------------------------
+
+scale_and_convert_ham
+
+	move.w	fbsa_SrcY(a4),fbs_srcy(a5)
+
+	move.w	fbs_srcypixels(a5),d1
+	move.w	fbs_dstypixels(a5),d2
+	ext.l	d1
+	ext.l	d2
+	swap	d1
+	bsr.w	divs32
+	move.l	d1,fbs_scalefactor(a5)
+	clr.w	fbs_deltay(a5)
+
+.loop40	move.w	fbs_srcwidth(a5),d5
+	dec.w	d5
+	movea.l	fbs_precalcaddr(a5),a4
+
+	move.l	fbs_scalefactor(a5),d1
+	move.w	fbs_deltay(a5),d2
+	ext.l	d2
+	bsr.w	mul
+	swap.w	d1
+	move.w	d1,d6
+	add.w	fbs_srcy(a5),d6
+	mulu.w	fbs_srcrowbytes(a5),d6
+
+	movea.l	_1stParam(a5),a0
+	movea.l	fbsa_SrcColorMap(a0),a0
+	clrf.l	d0
+	LINKLIB	_LVOGetRGB4,_GfxBase
+	move.l	d0,d3
+
+	move.w	fbs_dstbitstart(a5),d0
+	move.w	fbs_deltay(a5),d1
+	mulu.w	fbs_dstrowbytes(a5),d1
+	add.l	fbs_dstploffset(a5),d1
+
+	moveq.l	#7,d7
+	move.l	d6,d4
+
+;-------------------------------------------------------------------------
+.loop41	clrf.l	d2
+	movea.l	fbs_srcplanes(a5),a1
+	movea.l	16(a1),a6
+	btst.b	d7,(a6,d4.l)
+	beq.s	.bitCLR
+	ori.b	#%01,d2
+
+.bitSET	movea.l	20(a1),a6
+	btst.b	d7,(a6,d4.l)
+	beq.s	.modify
+	ori.b	#%10,d2
+	bra.s	.modify
+
+.bitCLR	movea.l	20(a1),a6
+	btst.b	d7,(a6,d4.l)
+	beq.s	.hold
+	ori.b	#%10,d2
+	bra.s	.modify
+
+;-------------------------------------------------------------------------
+; We found a new base (hold) color that must be copied to the register
+;-------------------------------------------------------------------------
+.hold	clr.w	d3
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	ror.w	#1,d3
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	ror.w	#1,d3
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	ror.w	#1,d3
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	rol.w	#3,d3
+	and.l	#%1111,d3
+
+	movem.l	d0-d1,-(sp)
+	movea.l	_1stParam(a5),a0
+	movea.l	fbsa_SrcColorMap(a0),a0
+	move.l	d3,d0
+	LINKLIB	_LVOGetRGB4,_GfxBase
+	move.l	d0,d3
+	movem.l	(sp)+,d0-d1
+
+	bra.w	.colordetermined
+;-------------------------------------------------------------------------
+; The register must be modified to obtain the correct new color
+;-------------------------------------------------------------------------
+.modify	cmp.b	#%10,d2
+	bne.s	.mdfyGR
+
+.mdfyRD	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	clr.b	d2
+	lsr.w	#4,d2
+	and.w	#$0FF,d3
+	or.w	d2,d3
+	bra.b	.colordetermined
+
+.mdfyGR	cmp.b	#%11,d2
+	bne.s	.mdfyBL
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	clr.b	d2
+	lsr.w	#8,d2
+	and.w	#$F0F,d3
+	or.w	d2,d3
+	bra.s	.colordetermined
+
+.mdfyBL	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	clr.b	d2
+	rol.w	#4,d2
+	and.w	#$FF0,d3
+	or.w	d2,d3
+
+;-------------------------------------------------------------------------
+; Now we've collected the R, G and B bits which must be averaged to obtain
+; the correct grayscale and place the pixel onscreen.
+;-------------------------------------------------------------------------
+.colordetermined
+	sub.l	d6,d4
+
+	cmp.l	0(a4),d4
+	bne.s	.skip70
+	cmp.w	4(a4),d7
+	bne.s	.skip70
+
+	movem.l	d0-d1,-(sp)
+	move.w	d3,d0
+	move.w	d3,d1
+	move.w	d3,d2
+	and.w	#$F00,d0
+	and.w	#$0F0,d1
+	and.w	#$00F,d2
+	lsr.w	#7,d0
+	lsr.w	#3,d1
+	add.w	d0,d2
+	lsr.w	#1,d0
+	add.w	d0,d2
+	add.w	d1,d2
+	add.w	d1,d2
+	add.w	d1,d2
+	divu	#10,d2
+	move.l	d2,d1
+	swap	d1
+	tst.w	d1
+	beq.s	.skip60
+	inc.w	d2
+.skip60	lsl.w	#2,d2
+	movea.l	fbs_dstplanes(a5),a6
+	movea.l	(a6)+,a0
+	movea.l	(a6)+,a1
+	movea.l	fbs_jumptable(a5,d2.w),a6
+	movem.l	(sp)+,d0-d1
+
+	jsr	(a6)
+
+	dbra	d0,.skip63
+	moveq	#7,d0
+	inc.l	d1
+
+.skip63	adda.w	#6,a4
+	move.l	00(a4),d2
+	cmp.l	-6(a4),d2
+	bne.s	.skip70
+	move.w	04(a4),d2
+	cmp.w	-2(a4),d2
+	beq.s	.skip65
+
+;	move.l	06(a4),d2
+;	cmp.l	00(a4),d2
+;	bne.s	.skip70
+;	move.w	10(a4),d2
+;	cmp.w	04(a4),d2
+;	beq.s	.skip65
+
+.skip70	dbra	d7,.skip65
+	moveq.l	#7,d7
+	inc.l	d4
+
+.skip65	add.l	d6,d4
+	dbra	d5,.loop41
+
+	inc.w	fbs_deltay(a5)
+	move.w	fbs_deltay(a5),d5
+	cmp.w	fbs_dstypixels(a5),d5
+	bne.w	.loop40
+
+	bra.w	free
+
+;-------------------------------------------------------------------------
+
+scale_and_convert_ham8
+
+	move.w	fbsa_SrcY(a4),fbs_srcy(a5)
+
+	move.w	fbs_srcypixels(a5),d1
+	move.w	fbs_dstypixels(a5),d2
+	ext.l	d1
+	ext.l	d2
+	swap	d1
+	bsr.w	divs32
+	move.l	d1,fbs_scalefactor(a5)
+	clr.w	fbs_deltay(a5)
+
+.loop40	move.w	fbs_srcwidth(a5),d5
+	dec.w	d5
+	movea.l	fbs_precalcaddr(a5),a4
+
+	move.l	fbs_scalefactor(a5),d1
+	move.w	fbs_deltay(a5),d2
+	ext.l	d2
+	bsr.w	mul
+	swap.w	d1
+	move.w	d1,d6
+	add.w	fbs_srcy(a5),d6
+	mulu.w	fbs_srcrowbytes(a5),d6
+
+	movea.l	_1stParam(a5),a0
+	movea.l	fbsa_SrcColorMap(a0),a0
+	clrf.l	d0
+	LINKLIB	_LVOGetRGB4,_GfxBase
+	move.l	d0,d3
+
+	move.w	fbs_dstbitstart(a5),d0
+	move.w	fbs_deltay(a5),d1
+	mulu.w	fbs_dstrowbytes(a5),d1
+	add.l	fbs_dstploffset(a5),d1
+
+	moveq.l	#7,d7
+	move.l	d6,d4
+
+;-------------------------------------------------------------------------
+.loop41	clrf.l	d2
+	movea.l	fbs_srcplanes(a5),a1
+	movea.l	24(a1),a6
+	btst.b	d7,(a6,d4.l)
+	beq.s	.bitCLR
+	ori.b	#%01,d2
+
+.bitSET	movea.l	28(a1),a6
+	btst.b	d7,(a6,d4.l)
+	beq.w	.modify
+	ori.b	#%10,d2
+	bra.s	.modify
+
+.bitCLR	movea.l	28(a1),a6
+	btst.b	d7,(a6,d4.l)
+	beq.s	.hold
+	ori.b	#%10,d2
+	bra.s	.modify
+
+;-------------------------------------------------------------------------
+; We found a new base (hold) color that must be copied to the register
+;-------------------------------------------------------------------------
+.hold	clr.w	d3
+;	lea.l	8(a1),a1		; 2 lower planes = modify code
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	ror.w	#1,d3
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	ror.w	#1,d3
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	ror.w	#1,d3
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	ror.w	#1,d3
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	ror.w	#1,d3
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d3
+	rol.w	#5,d3
+	and.l	#%111111,d3
+
+	movem.l	d0-d1,-(sp)
+	movea.l	_1stParam(a5),a0
+	movea.l	fbsa_SrcColorMap(a0),a0
+	move.l	d3,d0
+	LINKLIB	_LVOGetRGB4,_GfxBase
+	move.l	d0,d3
+	movem.l	(sp)+,d0-d1
+
+	bra.w	.colordetermined
+;-------------------------------------------------------------------------
+; The register must be modified to obtain the correct new color
+;-------------------------------------------------------------------------
+.modify	lea.l	8(a1),a1
+
+	cmp.b	#%10,d2
+	bne.s	.mdfyGR
+
+.mdfyRD	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	clr.b	d2
+	lsr.w	#4,d2
+	and.w	#$0FF,d3
+	or.w	d2,d3
+	bra.b	.colordetermined
+
+.mdfyGR	cmp.b	#%11,d2
+	bne.s	.mdfyBL
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	clr.b	d2
+	lsr.w	#8,d2
+	and.w	#$F0F,d3
+	or.w	d2,d3
+	bra.s	.colordetermined
+
+.mdfyBL	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	movea.l	(a1)+,a6
+	btst.b	d7,(a6,d4.l)
+	sne.b	d2
+	ror.w	#1,d2
+	clr.b	d2
+	rol.w	#4,d2
+	and.w	#$FF0,d3
+	or.w	d2,d3
+
+;-------------------------------------------------------------------------
+; Now we've collected the R, G and B bits which must be averaged to obtain
+; the correct grayscale and place the pixel onscreen.
+;-------------------------------------------------------------------------
+.colordetermined
+	sub.l	d6,d4
+
+	cmp.l	0(a4),d4
+	bne.s	.skip70
+	cmp.w	4(a4),d7
+	bne.s	.skip70
+
+	movem.l	d0-d1,-(sp)
+	move.w	d3,d0
+	move.w	d3,d1
+	move.w	d3,d2
+	and.w	#$F00,d0
+	and.w	#$0F0,d1
+	and.w	#$00F,d2
+	lsr.w	#7,d0
+	lsr.w	#3,d1
+	add.w	d0,d2
+	lsr.w	#1,d0
+	add.w	d0,d2
+	add.w	d1,d2
+	add.w	d1,d2
+	add.w	d1,d2
+	divu	#10,d2
+	move.l	d2,d1
+	swap	d1
+	tst.w	d1
+	beq.s	.skip60
+	inc.w	d2
+.skip60	lsl.w	#2,d2
+	movea.l	fbs_dstplanes(a5),a6
+	movea.l	(a6)+,a0
+	movea.l	(a6)+,a1
+	movea.l	fbs_jumptable(a5,d2.w),a6
+	movem.l	(sp)+,d0-d1
+
+	jsr	(a6)
+
+	dbra	d0,.skip63
+	moveq	#7,d0
+	inc.l	d1
+
+.skip63	adda.w	#6,a4
+	move.l	00(a4),d2
+	cmp.l	-6(a4),d2
+	bne.s	.skip70
+	move.w	04(a4),d2
+	cmp.w	-2(a4),d2
+	beq.s	.skip65
+
+.skip70	dbra	d7,.skip65
+	moveq.l	#7,d7
+	inc.l	d4
+
+.skip65	add.l	d6,d4
+	dbra	d5,.loop41
+
+	inc.w	fbs_deltay(a5)
+	move.w	fbs_deltay(a5),d5
+	cmp.w	fbs_dstypixels(a5),d5
+	bne.w	.loop40
+
+	bra.w	free
+
+;-------------------------------------------------------------------------
+.text	dc.b	"$%08lx",10,0
+
+
+
+
+
+;-------------------------------------------------------------------------
+; Routines for VERY fast pixel placement. Jumptable is allocated on the
+; stack and initialized. Note that other ways to implement this might be
+; faster than this when a cache is used, but this is the fastest way on
+; a 68000 or 68010 based system. (Which is more than 95% of the amigas
+; that will be using these routines, I presume.)
+;-------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------
+
+;--- pixelplacement for 4 or more bitplanes ( 16 grayscales ) ------------
+;--- take note that planes deeper than 4 will remain untouched -----------
+;-------------------------------------------------------------------------
+pixl40	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a1,d1.l)
+	bclr.b	d0,(a2,d1.l)
+	bclr.b	d0,(a3,d1.l)
+	endc
+	rts
+pixl41	bset.b	d0,(a0,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a1,d1.l)
+	bclr.b	d0,(a2,d1.l)
+	bclr.b	d0,(a3,d1.l)
+	endc
+	rts
+pixl42	bset.b	d0,(a1,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a2,d1.l)
+	bclr.b	d0,(a3,d1.l)
+	endc
+	rts
+pixl43	bset.b	d0,(a0,d1.l)
+	bset.b	d0,(a1,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a2,d1.l)
+	bclr.b	d0,(a3,d1.l)
+	endc
+	rts
+pixl44	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a1,d1.l)
+	bclr.b	d0,(a3,d1.l)
+	endc
+	bset.b	d0,(a2,d1.l)
+	rts
+pixl45	bset.b	d0,(a0,d1.l)
+	bset.b	d0,(a2,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a1,d1.l)
+	bclr.b	d0,(a3,d1.l)
+	endc
+	rts
+pixl46	bset.b	d0,(a1,d1.l)
+	bset.b	d0,(a2,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a3,d1.l)
+	endc
+	rts
+pixl47	bset.b	d0,(a0,d1.l)
+	bset.b	d0,(a1,d1.l)
+	bset.b	d0,(a2,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a3,d1.l)
+	endc
+	rts
+pixl48	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a1,d1.l)
+	bclr.b	d0,(a2,d1.l)
+	endc
+	bset.b	d0,(a3,d1.l)
+	rts
+pixl49	bset.b	d0,(a0,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a1,d1.l)
+	bclr.b	d0,(a2,d1.l)
+	endc
+	bset.b	d0,(a3,d1.l)
+	rts
+pixl4A	bset.b	d0,(a1,d1.l)
+	bset.b	d0,(a3,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a2,d1.l)
+	endc
+	rts
+pixl4B	bset.b	d0,(a0,d1.l)
+	bset.b	d0,(a1,d1.l)
+	bset.b	d0,(a3,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a2,d1.l)
+	endc
+	rts
+pixl4C	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a1,d1.l)
+	endc
+	bset.b	d0,(a2,d1.l)
+	bset.b	d0,(a3,d1.l)
+	rts
+pixl4D	bset.b	d0,(a0,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a1,d1.l)
+	endc
+	bset.b	d0,(a2,d1.l)
+	bset.b	d0,(a3,d1.l)
+	rts
+pixl4E	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	endc
+	bset.b	d0,(a1,d1.l)
+	bset.b	d0,(a2,d1.l)
+	bset.b	d0,(a3,d1.l)
+	rts
+pixl4F	bset.b	d0,(a0,d1.l)
+	bset.b	d0,(a1,d1.l)
+	bset.b	d0,(a2,d1.l)
+	bset.b	d0,(a3,d1.l)
+	rts
+
+;-------------------------------------------------------------------------
+;--- pixelplacement for 3 bitplanes ( 8 grayscales ) ---------------------
+;-------------------------------------------------------------------------
+pixl30	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a1,d1.l)
+	bclr.b	d0,(a2,d1.l)
+	endc
+	rts
+pixl31	bset.b	d0,(a0,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a1,d1.l)
+	bclr.b	d0,(a2,d1.l)
+	endc
+	rts
+pixl32	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a2,d1.l)
+	endc
+	bset.b	d0,(a1,d1.l)
+	rts
+pixl33	bset.b	d0,(a0,d1.l)
+	bset.b	d0,(a1,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a2,d1.l)
+	endc
+	rts
+pixl34	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a1,d1.l)
+	endc
+	bset.b	d0,(a2,d1.l)
+	rts
+pixl35	bset.b	d0,(a0,d1.l)
+	bset.b	d0,(a2,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a1,d1.l)
+	endc
+	rts
+pixl36	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	endc
+	bset.b	d0,(a1,d1.l)
+	bset.b	d0,(a2,d1.l)
+	rts
+pixl37	bset.b	d0,(a0,d1.l)
+	bset.b	d0,(a1,d1.l)
+	bset.b	d0,(a2,d1.l)
+	rts
+
+;-------------------------------------------------------------------------
+;--- pixelplacement for 2 bitplanes ( 4 grayscales ) ---------------------
+;-------------------------------------------------------------------------
+pixl20	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	bclr.b	d0,(a1,d1.l)
+	endc
+	rts
+pixl21	bset.b	d0,(a0,d1.l)
+	ifd	must_clear
+	bclr.b	d0,(a1,d1.l)
+	endc
+	rts
+pixl22	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	endc
+	bset.b	d0,(a1,d1.l)
+	rts
+pixl23	bset.b	d0,(a0,d1.l)
+	bset.b	d0,(a1,d1.l)
+	rts
+
+;-------------------------------------------------------------------------
+;--- pixelplacement for 1 bitplane ( 2 grayscales ) ----------------------
+;-------------------------------------------------------------------------
+pixl10	ifd	must_clear
+	bclr.b	d0,(a0,d1.l)
+	endc
+	rts
+pixl11	bset.b	d0,(a0,d1.l)
+	rts
+
+pixltransparent
+	rts
+
+;-------------------------------------------------------------------------
+initjumps4
+	lea.l	fbs_jumptable(a5),a0
+	lea.l	pixl40(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl48(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl44(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl4C(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl42(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl4A(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl46(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl4E(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl41(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl49(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl45(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl4D(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl43(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl4B(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl47(pc),a1
+	move.l	a1,(a0)+
+	lea.l	pixl4F(pc),a1
+	move.l	a1,(a0)+
+	bra.w	convert_cmap
+;-------------------------------------------------------------------------
+initjumps3
+	lea.l	fbs_jumptable(a5),a0
+	lea.l	pixl30(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl34(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl32(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl36(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl31(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl35(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl33(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl37(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	bra.w	convert_cmap
+;-------------------------------------------------------------------------
+initjumps2
+	lea.l	fbs_jumptable(a5),a0
+	lea.l	pixl20(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl22(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl21(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl23(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	bra.w	convert_cmap
+;-------------------------------------------------------------------------
+initjumps1
+	lea.l	fbs_jumptable(a5),a0
+	lea.l	pixl10(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	lea.l	pixl11(pc),a1
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	move.l	a1,(a0)+
+	bra.w	convert_cmap
+;-------------------------------------------------------------------------
+
+
+
+;-------------------------------------------------------------------------
+mul	movem.l	d2-d4,-(sp)
+	move.w	d1,d3
+	move.w	d2,d4
+	swap	d1
+	swap	d2
+
+	mulu	d3,d2
+	mulu	d4,d1
+	mulu	d4,d3
+
+	add.w	d2,d1
+
+	swap	d1
+	clr.w	d1
+
+	add.l	d3,d1
+	movem.l	(sp)+,d2-d4
+	rts
+;-------------------------------------------------------------------------
+
+
+
+
+
+;-------------------------------------------------------------------------
+; 32 bit signed integer division - developed by dr. Arthur Norman
+;
+; Divides 32-bit integer in D1 by 32-bit divisor in D2
+; Returns 32-bit quotiënt in D1, rest in D2
+;-------------------------------------------------------------------------
+divs32	tst.l	d2			; noemer < 0 ?
+	bpl.s	.div00			; nee
+	neg.l	d2			; maak noemer positief
+	bsr.s	.div00			; delen alsof positief
+	neg.l	d1			; antwoord nu negatief maken
+	rts				; en terug
+
+.div00	tst.l	d1			; teller < 0
+	bpl.s	.divu			; beide operands positief
+	neg.l	d1			; maak teller positief
+	bsr.s	.divu			; voer deling uit
+	neg.l	d1			; corrigeer teken quotiënt
+	neg.l	d2			; corrigeer teken rest
+	rts				; voltooid
+
+.divu	cmpi.l	#$ffff,d2		; nagaan of D2H nul is
+	bls.s	.divx			; D2 < 16, gebruik subroutine
+
+	cmp.l	d1,d2			; nagaan of D2 <= D1
+	beq.b	.div01			; D1=D2, eenvoudig geval
+	bls.b	.div02			; moeilijk geval
+; hier is D1 < D2, dus het resultaat is nul
+	move.l	d1,d2			; rest correct maken
+	moveq.l	#0,d1			; resultaat nul
+	rts
+; hier is D1 = D2, dus het resultaat is 1
+.div01	moveq.l	#0,d2			; rest nul
+	moveq.l	#1,d1			; resultaat 1
+	rts
+
+.div02	movem.l	d3-d5,-(sp)		; werkregisters wegzetten
+	move.l	d2,d3			; noemer wegzetten
+	clr.w	d3			; D3L leegmaken
+	swap	d3			; D3 = D2 / $10000
+	addq.l	#1,d3			; D3 = 1 + (D2 / $10000)
+; schaalfactor in D7. teller en noemer schalen
+	move.l	d1,d4			; D4 = teller
+	move.l	d2,d5			; D5 = noemer
+	move.l	d3,d2			; schaalfactor in D2 voor DIVX
+	bsr.b	.divx			; D1 = D1 / schaalfactor
+	move.l	d5,d2			; vervang noemer
+	divu.w	d3,d2			; D2L = D2 / schaalfactor
+; D2 moet nu in 16 bits passen
+	divu.w	d2,d1			; deel geschaalde termen
+
+	andi.l	#$ffff,d1		; D1H = 0
+.div03	move.l	d5,d2			; oorspronkelijke noemer herstellen
+	move.l	d5,d3			; ook in d3
+	swap	d3			; D3L = D2H
+	mulu.w	d1,d2			; D2 = D1 * D2L
+	mulu.w	d1,d3			; D3 = D1 * D2H, D3H is nul
+	swap	d3			; overbrengen naar meest sign. #
+	add.l	d3,d2			; geef produkt; overdracht niet mog.
+	sub.l	d4,d2			; oorspronkelijke teller aftrekken
+	bhi.s	.div04			; te hoog, rest negatief
+	neg.l	d2			; teken wijzigen
+	cmp.l	d2,d5			; vergelijken met oorspr. noemer
+	bhi.s	.div05			; goed, rest binnen limiet
+	addq.l	#1,d1			; quotiënt vermeederen
+	bra.s	.div03			; opnieuw proberen
+.div04	subq.l	#1,d1			; quotiënt verminderen
+	bra.s	.div03			; opnieuw proberen
+; juist!
+.div05	movem.l	(sp)+,d3-d5		; registers herstellen
+	rts
+
+.divx	movem.w	d1/d3,-(sp)		; D1L en D3L wegzetten
+	clr.w	d1			; D1L leegmaken
+	swap	d1			; D1 = D1H
+	divu.w	d2,d1			; D1L = D1H / D2
+	move.w	d1,d3			; gedeeltelijk resultaat wegzetten
+	move.w	(sp)+,d1		; D1L ophalen
+; D1H bevat D1H rest D2, D1L als bij betreden routine
+	divu.w	d2,d1			; D1L = (D1L + (D1H rest D2)) / D2
+	swap	d1			; D1L bevat nu rest
+	moveq.l	#0,d2			; D2 leeghalen
+	move.w	d1,d2			; rest naar d2
+	move.w	d3,d1			; D1L = meest sign. quotiënt
+	swap	d1			; verwisselen -> quotiënt 32 bits
+	move.w	(sp)+,d3		; D3L herstellen
+	rts				; klaar
+;-------------------------------------------------------------------------
+
+	AUTO	u\
+	AUTO	wl scale.o\y
+
+
+;--- END OF FILE ---------------------------------------------------------
+
+

@@ -1,0 +1,178 @@
+SAS AMIGA 680x0OBJ Module Disassembler V6.01
+Copyright © 1992 SAS Institute, Inc.
+
+
+Amiga Object File Loader V1.00
+68000 Instruction Set
+
+EXTERNAL DEFINITIONS
+
+_LIBUA_SetSpritePtrs 0000-00    _LIBUA_SetSprite 0024-00    
+_GwaitPointer 0000-01    _GcolorPicker 0004-01    _GtoSprite 0008-01    
+_Ghand 000C-01
+
+SECTION 00 "text" 0000012C BYTES
+;   1: #include "mllib_includes.h"
+;   2: 
+;   3: /**** globals ****/
+;   4: 
+;   5: UWORD *GwaitPointer, *GcolorPicker, *GtoSprite, *Ghand;
+;   6: 
+;   7: /**** functions ****/
+;   8: 
+;   9: /******** SetSpritePtrs() ********/
+;  10: 
+;  11: void __saveds __asm LIBUA_SetSpritePtrs(	register __a0 UWORD *waitPointer,
+;  12: 																					register __a1 UWORD *colorPicker,
+;  13: 																					register __a2 UWORD *toSprite,
+;  14: 																					register __a3 UWORD *hand	)
+;  15: {
+       | 0000  514F                           SUBQ.W      #8,A7
+       | 0002  48E7 003C                      MOVEM.L     A2-A5,-(A7)
+       | 0006  2A48                           MOVEA.L     A0,A5
+       | 0008  49EE  0000-XX.2                LEA         _LinkerDB(A6),A4
+;  16: 	GwaitPointer	= waitPointer;
+       | 000C  294D  0000-01.2                MOVE.L      A5,01.00000000(A4)
+;  17: 	GcolorPicker	= colorPicker;
+       | 0010  2949  0004-01.2                MOVE.L      A1,01.00000004(A4)
+;  18: 	GtoSprite			= toSprite;
+       | 0014  294A  0008-01.2                MOVE.L      A2,01.00000008(A4)
+;  19: 	Ghand					= hand;
+       | 0018  294B  000C-01.2                MOVE.L      A3,01.0000000C(A4)
+;  20: }
+       | 001C  4CDF 3C00                      MOVEM.L     (A7)+,A2-A5
+       | 0020  504F                           ADDQ.W      #8,A7
+       | 0022  4E75                           RTS
+;  21: 
+;  22: /******** SetSprite() ********/
+;  23: /* 
+;  24:  * These sprite flavours are available: SPRITE_NORMAL
+;  25:  *																			SPRITE_BUSY
+;  26:  *																			SPRITE_COLORPICKER:
+;  27:  *																			SPRITE_TOSPRITE
+;  28:  *																			SPRITE_HAND
+;  29:  */
+;  30: 
+;  31: void __saveds __asm LIBUA_SetSprite(	register __a0 struct Window *window,
+;  32: 																			register __d0 BYTE which	)
+;  33: {
+       | 0024  9EFC 002C                      SUBA.W      #002C,A7
+       | 0028  48E7 310E                      MOVEM.L     D2-D3/D7/A4-A6,-(A7)
+       | 002C  2E00                           MOVE.L      D0,D7
+       | 002E  2A48                           MOVEA.L     A0,A5
+       | 0030  49EE  0000-XX.2                LEA         _LinkerDB(A6),A4
+;  34: struct TagItem taglist[5];
+;  35: 
+;  36: 	if (window==NULL)
+       | 0034  2F4E 0018                      MOVE.L      A6,0018(A7)
+       | 0038  200D                           MOVE.L      A5,D0
+       | 003A  6700 00E6                      BEQ.W       0122
+;  37: 		return;
+;  38: 
+;  39: 	switch(which)
+       | 003E  1007                           MOVE.B      D7,D0
+       | 0040  4880                           EXT.W       D0
+       | 0042  48C0                           EXT.L       D0
+       | 0044  0C80 0000 0005                 CMPI.L      #00000005,D0
+       | 004A  6400 00D6                      BCC.W       0122
+       | 004E  D040                           ADD.W       D0,D0
+       | 0050  303B 0006                      MOVE.W      06(PC,D0.W),D0
+       | 0054  4EFB 0004                      JMP         04(PC,D0.W)
+       | 0058  0008 001A                      ORI.B       #1A,A0
+       | 005C  0076 0092 00AE                 ORI.W       #0092,AE(A6,D0.W)
+;  40: 	{
+;  41: 		case SPRITE_NORMAL:
+;  42: 			ClearPointer(window);
+       | 0062  204D                           MOVEA.L     A5,A0
+       | 0064  2C6C  0000-XX.2                MOVEA.L     _IntuitionBase(A4),A6
+       | 0068  4EAE FFC4                      JSR         FFC4(A6)
+       | 006C  2C6F 0018                      MOVEA.L     0018(A7),A6
+;  43: 			break;
+       | 0070  6000 00B0                      BRA.W       0122
+;  44: 
+;  45: 		case SPRITE_BUSY:
+;  46: 			if ( GfxBase->LibNode.lib_Version >= 39 )
+       | 0074  206C  0000-XX.2                MOVEA.L     _GfxBase(A4),A0
+       | 0078  3028 0014                      MOVE.W      0014(A0),D0
+       | 007C  7227                           MOVEQ       #27,D1
+       | 007E  B041                           CMP.W       D1,D0
+       | 0080  6532                           BCS.B       00B4
+;  47: 			{
+;  48: 				taglist[0].ti_Tag		= WA_BusyPointer;
+       | 0082  2F7C 8000 0098 001C            MOVE.L      #80000098,001C(A7)
+;  49: 				taglist[0].ti_Data	= TRUE;
+       | 008A  7001                           MOVEQ       #01,D0
+       | 008C  2F40 0020                      MOVE.L      D0,0020(A7)
+;  50: 				taglist[1].ti_Tag		= WA_PointerDelay;
+       | 0090  2F7C 8000 0099 0024            MOVE.L      #80000099,0024(A7)
+;  51: 				taglist[1].ti_Data	= TRUE;
+       | 0098  2F40 0028                      MOVE.L      D0,0028(A7)
+;  52: 				taglist[2].ti_Tag		= TAG_DONE;
+       | 009C  42AF 002C                      CLR.L       002C(A7)
+;  53: 				SetWindowPointerA(window, taglist);
+       | 00A0  204D                           MOVEA.L     A5,A0
+       | 00A2  43EF 001C                      LEA         001C(A7),A1
+       | 00A6  2C6C  0000-XX.2                MOVEA.L     _IntuitionBase(A4),A6
+       | 00AA  4EAE FCD0                      JSR         FCD0(A6)
+       | 00AE  2C6F 0018                      MOVEA.L     0018(A7),A6
+       | 00B2  6016                           BRA.B       00CA
+;  54: 			}
+;  55: 			else
+;  56: 				SetPointer(window, GwaitPointer, 16, 16, -8, -8);
+       | 00B4  204D                           MOVEA.L     A5,A0
+       | 00B6  226C  0000-01.2                MOVEA.L     01.00000000(A4),A1
+       | 00BA  2C6C  0000-XX.2                MOVEA.L     _IntuitionBase(A4),A6
+       | 00BE  7010                           MOVEQ       #10,D0
+       | 00C0  2200                           MOVE.L      D0,D1
+       | 00C2  74F8                           MOVEQ       #F8,D2
+       | 00C4  2602                           MOVE.L      D2,D3
+       | 00C6  4EAE FEF2                      JSR         FEF2(A6)
+       | 00CA  2C6F 0018                      MOVEA.L     0018(A7),A6
+;  57: 			break;
+       | 00CE  6052                           BRA.B       0122
+;  58: 
+;  59: 		case SPRITE_COLORPICKER:
+;  60: 			SetPointer(window, GcolorPicker, 16, 16, -2, -10);
+       | 00D0  204D                           MOVEA.L     A5,A0
+       | 00D2  226C  0004-01.2                MOVEA.L     01.00000004(A4),A1
+       | 00D6  2C6C  0000-XX.2                MOVEA.L     _IntuitionBase(A4),A6
+       | 00DA  7010                           MOVEQ       #10,D0
+       | 00DC  2200                           MOVE.L      D0,D1
+       | 00DE  74FE                           MOVEQ       #FE,D2
+       | 00E0  76F6                           MOVEQ       #F6,D3
+       | 00E2  4EAE FEF2                      JSR         FEF2(A6)
+       | 00E6  2C6F 0018                      MOVEA.L     0018(A7),A6
+;  61: 			break;
+       | 00EA  6036                           BRA.B       0122
+;  62: 
+;  63: 		case SPRITE_TOSPRITE:
+;  64: 			SetPointer(window, GtoSprite, 16, 16, -8, -5);
+       | 00EC  204D                           MOVEA.L     A5,A0
+       | 00EE  226C  0008-01.2                MOVEA.L     01.00000008(A4),A1
+       | 00F2  2C6C  0000-XX.2                MOVEA.L     _IntuitionBase(A4),A6
+       | 00F6  7010                           MOVEQ       #10,D0
+       | 00F8  2200                           MOVE.L      D0,D1
+       | 00FA  74F8                           MOVEQ       #F8,D2
+       | 00FC  76FB                           MOVEQ       #FB,D3
+       | 00FE  4EAE FEF2                      JSR         FEF2(A6)
+       | 0102  2C6F 0018                      MOVEA.L     0018(A7),A6
+;  65: 			break;
+       | 0106  601A                           BRA.B       0122
+;  66: 
+;  67: 		case SPRITE_HAND:
+;  68: 			SetPointer(window, Ghand, 16, 16, -7, -8);
+       | 0108  204D                           MOVEA.L     A5,A0
+       | 010A  226C  000C-01.2                MOVEA.L     01.0000000C(A4),A1
+       | 010E  2C6C  0000-XX.2                MOVEA.L     _IntuitionBase(A4),A6
+       | 0112  7010                           MOVEQ       #10,D0
+       | 0114  2200                           MOVE.L      D0,D1
+       | 0116  74F9                           MOVEQ       #F9,D2
+       | 0118  76F8                           MOVEQ       #F8,D3
+       | 011A  4EAE FEF2                      JSR         FEF2(A6)
+       | 011E  2C6F 0018                      MOVEA.L     0018(A7),A6
+;  69: 			break;
+       | 0122  4CDF 708C                      MOVEM.L     (A7)+,D2-D3/D7/A4-A6
+       | 0126  DEFC 002C                      ADDA.W      #002C,A7
+       | 012A  4E75                           RTS
+
+SECTION 01 "__MERGED" 00000010 BYTES

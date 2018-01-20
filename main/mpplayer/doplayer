@@ -1,0 +1,15 @@
+del nb:commod.o
+del nb:config.o
+del nb:dos.o
+del nb:dosmisc.o
+del nb:fonts.o
+del nb:globalallocs.o
+del nb:initglobals.o
+del nb:interact.o
+del nb:misc.o
+del nb:pagetalk.o
+del nb:rendezvous.o
+del nb:screens.o
+del nb:stread.o
+del nb:times.o
+del nb:vars.o

@@ -1,0 +1,29 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE 
+AFLAGS = -iINCLUDE
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+APP1 = rexx
+
+APP10 = rexx.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:sc.lib lib:amiga.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

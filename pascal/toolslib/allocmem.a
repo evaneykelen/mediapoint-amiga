@@ -1,0 +1,65 @@
+
+;--- allocmem.a ---------------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/allocmem.a 01.001 (02.18.94)
+
+
+	TTL	allocmem.a
+	IDNT	allocmem.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	
+	XREF	_SysBase
+
+	XDEF	_AllocRememberMP
+	XDEF	_FreeRememberMP
+	XDEF	@AllocRememberMP
+	XDEF	@FreeRememberMP
+
+
+
+	SECTION	AllocRemember,CODE
+
+
+_AllocRememberMP
+	move.l	4(sp),d0
+	move.l	8(sp),d1
+@AllocRememberMP
+	addq.l	#4,d0
+	movem.l	d0,-(sp)
+	LINKLIB	_LVOAllocMem,_SysBase
+	movea.l	d0,a0
+	tst.l	d0
+	movem.l	(sp)+,d0
+	beq.b	.exit
+	move.l	d0,(a0)+
+	move.l	a0,d0
+.exit	rts
+
+_FreeRememberMP
+	move.l	4(sp),a0
+@FreeRememberMP
+	movea.l	a0,a1
+	cmpa.w	#0,a1
+	beq.b	.exit
+	move.l	-(a1),d0
+	LINKLIB	_LVOFreeMem,_SysBase
+.exit	rts
+
+
+
+
+;-- END OF FILE ----------------------------------------------------------

@@ -1,0 +1,10 @@
+delete protocols.o
+delete serprefs.o
+delete serfuncs.o
+delete serfiles.o
+delete serwork.o
+delete sergetdir.o
+delete serhost.o
+delete serprint.o
+delete serrexx.o
+delete simplerexx.o

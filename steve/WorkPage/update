@@ -1,0 +1,6 @@
+del pt.o
+del workpage.o
+del senduselocal.o
+del inthandler.o
+del localedate.o
+del parse.o

@@ -1,0 +1,356 @@
+TABLE OF CONTENTS
+
+nonvolatile.library/--background--
+nonvolatile.library/DeleteNV
+nonvolatile.library/FreeNVData
+nonvolatile.library/GetCopyNV
+nonvolatile.library/GetNVInfo
+nonvolatile.library/GetNVList
+nonvolatile.library/SetNVProtection
+nonvolatile.library/StoreNV
+nonvolatile.library/--background--         nonvolatile.library/--background--
+
+   PURPOSE
+	The nonvolatile library provides a simple means for an application
+	developer to manage nonvolatile storage.
+
+   OVERVIEW
+	The nonvolatile library is meant to be used transparently across all
+	configurations.  Currently, nonvolatile storage may consist of NVRAM
+	and/or disk devices.  The nonvolatile library will automatically
+	access the best nonvolatile storage available in the system.  Disk
+	based storage will be selected first and if not available, NVRAM
+	storage will be accessed.
+
+	* NVRAM
+
+	On low-end diskless Amiga platforms, NVRAM may be available.  This
+	RAM will maintain its data contents when the system is powered down.
+	This is regardless of whether batteries or battery-backed clock are
+	present.  The data stored in NVRAM is accessible only through the
+	ROM-based nonvolatile library funtion calls.  The size of NVRAM
+	storage	is dependant on the system platform and is attainable through
+	the GetNVInfo() function.
+
+	* Disk
+
+	In keeping with the general configurability of the Amiga, the actual
+	disk location used by nonvolatile library when storing to disk may be
+	changed by the user.
+
+	The prefs directory is used on the Amiga for storing many user
+	configurable options.  The location for nonvolatile disk storage
+	is contained in the file prefs/env-archive/sys/nv_location.  This
+	file should contain a data string that specifies a lockable location.
+	If the string does not specify a lockable location, the file will
+	be ignored.
+
+	When opened, the nonvolatile library will search all drives within
+	the system until it finds this file and successfully accomplishes
+	a Lock on the location specified in the file.  To force a rescan of
+	all drives, the library may be closed and reopened or execute the
+	GetNVInfo() function.
+
+	A simple method for creating a floppy disk for saving nonvolatile
+	data is the following:
+
+	Format a disk with the volume name NV
+	Create a file prefs/env-archive/sys/nv_location on this disk with
+	  the following contents:  NV:nonvolatile
+	Create a directory nonvolatile
+
+	The following is a script file that can be used to make a floppy
+	for use with nonvolatile library:
+
+	.KEY Drive/A DiskName
+	.BRA {
+	.KET }
+	format Drive {Drive} Name {DiskName$NV} noicons
+	md {Drive}prefs
+	md {Drive}nonvolatile
+	md {Drive}prefs/env-archive
+	md {Drive}prefs/env-archive/sys
+	echo {DiskName$NV}:nonvolatile > {Drive}prefs/env-archive/sys
+	 /nv_location
+
+nonvolatile.library/DeleteNV                     nonvolatile.library/DeleteNV
+
+   NAME
+	DeleteNV - Remove an entry from nonvoltatile storage
+
+   SYNOPSIS
+	Success = DeleteNV (AppName, ItemName, KillRequesters)
+	d0		    a0	     a1	       d1
+
+	BOOL DeleteNV (STRPTR, STRPTR, BOOL)
+
+   FUNCTION
+	Searches the nonvolatile storage for the indicated entry and removes
+	it.
+
+	The strings AppName and ItemName may not contain the '/' or ':'
+	characters.  It is recommended that these characters be blocked
+	from user input when requesting AppName and ItemName strings.
+
+   INPUTS
+	AppName - NULL terminated string identifing the application that
+		  created the data.  Maximum character length is 31.
+		  A NULL string is not valid.
+	ItemName - NULL terminated string uniquely identifing the data
+		   within the application.  Maximum character length is 31.
+		   A NULL string is not valid.
+	KillRequesters - Suppress system requesters flag.  TRUE if all system
+			 requesters are to be suppressed during this function.
+			 FALSE if system requesters are allowed.
+
+   RESULT
+	Success - TRUE will be returned if the entry is found and deleted.
+		  If the entry is not found, FALSE will be returned.
+
+nonvolatile.library/FreeNVData                 nonvolatile.library/FreeNVData
+
+   NAME
+	FreeNVData - Release the memory allocated by a function of this
+		     library.
+
+   SYNOPSIS
+	FreeNVData (Data)
+		   a0
+
+	VOID FreeNVData (APTR)
+
+   FUNCTION
+	Frees a block of memory that was allocated by any of the following:
+	GetCopyNV(), GetNVInfo(), GetNVList().
+
+   INPUTS
+	Data - Pointer to the memory block to be freed.
+
+   RESULT
+	NONE
+
+   SEE ALSO
+	GetCopyNV(), GetNVInfo(), GetNVList()
+
+nonvolatile.library/GetCopyNV                   nonvolatile.library/GetCopyNV
+
+   NAME
+	GetCopyNV - Returns an items stored in nonvolatile storage.
+
+   SYNOPSIS
+	Data = GetCopyNV (AppName, ItemName, KillRequesters)
+	d0		  a0	   a1	     d1
+
+	APTR GetCopyNV (STRPTR, STRPTR, BOOL)
+
+   FUNCTION
+	Seaches the nonvolatile storage for the indicated AppName and
+	ItemName.  A pointer to a copy of this data will be returned.
+
+	The strings AppName and ItemName may not contain the '/' or ':'
+	characters.  It is recommended that these characters be blocked
+	from user input when requesting AppName and ItemName strings.
+
+   INPUTS
+	AppName - NULL terminated string indicating the application name
+		  to be found.  Maximum character length is 31.
+		  A NULL string is not valid
+	ItemName - NULL terminated string indicated the item within the
+		   application to be found.  Maximum character length is 31.
+		   A NULL string is not valid.
+	KillRequesters - Suppress system requesters flag.  TRUE if all system
+			 requesters are to be suppressed during this function.
+			 FALSE if system requesters are allowed.
+
+   RESULT
+	Data - Pointer to a copy of data found in the nonvolatile storage
+	       assocated with AppName and ItemName.  NULL will be returned
+	       if there is insufficient memory or the AppName/ItemName does
+	       not exist.
+
+   SEE ALSO
+	FreeNVData()
+
+nonvolatile.library/GetNVInfo                   nonvolatile.library/GetNVInfo
+
+   NAME
+	GetNVInfo - Reports information on the current nonvolatile storage
+
+   SYNOPSIS
+	Information = GetNVInfo (KillRequesters)
+	d0			 d1
+
+	struct NVInfo * GetNVInfo (BOOL)
+
+   FUNCTION
+	Finds the user's preferred nonvolatile device and reports information
+	about it.
+
+   INPUTS
+	KillRequesters - Suppress system requesters flag.  TRUE if all system
+			 requesters are to be suppressed during this function.
+			 FALSE if system requesters are allowed.
+
+   RESULT
+	Information - Pointer to an NVInfo structure.  This structure contains
+	information on the NV storage media with the largest storage.  The
+	structure contains 2 long word fields: nvi_MaxStorage and
+	nvi_FreeStorage.  Both values are rounded down to the nearest ten.
+	The nvi_MaxStorage field is defined as the total amount of nonvolatile
+	storage available on this device.  The nvi_FreeStorage is
+	defined as the amount of available space for NVDISK or the amount of
+	non-locked storage for NVRAM.  For NVDISK, the nvi_FreeStorage takes
+	into account the amount of overhead room required to store a new
+	App/Item. This amount is 3 blocks to allow room for storing a new
+	Item file and possibly a new App directory.  For NVRAM, the amount of
+	overhead is 5 bytes.  However, the amount of room required to store a
+	new NVRAM item depends on the length of the App and Item names.  Refer
+	to StoreNV function for storage details.
+
+   SEE ALSO
+	FreeNVData(), StoreNV()
+
+nonvolatile.library/GetNVList                   nonvolatile.library/GetNVList
+
+   NAME
+	GetNVList - Returns a list of the items stored in nonvolatile
+		    storage.
+
+   SYNOPSIS
+	List = GetNVList (AppName, KillRequesters)
+	d0		  a0	   d1
+
+	struct MinList * GetNVList (STRPTR, BOOL)
+
+   FUNCTION
+	Returns a pointer to an exec list of nonvolatile Items associated
+	with the AppName requested.
+
+	The string AppName may not contain the '/' or ':' characters.
+	It is recommended that these characters be blocked from user input
+	when requesting an AppName string.
+
+   INPUTS
+	AppName - NULL terminated string indicating the application name
+		  to be matched.  Maximum characters is 31.
+	KillRequesters - S system requesters flag.  TRUE if all system
+			 requesters are to be suppressed during this function.
+			 FALSE if system requesters are allowed.
+
+   RESULT
+	List - A pointer to a Exec MinList of NVEntrys.  A NULL will be
+	       returned if there is insufficient memory.  If there are no
+	       entries in the nonvolatile storage for the AppName, an
+	       empty list will be returned.
+
+   NOTE
+	The protection field contains more bits than are required for
+	storing the delete protection status.  These bits are reserved
+	for other system usage and may not be zero.  When checking for
+	the delete status use either the field mask NVIF_DELETE, or the
+	bit definition NVIB_DELETE.
+
+   SEE ALSO
+	FreeNVData(), SetNVProtection()
+
+nonvolatile.library/SetNVProtection       nonvolatile.library/SetNVProtection
+
+   NAME
+	SetNVProtection - Sets the protection flags.
+
+   SYNOPSIS
+	Success = SetNVProtection (AppName, ItemName, Mask, KillRequesters)
+	d0			   a0	    a1	      d2    d1
+
+	BOOL SetNVProtection (STRPTR, STRPTR, LONG, BOOL)
+
+   FUNCTION
+	Sets the protection attributes for a Item currently stored on the
+	nonvolatile device.
+
+	Although Mask is LONG only the delete bit, NVEF_DELETE/NVEB_DELETE,
+	may be set.  If any other bits are set this function will return
+	FALSE.
+
+	The strings AppName and ItemName may not contain the '/' or ':'
+	characters.  It is recommended that these characters be blocked
+	from user input when requesting AppName and ItemName strings.
+
+   INPUTS
+	AppName - NULL terminated string indicating the application name
+		  to be matched.  Maximum characters is 31.
+		  A NULL string is not valid
+	ItemName - NULL terminated string indicated the item within the
+		   application to be found.  Maximum character length is 31.
+		   A NULL string is not valid.
+	Mask - The new protection mask.  Only set the delete bit otherwise
+	       this function WILL CRASH.
+	KillRequesters - Suppress system requesters flag.  TRUE if all system
+			 requesters are to be suppressed during this function.
+			 FALSE if system requesters are allowed.
+
+   RESULT
+	Success - FALSE if the protection could not be change (ie the data
+		  does not exist).
+
+   SEE ALSO
+	GetNVList()
+
+nonvolatile.library/StoreNV                       nonvolatile.library/StoreNV
+
+   NAME
+	StoreNV - Store data in nonvolatile storage.
+
+   SYNOPSIS
+	Error = StoreNV (AppName, ItemName, Data, Length, KillRequesters)
+	d0		 a0	  a1	    a2    d0	  d1
+
+	UWORD StoreNV (STRPTR, STRPTR, APTR, ULONG, BOOL)
+
+   FUNCTION
+	Saves some data in nonvolatile storage.  The data is tagged with
+	AppName and ItemName so it can be retrieved later.  No single
+	item should be larger than one fourth of the maximum storage as
+	returned by GetNVInfo().
+
+	There is no data compression associated with the StoreNV function.
+
+	The strings, AppName and ItemName, should be short, but descriptive.
+	They need to be short since the string is stored with the data and
+	the nonvolatile storage for a stand alone game system is limited.
+	The game system allows the user to selectively remove entries from
+	storage, so the string should be desriptive.
+
+	The strings AppName and ItemName may not contain the '/' or ':'
+	characters.  It is recommended that these characters be blocked
+	from user input when requesting AppName and ItemName strings.
+
+   INPUTS
+	AppName - NULL terminated string identifying the application
+		  creating the data.  Maximum character length is 31.
+		  A NULL string is not valid.
+	ItemName - NULL terminated string uniquely identifying the data
+		   within the application. Maximum character length is 31.
+		   A NULL string is not valid.
+	Data - Pointer to the memory block to be stored.
+	Length - Number of bytes to be stored in the units of tens of
+		 bytes.  ie If you have 23 bytes to store length = 3;
+		 147 byte then length = 15.
+	KillRequesters - Suppress system requesters flag.  TRUE if all system
+			 requesters are to be suppressed during this function.
+			 FALSE if system requesters are allowed.
+
+   RESULT
+	Error:
+	0 - Data stored, no error.
+	NVERR_BADNAME - Error in AppName, or ItemName.
+	NVERR_WRITEPROT - Nonvolatile storage is read only.
+	NVERR_FAIL - Failure in writing data (nonvolatile storage full, or
+	   write protected).
+	NVERR_FATAL - Fatal error when accessing nonvolatile storage,
+	   possible loss of previously saved nonvolatile data.
+
+   SEE ALSO
+	GetCopyNV(), GetNVInfo()
+
+

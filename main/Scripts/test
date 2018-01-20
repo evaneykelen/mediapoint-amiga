@@ -1,0 +1,75 @@
+SCRIPTTALK 4, 0
+
+STARTSER
+
+	STARTSER "Root"
+
+		START
+			DOS "kavail", "", DEFER, COMMAND
+			DURATION 00:00:00:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Board", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Cream", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Fold", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Forest", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Granite", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Marble", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Plastic", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Rib", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Silk", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Textures/Wrinkle", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+	ENDSER
+
+ENDSER

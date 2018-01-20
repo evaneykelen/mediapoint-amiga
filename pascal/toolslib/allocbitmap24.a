@@ -1,0 +1,118 @@
+
+;--- allocbitmap24.a ----------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/allocbitmap.a 01.001 (02.18.94)
+
+
+	TTL	allocbitmap24.a
+	IDNT	allocbitmap24.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"exec/memory.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"toolslib.i"
+
+	XREF	_SysBase
+	XREF	_GfxBase
+
+	XREF	_AllocPlanes24
+	XREF	_FreePlanes24
+
+	XDEF	_AllocBitMap24
+	XDEF	_FreeBitMap24
+
+
+
+	SECTION	AllocBitMap24,CODE
+
+
+;-------------------------------------------------------------------------
+; struct BitMap24 *AllocBitMap24( UBYTE depth, UWORD width, UWORD height,
+;	ULONG memtype, ULONG flags );
+;-------------------------------------------------------------------------
+; Returns (if possible) pointer to created BitMap24 of specified size.
+; The bitmap will possibly not be a true bitmap, but e.g. a 'chunky'
+; bitmap, which will contain just one plane pointer which points to a
+; large region of ubytes with color pens.
+;-------------------------------------------------------------------------
+
+_AllocBitMap24
+
+	link	a5,#0
+	movem.l	a2/a6,-(sp)
+
+	movea.l	_SysBase,a6
+	moveq.l	#bm24_SIZEOF,d0
+	moveq.l	#MEMF_ANY,d1
+	CALLLIB	_LVOAllocMem
+	movea.l	d0,a2
+	tst.l	d0
+	beq.b	.exit
+	move.l	#MAGIC_COOKIE_BM24,bm24_MagicCookie(a2)
+
+	move.l	_5thParam(a5),-(sp)
+	move.l	_4thParam(a5),-(sp)
+	move.l	_3rdParam(a5),-(sp)
+	move.l	_2ndParam(a5),-(sp)
+	move.l	_1stParam(a5),-(sp)
+	move.l	a2,-(sp)
+	jsr	_AllocPlanes24
+	lea.l	6*4(sp),sp
+	tst.l	d0
+	bne	.exit
+
+	move.l	a2,-(sp)
+	bsr	_FreeBitMap24
+	lea.l	4(sp),sp
+	sub.l	a2,a2
+
+.exit	move.l	a2,d0
+	movem.l	(sp)+,a2/a6
+	unlk	a5
+	rts
+
+
+;-------------------------------------------------------------------------
+; VOID FreeBitMap24( struct BitMap24 *bitmap );
+;-------------------------------------------------------------------------
+; If bitmap is available, free all memory associated with it and the
+; bitmap structure itself.
+;-------------------------------------------------------------------------
+_FreeBitMap24
+	link	a5,#0
+	movem.l	a6,-(sp)
+
+	tst.l	_1stParam(a5)
+	beq	.exit
+
+	move.l	_1stParam(a5),-(sp)
+	jsr	_FreePlanes24
+	lea.l	4(sp),sp
+
+	movea.l	_GfxBase,a6
+	movea.l	_1stParam(a5),a1
+	moveq.l	#bm24_SIZEOF,d0
+	CALLLIB	_LVOFreeMem
+
+.exit	movem.l	(sp)+,a6
+	unlk	a5
+	rts
+
+
+;-- END OF FILE ----------------------------------------------------------

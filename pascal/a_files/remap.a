@@ -1,0 +1,1535 @@
+
+;--- remap.a ------------------------------------------------------------+
+; MediaPoint BitMap Remap Routine. Code written by B.O.M.B. AudioVisual  |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/remap.a 01.103 (19/05/93)
+
+
+	TTL	remap.a
+	IDNT	remap.a
+
+
+	INCDIR "include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/view.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+
+
+	xref	_SysBase
+	xref	_GfxBase
+
+	xref	_LVOGetBitMapAttr
+	xref	_LVOGetRGB32
+
+	xdef	_FastBitMapRemap
+
+
+  STRUCTURE FastRemapInfo,0
+	APTR	remap_SrcBitMap
+	APTR	remap_DstBitMap
+	APTR	remap_SrcColorMap
+	APTR	remap_DstColorMap
+	ULONG	remap_SrcViewModes
+	ULONG	remap_DstViewModes
+	UWORD	remap_Flags
+	LABEL	remap_SIZEOF
+
+	BITDEF	REMAP,TRANSPARENT,0
+
+
+bitmapNormal	equ	0
+bitmapHAM	equ	1
+bitmapEHB	equ	2
+bitmap24bit	equ	3
+bitmapHAM8	equ	4
+
+source_ham8	equ	FALSE	; unimplemented as yet
+
+;-------------------------------------------------------------------------
+; func: BOOL _FastBitMapRemap( struct FastRemapInfo * )
+;-------------------------------------------------------------------------
+; Remaps a bitmap to another bitmap, using the destination bitmap's color
+; palette and the source palette to determine the most appropriate colors.
+; Does support bitmaps with 256 colors (8 planes), considering future
+; Amiga's, importing MS-DOS's 256 color pictures and IFF 24 bitplanes.
+; Destination can't currently be more than 8 planes (256 colors).
+; HAM and EHB format will be determined by the ViewModes set in the
+; RemapInfo structure. AA HAM viewmode currently ignored.
+; Source and Destination Bitmaps must be of equal size and type !!!
+; Unequal bitmaps and other errors will give a FALSE returncode.
+;-------------------------------------------------------------------------
+
+_FastBitMapRemap
+;-------------------------------------------------------------------------
+fr_srcnumcolors	equ	-4
+fr_dstnumcolors	equ	-8
+fr_convtable	equ	-12
+fr_colorred	equ	-14
+fr_colorgrn	equ	-16
+fr_colorblu	equ	-18
+fr_srcdepthcnt	equ	-20
+fr_dstdepthcnt	equ	-22
+fr_srcplptrs	equ	-26
+fr_dstplptrs	equ	-30
+fr_srcdepth	equ	-32
+fr_dstdepth	equ	-34
+fr_srcdata	equ	-58
+fr_dstdata	equ	-82
+fr_redbase	equ	-86
+fr_grnbase	equ	-90
+fr_blubase	equ	-94
+fr_colortable	equ	-122
+fr_srcinfo	equ	-123
+fr_dstinfo	equ	-124
+fr_Bytes	equ	-126
+fr_Rows		equ	-128
+fr_BytesPerRow	equ	-130
+fr_reg_a4	equ	-134
+fr_framesize	equ	-138
+;-------------------------------------------------------------------------
+	link	a5,#fr_framesize
+	movem.l	d1-d7/a0-a6,-(sp)
+;-------------------------------------------------------------------------
+	move.l	a4,fr_reg_a4(a5)
+
+	move.l	_1stParam(a5),a3
+
+	movea.l	remap_SrcBitMap(a3),a0
+	movea.l	remap_DstBitMap(a3),a1
+
+	movea.l	_GfxBase,a6
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.b	.V39a
+
+.V34a	move.w	bm_BytesPerRow(a0),d0
+	cmp.w	bm_BytesPerRow(a1),d0
+	bne.w	error
+	move.w	bm_Rows(a0),d0
+	cmp.w	bm_Rows(a1),d0
+	bne.w	error
+
+	IsInterleaved	a0,a2
+	sls.b	d0
+	IsInterleaved	a1,a2
+	sls.b	d1
+
+	cmp.b	d0,d1
+	bne.w	error
+
+; Since we're not in V39, we assume now all is right. Hey, it's just a test...
+; (Though V38 might give some problems with differing bitmaps... don't know)
+	move.b	bm_Depth(a0),d0
+	move.b	bm_Depth(a1),d1
+	ext.w	d0
+	ext.w	d1
+	ext.l	d0
+	ext.l	d1
+	bra.b	.all_ok
+
+.V39a	movea.l	remap_SrcBitMap(a3),a2
+	movea.l	remap_DstBitMap(a3),a3
+
+	moveq.l	#BMA_WIDTH,d1
+	movea.l	a2,a0
+	CALLLIB	_LVOGetBitMapAttr
+	move.l	d0,d2
+	moveq.l	#BMA_WIDTH,d1
+	movea.l	a3,a0
+	CALLLIB	_LVOGetBitMapAttr
+	cmp.l	d0,d2
+	bne.w	error
+
+	moveq.l	#BMA_HEIGHT,d1
+	movea.l	a2,a0
+	CALLLIB	_LVOGetBitMapAttr
+	move.l	d0,d2
+	moveq.l	#BMA_HEIGHT,d1
+	movea.l	a3,a0
+	CALLLIB	_LVOGetBitMapAttr
+	cmp.l	d0,d2
+	bne.w	error
+
+	moveq.l	#BMA_DEPTH,d1
+	movea.l	a3,a0			; destination bitmap
+	CALLLIB	_LVOGetBitMapAttr
+	move.l	d0,d2
+	moveq.l	#BMA_DEPTH,d1
+	movea.l	a2,a0			; source bitmap
+	CALLLIB	_LVOGetBitMapAttr
+	move.l	d2,d1
+
+.all_ok	move.l	_1stParam(a5),a3
+	move.w	d0,fr_srcdepth(a5)
+	move.w	d1,fr_dstdepth(a5)
+	dec.w	d0
+	dec.w	d1
+	move.w	d0,fr_srcdepthcnt(a5)
+	move.w	d1,fr_dstdepthcnt(a5)
+
+	movea.l	remap_SrcBitMap(a3),a0
+	movea.l	remap_DstBitMap(a3),a1
+	lea.l	bm_Planes(a0),a0
+	lea.l	bm_Planes(a1),a1
+	move.l	a0,fr_srcplptrs(a5)
+	move.l	a1,fr_dstplptrs(a5)
+
+	move.w	fr_srcdepth(a5),d0
+	move.w	fr_dstdepth(a5),d1
+	moveq.l	#1,d2
+	moveq.l	#1,d3
+	lsl.l	d0,d2
+	lsl.l	d1,d3
+;-------------------------------------------------------------------------
+	bsr.w	DetermineModes
+	move.l	d2,fr_srcnumcolors(a5)
+	move.l	d3,fr_dstnumcolors(a5)
+
+	cmp.b	#bitmapHAM8,fr_srcinfo(a5)
+	beq.b	error
+	cmp.b	#bitmapHAM8,fr_dstinfo(a5)
+	beq.b	error
+
+	tst.l	remap_SrcColorMap(a3)
+	beq.b	Conv24bit
+	tst.l	remap_DstColorMap(a3)
+	beq.b	Conv24bit
+
+;-------------------------------------------------------------------------
+	move.l	fr_srcnumcolors(a5),d0
+	lsl.l	#1,d0
+	move.l	#MEMF_PUBLIC,d1
+	LINKLIB	_LVOAllocMem,_SysBase
+	move.l	d0,fr_convtable(a5)
+	beq.b	exit
+;-------------------------------------------------------------------------
+	bsr.w	ConvertPalette
+;-------------------------------------------------------------------------
+	bsr.b	DoTheRemap
+;-------------------------------------------------------------------------
+free	move.l	fr_convtable(a5),d0
+	beq.s	exit
+	movea.l	d0,a1
+	move.l	fr_srcnumcolors(a5),d0
+	lsl.l	#1,d0
+	LINKLIB	_LVOFreeMem,_SysBase
+;-------------------------------------------------------------------------
+exit	moveq.l	#TRUE,d0
+xit	movem.l	(sp)+,d1-d7/a0-a6
+	unlk	a5
+	rts
+
+;-------------------------------------------------------------------------
+error	moveq.l	#FALSE,d0
+	bra.b	xit
+;-------------------------------------------------------------------------
+
+
+
+;-------------------------------------------------------------------------
+Conv24bit
+	bra.b	error
+;-------------------------------------------------------------------------
+
+
+
+
+;-------------------------------------------------------------------------
+; Local function - DoTheRemap( remapInfo(a3), stackframe(a5) )
+;-------------------------------------------------------------------------
+; Takes the converted palette and remaps the source into the destination
+; bitmaps, using the converted palette.
+;-------------------------------------------------------------------------
+DoTheRemap
+	movea.l	remap_SrcBitMap(a3),a0
+	movea.l	_GfxBase,a6
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.b	.V39
+
+.V34	move.w	bm_Rows(a0),fr_Rows(a5)
+
+	move.w	bm_BytesPerRow(a0),d5
+	move.w	d5,fr_Bytes(a5)
+	move.w	d5,fr_BytesPerRow(a5)
+
+	IsInterleaved	a0,a1
+	bhi.b	.remap
+
+	moveq.l	#0,d0
+	move.b	bm_Depth(a0),d0
+	mulu.w	d0,d5
+	move.w	d5,fr_BytesPerRow(a5)
+	bra.b	.remap
+
+.V39	move.l	#BMA_WIDTH,d1
+	CALLLIB	_LVOGetBitMapAttr
+	addq.l	#7,d0
+	lsr.l	#3,d0
+	move.l	d0,d5
+	move.w	d5,fr_Bytes(a5)
+
+	movea.l	remap_SrcBitMap(a3),a0
+	move.w	bm_BytesPerRow(a0),fr_BytesPerRow(a5)
+	move.l	#BMA_HEIGHT,d1
+	CALLLIB	_LVOGetBitMapAttr
+	move.w	d0,fr_Rows(a5)
+
+.remap	movea.l	fr_convtable(a5),a1
+	movea.l	remap_DstColorMap(a3),a2
+
+	clrf.l	d0
+	clrf.l	d7
+
+	if	source_ham8
+	cmp.b	#bitmapHAM8,fr_srcinfo(a5)
+	beq.w	srcham8
+	endc
+
+	cmp.b	#bitmapHAM,fr_srcinfo(a5)
+	beq.w	srcham
+
+;-------------------------------------------------------------------------
+srcnormal
+	cmp.b	#bitmapHAM,fr_dstinfo(a5)
+	beq.b	srcnormal_dstham
+	cmp.b	#bitmapHAM8,fr_dstinfo(a5)
+	beq.w	srcnormal_dstham8
+;-------------------------------------------------------------------------
+srcnormal_dstnormal
+
+.nxtln0	move.w	fr_BytesPerRow(a5),d4
+	mulu.w	d7,d4
+
+	move.w	fr_Bytes(a5),d5
+	subq.w	#1,d5
+
+	move.w	d7,-(sp)
+
+.getcl0	bsr.w	GetNormalSource
+
+	moveq.l	#7,d7
+.cnv0	move.w	fr_srcdepthcnt(a5),d1
+	clrf.l	d3
+	lea.l	fr_srcdata(a5),a4
+.cnv0a	btst.b	d7,(a4)+
+	beq.b	.cnv0b
+	bset.l	d1,d3
+.cnv0b	dbra	d1,.cnv0a
+
+	lsl.w	#1,d3
+	move.w	(a1,d3.w),d0
+	move.w	fr_dstdepthcnt(a5),d2
+.cnv0c	ror.b	#1,d0
+	bpl.b	.cnv0d
+	bset.b	d7,fr_dstdata(a5,d2.w)
+.cnv0d	dbra	d2,.cnv0c
+	dbra	d7,.cnv0
+
+	bsr.w	StoreNormalDest
+
+	addq.l	#1,d4
+	dbra	d5,.getcl0
+
+	move.w	(sp)+,d7
+	addq.w	#1,d7
+	cmp.w	fr_Rows(a5),d7
+	blt.b	.nxtln0
+
+	rts
+;-------------------------------------------------------------------------
+srcnormal_dstham
+
+.nxtln1	move.w	fr_BytesPerRow(a5),d4	; we support interleaved bitmaps !
+	mulu.w	d7,d4
+
+	move.w	fr_Bytes(a5),d5		; we support interleaved bitmaps !
+	subq.w	#1,d5
+
+	move.w	d7,-(sp)
+	clr.w	fr_redbase(a5)
+	clr.w	fr_grnbase(a5)
+	clr.w	fr_blubase(a5)
+
+.getcl1	bsr.w	GetNormalSource
+
+	moveq.l	#7,d7
+.cnv1	move.w	fr_srcdepthcnt(a5),d1
+	clrf.l	d3
+	lea.l	fr_srcdata(a5),a4
+.cnv1a	btst.b	d7,(a4)+
+	beq.b	.cnv1b
+	bset.l	d1,d3
+.cnv1b	dbra	d1,.cnv1a
+	lsl.w	#1,d3
+	bsr.w	PutHAMcolor
+	dbra	d7,.cnv1
+
+	bsr.w	StoreHAMDest
+
+	addq.l	#1,d4
+	dbra	d5,.getcl1
+
+	move.w	(sp)+,d7
+	addq.w	#1,d7
+	cmp.w	fr_Rows(a5),d7
+	blt.b	.nxtln1
+	rts
+
+;-------------------------------------------------------------------------
+srcnormal_dstham8
+
+.nxtln1	move.w	fr_BytesPerRow(a5),d4
+	mulu.w	d7,d4
+
+	move.w	fr_Bytes(a5),d5
+	subq.w	#1,d5
+
+	move.w	d7,-(sp)
+	clr.w	fr_redbase(a5)
+	clr.w	fr_grnbase(a5)
+	clr.w	fr_blubase(a5)
+
+.getcl1	bsr.w	GetNormalSource
+
+	moveq.l	#7,d7
+.cnv1	move.w	fr_srcdepthcnt(a5),d1
+	clrf.l	d3
+	lea.l	fr_srcdata(a5),a4
+.cnv1a	btst.b	d7,(a4)+
+	beq.b	.cnv1b
+	bset.l	d1,d3
+.cnv1b	dbra	d1,.cnv1a
+	lsl.w	#1,d3
+	bsr.w	PutHAM8color
+	dbra	d7,.cnv1
+
+	bsr.w	StoreHAM8Dest
+
+	addq.l	#1,d4
+	dbra	d5,.getcl1
+
+	move.w	(sp)+,d7
+	addq.w	#1,d7
+	cmp.w	fr_Rows(a5),d7
+	blt.b	.nxtln1
+	rts
+;-------------------------------------------------------------------------
+
+
+;-------------------------------------------------------------------------
+srcham	cmp.b	#bitmapHAM,fr_dstinfo(a5)
+	beq.b	srcham_dstham
+;-------------------------------------------------------------------------
+srcham_dstnormal
+
+.nxtln2	move.w	fr_BytesPerRow(a5),d4	; we support interleaved bitmaps !
+	mulu.w	d7,d4
+
+	move.w	fr_Bytes(a5),d5		; we support interleaved bitmaps !
+	subq.w	#1,d5
+
+	move.w	d7,-(sp)
+	clrf.l	d6			; background is current color
+
+.getcl2	bsr.w	GetHAMSource
+
+	moveq.l	#7,d7
+.cnv2	bsr.w	GetHAMcolor
+	move.w	d6,d3
+	lsl.w	#1,d3
+	move.w	(a1,d3.w),d0
+	move.w	fr_dstdepthcnt(a5),d2
+.cnv2c	ror.b	#1,d0
+	bpl.b	.cnv2d
+	bset.b	d7,fr_dstdata(a5,d2.w)
+.cnv2d	dbra	d2,.cnv2c
+	dbra	d7,.cnv2
+
+	bsr.w	StoreNormalDest
+
+	addq.l	#1,d4
+	dbra	d5,.getcl2
+
+	move.w	(sp)+,d7
+	addq.w	#1,d7
+	cmp.w	fr_Rows(a5),d7
+	blt.b	.nxtln2
+	rts
+;-------------------------------------------------------------------------
+srcham_dstham
+
+.nxtln3	move.w	fr_BytesPerRow(a5),d4	; we support interleaved bitmaps !
+	mulu.w	d7,d4
+
+	move.w	fr_Bytes(a5),d5		; we support interleaved bitmaps !
+	subq.w	#1,d5
+
+	move.w	d7,-(sp)
+	clrf.l	d6			; background is current color
+	clr.w	fr_redbase(a5)
+	clr.w	fr_grnbase(a5)
+	clr.w	fr_blubase(a5)
+
+.getcl3	bsr.w	GetHAMSource
+
+	moveq.l	#7,d7
+.cnv3	bsr.w	GetHAMcolor
+	move.w	d6,d3
+	lsl.w	#1,d3
+	bsr.w	PutHAMcolor
+	dbra	d7,.cnv3
+
+	bsr.w	StoreHAMDest
+
+	addq.l	#1,d4
+	dbra	d5,.getcl3
+
+	move.w	(sp)+,d7
+	addq.w	#1,d7
+	cmp.w	fr_Rows(a5),d7
+	blt.b	.nxtln3
+	rts
+;-------------------------------------------------------------------------
+	if	source_ham8
+
+srcham8	cmp.b	#bitmapHAM,fr_dstinfo(a5)
+	beq.b	.sh8_dh
+;-------------------------------------------------------------------------
+.sh8_dn
+
+.nxtln2	move.w	fr_BytesPerRow(a5),d4	; we support interleaved bitmaps !
+	mulu.w	d7,d4
+
+	move.w	fr_Bytes(a5),d5		; we support interleaved bitmaps !
+	subq.w	#1,d5
+
+	move.w	d7,-(sp)
+	clrf.l	d6			; background is current color
+
+.getcl2	bsr.w	GetHAM8Source
+
+	moveq.l	#7,d7
+.cnv2	bsr.w	GetHAM8color
+	bsr.w	GetBestMatch
+;
+	move.w	fr_dstdepthcnt(a5),d2
+.cnv2c	ror.b	#1,d0
+	bpl.b	.cnv2d
+	bset.b	d7,fr_dstdata(a5,d2.w)
+.cnv2d	dbra	d2,.cnv2c
+	dbra	d7,.cnv2
+
+	bsr.w	PutNormalDest
+
+	addq.l	#1,d4
+	dbra	d5,.getcl2
+
+	move.w	(sp)+,d7
+	addq.w	#1,d7
+	cmp.w	fr_Rows(a5),d7
+	blt.b	.nxtln2
+	rts
+;-------------------------------------------------------------------------
+.sh8_dh
+
+.nxtln3	move.w	fr_BytesPerRow(a5),d4	; we support interleaved bitmaps !
+	mulu.w	d7,d4
+
+	move.w	fr_Bytes(a5),d5		; we support interleaved bitmaps !
+	subq.w	#1,d5
+
+	move.w	d7,-(sp)
+	clrf.l	d6			; background is current color
+	clr.w	fr_redbase(a5)
+	clr.w	fr_grnbase(a5)
+	clr.w	fr_blubase(a5)
+
+.getcl3	bsr.w	GetHAM8Source
+
+	moveq.l	#7,d7
+.cnv3	bsr.w	GetHAM8color
+;-------------------------
+	clr.w	d3
+	move.b	d6,d2
+	and.b	#$F0,d2
+	or.b	d2,d3
+	move.w	d6,d2
+	and.w	#$F000,d2
+	lsr.w	#8,d2
+	or.w	d2,d3
+	move.l	d6,d2
+	swap.w	d2
+	lsl.w	#4,d2
+	and.w	#$F00,d2
+	or.w	d2,d3
+;-------------------------
+	lsl.w	#1,d3
+	bsr.w	PutHAMcolor
+	dbra	d7,.cnv3
+
+	bsr.w	PutHAMDest
+
+	addq.l	#1,d4
+	dbra	d5,.getcl3
+
+	move.w	(sp)+,d7
+	addq.w	#1,d7
+	cmp.w	fr_Rows(a5),d7
+	blt.b	.nxtln3
+	rts
+;-------------------------------------------------------------------------
+
+GetBestMatch
+;	clrf.l	d0
+;	movea.l	fr_convtable(a5),a0
+;	move.l	d6,d1
+;	swap.w	d1
+;	move.w	d6,d2
+;	lsr.w	#8,d2
+;	move.w	d6,d3
+;	and.w	#$FF,d3
+;	move.w	fr_dstnumcolors(a5),d0
+;	dec.w	d0
+;	move.w	#1000,d6			; bestmatch
+	clrf.l	d0
+	rts
+
+	endc
+
+GetNormalSource
+	move.w	fr_srcdepthcnt(a5),d2
+	movea.l	fr_srcplptrs(a5),a0
+.get00	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata(a5,d2.w)
+	dbra	d2,.get00
+
+	clr.l	fr_dstdata+0(a5)
+	clr.l	fr_dstdata+4(a5)
+	rts
+
+GetHAMSource
+	movea.l	fr_srcplptrs(a5),a0
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+5(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+4(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+3(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+2(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+1(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+0(a5)
+
+	clr.l	fr_dstdata+0(a5)
+	clr.l	fr_dstdata+4(a5)
+	rts
+
+	if	source_ham8
+
+GetHAM8Source
+	movea.l	fr_srcplptrs(a5),a0
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+7(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+6(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+5(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+4(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+3(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+2(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+1(a5)
+	movea.l	(a0)+,a4
+	move.b	(a4,d4.l),fr_srcdata+0(a5)
+
+	clr.l	fr_dstdata+0(a5)
+	clr.l	fr_dstdata+4(a5)
+	rts
+
+	endc
+
+StoreNormalDest
+	move.w	fr_dstdepthcnt(a5),d2
+	movea.l	fr_dstplptrs(a5),a0
+.put00	movea.l	(a0)+,a4
+	move.b	fr_dstdata(a5,d2.w),(a4,d4.l)
+	dbra	d2,.put00
+	rts
+
+StoreHAMDest
+	movea.l	fr_dstplptrs(a5),a0
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+5(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+4(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+3(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+2(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+1(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+0(a5),(a4,d4.l)
+	rts
+
+StoreHAM8Dest
+	movea.l	fr_dstplptrs(a5),a0
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+7(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+6(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+5(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+4(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+3(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+2(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+1(a5),(a4,d4.l)
+	movea.l	(a0)+,a4
+	move.b	fr_dstdata+0(a5),(a4,d4.l)
+	rts
+
+GetHAMcolor
+	lea.l	fr_srcdata(a5),a4
+	clr.w	d3
+	btst.b	d7,(a4)+
+	beq.b	.cnv_a
+	bset.l	#05,d3
+.cnv_a	btst.b	d7,(a4)+
+	beq.b	.cnv_b
+	bset.l	#04,d3
+.cnv_b	btst.b	d7,(a4)+
+	beq.b	.cnv_c
+	bset.l	#03,d3
+.cnv_c	btst.b	d7,(a4)+
+	beq.b	.cnv_d
+	bset.l	#02,d3
+.cnv_d	btst.b	d7,(a4)+
+	beq.b	.cnv_e
+	bset.l	#01,d3
+.cnv_e	btst.b	d7,(a4)+
+	beq.b	.cnv_f
+	bset.l	#00,d3
+
+.cnv_f	bclr.l	#5,d3
+	bne.b	.mdfyRG
+	bclr.l	#4,d3
+	bne.b	.mdfyB
+
+.base	move.w	d3,d0			; get colormap entry
+	movea.l	8(a3),a0		; get colormap address
+	CALLLIB	_LVOGetRGB4		; inquire value of entry
+	movea.l	fr_convtable(a5),a1	; restore address
+	move.w	d0,d6			; obtain RGB color values as base
+	rts
+
+; 00xxxx	base
+; 01xxxx	blue
+; 10xxxx	red
+; 11xxxx	green
+
+.mdfyRG	bclr.l	#4,d3
+	bne.b	.mdfyG
+	andi.w	#$00ff,d6
+	lsl.w	#8,d3
+	or.w	d3,d6
+	rts
+
+.mdfyG	andi.w	#$0f0f,d6
+	lsl.w	#4,d3
+	or.w	d3,d6
+	rts
+
+.mdfyB	andi.w	#$0ff0,d6
+	or.w	d3,d6
+	rts
+
+
+	if	source_ham8
+
+GetHAM8color
+	lea.l	fr_srcdata(a5),a4
+	clrf.l	d3
+	btst.b	d7,(a4)+
+	beq.b	.cnv_a
+	bset.l	#07,d3
+.cnv_a	btst.b	d7,(a4)+
+	beq.b	.cnv_b
+	bset.l	#06,d3
+.cnv_b	btst.b	d7,(a4)+
+	beq.b	.cnv_c
+	bset.l	#05,d3
+.cnv_c	btst.b	d7,(a4)+
+	beq.b	.cnv_d
+	bset.l	#04,d3
+.cnv_d	btst.b	d7,(a4)+
+	beq.b	.cnv_e
+	bset.l	#03,d3
+.cnv_e	btst.b	d7,(a4)+
+	beq.b	.cnv_f
+	bset.l	#02,d3
+.cnv_f	btst.b	d7,(a4)+
+	beq.b	.cnv_g
+	bset.l	#01,d3
+.cnv_g	btst.b	d7,(a4)+
+	beq.b	.cnv_h
+	bset.l	#00,d3
+
+.cnv_h	cmp.w	#38,LIB_VERSION(a6)
+	bhi.w	V39
+
+;------------------------
+
+xpand2	dc.w	$00,$11,$22,$33,$44,$55,$66,$77
+	dc.w	$88,$99,$AA,$BB,$CC,$DD,$EE,$FF
+xpand3	dc.w	$0000,$1100,$2200,$3300,$4400,$5500,$6600,$7700
+	dc.w	$8800,$9900,$AA00,$BB00,$CC00,$DD00,$EE00,$FF00
+
+V38	bclr.l	#7,d3
+	bne.w	.mdfyRG
+	bclr.l	#6,d3
+	bne.w	.mdfyB
+
+.base	move.w	d3,d0				; get colormap entry
+	movea.l	remap_SrcColorMap(a3),a0	; get colormap address
+	CALLLIB	_LVOGetRGB4			; inquire value of entry
+	movea.l	fr_convtable(a5),a1		; restore address
+	move.w	d0,d1				; obtain RGB color values as base
+	move.w	d0,d2
+	andi.w	#$F00,d0
+	andi.w	#$0F0,d1
+	andi.w	#$00F,d2
+	lsr.w	#7,d0
+	lsr.w	#3,d1
+	lsl.w	#1,d2
+	move.w	xpand2(pc,d0.w),d6
+	or.w	xpand3(pc,d1.w),d6
+	swap.w	d6
+	move.w	xpand2(pc,d2.w),d6
+	swap.w	d6
+	rts
+
+.mdfyRG	bclr.l	#6,d3
+	bne.b	.mdfyG
+	andi.l	#$00ffff,d6
+	lsl.w	#4,d3
+	swap.w	d3
+	or.l	d3,d6
+	rts
+
+.mdfyG	andi.l	#$ff00ff,d6
+	lsl.w	#8,d3
+	lsl.w	#4,d3
+	or.w	d3,d6
+	rts
+
+.mdfyB	andi.l	#$ffff00,d6
+	lsl.w	#4,d3
+	or.w	d3,d6
+	rts
+
+;------------------------------
+
+V39	bclr.l	#7,d3
+	bne.b	.mdfyRG
+	bclr.l	#6,d3
+	bne.b	.mdfyB
+
+.base	move.w	d3,d0				; get colormap entry
+	movea.l	remap_SrcColorMap(a3),a0	; get colormap address
+	ext.l	d0
+	moveq.l	#1,d1
+	lea.l	fr_colortable(a5),a1
+	CALLLIB	_LVOGetRGB32		; inquire value of entry
+	movea.l	fr_convtable(a5),a1	; restore address
+	move.b	fr_colortable+00(a5),d6
+	swap.w	d6
+	move.w	fr_colortable+04(a5),d6
+	move.b	fr_colortable+08(a5),d6
+	rts
+
+; 00xxxxxx	base
+; 01xxxxxx	blue
+; 10xxxxxx	red
+; 11xxxxxx	green
+
+.mdfyRG	bclr.l	#6,d3
+	bne.b	.mdfyG
+	andi.l	#$00ffff,d6
+	lsl.w	#2,d3
+	swap.w	d3
+	or.l	d3,d6
+	rts
+
+.mdfyG	andi.l	#$ff00ff,d6
+	lsl.w	#8,d3
+	lsl.w	#2,d3
+	or.w	d3,d6
+	rts
+
+.mdfyB	andi.l	#$ffff00,d6
+	lsl.w	#2,d3
+	or.w	d3,d6
+	rts
+
+;--------------------------------
+
+	endc
+
+
+phc_colorred	equr	d0
+phc_colorgrn	equr	d1
+phc_colorblu	equr	d2
+
+PutHAMcolor
+	ext.l	d3
+	tst.w	(a1,d3.w)
+	bpl.w	.base
+
+; We must convert the real RGB to a HAM equivalent. Assume 4 bits / color.
+
+.ham	movem.l	d4/d5,-(sp)
+	lsr.w	#1,d3
+	move.w	d3,d0			; get colormap entry
+
+	cmp.b	#bitmapHAM,fr_srcinfo(a5)
+	beq.b	.sprate
+
+	cmpi.b	#bitmapEHB,fr_srcinfo(a5)
+	bne.b	.skip01
+	cmpi.w	#32,d0
+	beq.b	.skip02
+	bls.b	.skip01
+
+.skip02	subi.l	#32,d0
+	movea.l	remap_SrcColorMap(a3),a0
+	CALLLIB	_LVOGetRGB4
+	movea.l	fr_convtable(a5),a1
+	andi.w	#%0000111011101110,d0
+	lsr.w	#1,d0
+	bra.b	.sprate
+
+.skip01	movea.l	remap_SrcColorMap(a3),a0
+	CALLLIB	_LVOGetRGB4
+	movea.l	fr_convtable(a5),a1
+
+.sprate	move.w	d0,phc_colorgrn
+	move.w	d0,phc_colorblu
+	andi.w	#$F00,phc_colorred
+	andi.w	#$0F0,phc_colorgrn
+	andi.w	#$00F,phc_colorblu
+
+	move.w	fr_redbase(a5),d3
+	move.w	fr_grnbase(a5),d4
+	move.w	fr_blubase(a5),d5
+
+	sub.w	d0,d3
+	bpl.b	.ham_a
+	neg.w	d3
+.ham_a	lsr.w	#8,d3
+
+	sub.w	d1,d4
+	bpl.b	.ham_b
+	neg.w	d4
+.ham_b	lsr.w	#4,d4
+
+	sub.w	d2,d5
+	bpl.b	.ham_c
+	neg.w	d5
+.ham_c
+	cmp.w	d4,d5
+	bls.b	.ham_d
+
+	cmp.w	d5,d3
+	bhi.b	.hamm_r
+	bra.b	.hamm_b
+
+.ham_d	cmp.w	d3,d4
+	bhi.b	.hamm_g
+
+.hamm_r	move.w	phc_colorred,d3
+	move.w	phc_colorred,fr_redbase(a5)
+	lsr.w	#8,d3
+	ori.w	#%100000,d3
+	bra.b	.ham_e
+
+.hamm_g	move.w	phc_colorgrn,d3
+	move.w	phc_colorgrn,fr_grnbase(a5)
+	lsr.w	#4,d3
+	ori.w	#%110000,d3
+	bra.b	.ham_e
+
+.hamm_b	move.w	phc_colorblu,d3
+	move.w	phc_colorblu,fr_blubase(a5)
+	ori.w	#%010000,d3
+
+.ham_e	movem.l	(sp)+,d4/d5
+
+	ror.b	#1,d3
+	bpl.b	.ham_g
+	bset.b	d7,fr_dstdata+5(a5)
+.ham_g	ror.b	#1,d3
+	bpl.b	.ham_h
+	bset.b	d7,fr_dstdata+4(a5)
+.ham_h	ror.b	#1,d3
+	bpl.b	.ham_i
+	bset.b	d7,fr_dstdata+3(a5)
+.ham_i	ror.b	#1,d3
+	bpl.b	.ham_j
+	bset.b	d7,fr_dstdata+2(a5)
+.ham_j	ror.b	#1,d3
+	bpl.b	.ham_k
+	bset.b	d7,fr_dstdata+1(a5)
+.ham_k	ror.b	#1,d3
+	bpl.b	.ham_l
+	bset.b	d7,fr_dstdata+0(a5)
+.ham_l	rts
+
+; We get the RGB value to set a new HAM basecolor and store the color
+
+.base	move.w	(a1,d3.w),d0		; get colormap entry
+	ext.l	d0
+	move.w	d0,d3			; we'll use this below
+	movea.l	a2,a0			; get colormap address
+	CALLLIB	_LVOGetRGB4		; inquire value of entry
+	movea.l	fr_convtable(a5),a1	; restore address
+	move.w	d0,phc_colorgrn
+	move.w	d0,phc_colorblu
+	andi.w	#$F00,phc_colorred
+	andi.w	#$0F0,phc_colorgrn
+	andi.w	#$00F,phc_colorblu
+	move.w	phc_colorred,fr_redbase(a5)	; new base color
+	move.w	phc_colorgrn,fr_grnbase(a5)	; new base color
+	move.w	phc_colorblu,fr_blubase(a5)	; new base color
+
+	ror.b	#1,d3
+	bpl.b	.base_a
+	bset.b	d7,fr_dstdata+5(a5)
+.base_a	ror.b	#1,d3
+	bpl.b	.base_b
+	bset.b	d7,fr_dstdata+4(a5)
+.base_b	ror.b	#1,d3
+	bpl.b	.base_c
+	bset.b	d7,fr_dstdata+3(a5)
+.base_c	ror.b	#1,d3
+	bpl.b	.base_d
+	bset.b	d7,fr_dstdata+2(a5)
+.base_d	rts
+
+
+
+PutHAM8color
+	ext.l	d3
+	tst.w	(a1,d3.w)
+	bpl.w	.base
+
+; We must convert the real RGB to a HAM8 equivalent
+
+.ham	movem.l	d4/d5,-(sp)
+	lsr.w	#1,d3
+	move.w	d3,d0			; get colormap entry
+
+	cmp.b	#bitmapHAM,fr_srcinfo(a5)
+	beq.b	.sprate
+
+	cmpi.b	#bitmapEHB,fr_srcinfo(a5)
+	bne.b	.skip01
+	cmpi.w	#32,d0
+	beq.b	.skip02
+	bls.b	.skip01
+
+.skip02	subi.l	#32,d0
+	movea.l	remap_SrcColorMap(a3),a0
+	bsr.w	GetRGBXX
+	movea.l	fr_convtable(a5),a1
+	lsr.w	#1,d0
+	lsr.w	#1,d1
+	lsr.w	#1,d2
+	andi.l	#$7FFF,d0
+	andi.l	#$7FFF,d1
+	andi.l	#$7FFF,d2
+	bra.b	.sprate
+
+.skip01	movea.l	remap_SrcColorMap(a3),a0
+	bsr.w	GetRGBXX	
+	movea.l	fr_convtable(a5),a1
+
+.sprate	move.w	fr_redbase(a5),d3
+	move.w	fr_grnbase(a5),d4
+	move.w	fr_blubase(a5),d5
+
+	movem.w	d0-d2,-(sp)
+	cmp.w	d0,d3
+	bhi.b	.ham_a
+	exg.l	d0,d3
+
+.ham_a	cmp.w	d1,d4
+	bhi.b	.ham_b
+	exg.l	d1,d4
+
+.ham_b	cmp.w	d2,d5
+	bhi.b	.ham_c
+	exg.l	d2,d5
+
+.ham_c	sub.w	d0,d3
+	sub.w	d1,d4
+	sub.w	d2,d5
+	movem.w	(sp)+,d0-d2
+
+	cmp.w	d4,d5
+	bls.b	.ham_d
+
+	cmp.w	d5,d3
+	bhi.b	.hamm_r
+	bra.b	.hamm_b
+
+.ham_d	cmp.w	d3,d4
+	bhi.b	.hamm_g
+
+.hamm_r	move.w	d0,fr_redbase(a5)
+	move.w	d0,d3
+	lsr.w	#8,d3
+	lsr.w	#2,d3
+	ori.w	#%10000000,d3
+	bra.b	.ham_e
+
+.hamm_g	move.w	d1,fr_grnbase(a5)
+	move.w	d1,d3
+	lsr.w	#8,d3
+	lsr.w	#2,d3
+	ori.w	#%11000000,d3
+	bra.b	.ham_e
+
+.hamm_b	move.w	d2,fr_blubase(a5)
+	move.w	d2,d3
+	lsr.w	#8,d3
+	lsr.w	#2,d3
+	ori.w	#%01000000,d3
+
+.ham_e	movem.l	(sp)+,d4/d5
+
+	ror.b	#1,d3
+	bpl.b	.ham_g
+	bset.b	d7,fr_dstdata+5(a5)
+.ham_g	ror.b	#1,d3
+	bpl.b	.ham_h
+	bset.b	d7,fr_dstdata+4(a5)
+.ham_h	ror.b	#1,d3
+	bpl.b	.ham_i
+	bset.b	d7,fr_dstdata+3(a5)
+.ham_i	ror.b	#1,d3
+	bpl.b	.ham_j
+	bset.b	d7,fr_dstdata+2(a5)
+.ham_j	ror.b	#1,d3
+	bpl.b	.ham_k
+	bset.b	d7,fr_dstdata+1(a5)
+.ham_k	ror.b	#1,d3
+	bpl.b	.ham_l
+	bset.b	d7,fr_dstdata+0(a5)
+.ham_l	rts
+
+; We get the RGB value to set a new HAM basecolor and store the color
+
+.base	move.w	(a1,d3.w),d0		; get colormap entry
+	ext.l	d0
+	move.w	d0,d3			; we'll use this below
+	movea.l	a2,a0			; get colormap address
+	CALLLIB	_LVOGetRGB4		; inquire value of entry
+	movea.l	fr_convtable(a5),a1	; restore address
+	move.w	d0,phc_colorgrn
+	move.w	d0,phc_colorblu
+	andi.w	#$F00,phc_colorred
+	andi.w	#$0F0,phc_colorgrn
+	andi.w	#$00F,phc_colorblu
+	move.w	phc_colorred,fr_redbase(a5)	; new base color
+	move.w	phc_colorgrn,fr_grnbase(a5)	; new base color
+	move.w	phc_colorblu,fr_blubase(a5)	; new base color
+
+	ror.b	#1,d3
+	bpl.b	.base_a
+	bset.b	d7,fr_dstdata+5(a5)
+.base_a	ror.b	#1,d3
+	bpl.b	.base_b
+	bset.b	d7,fr_dstdata+4(a5)
+.base_b	ror.b	#1,d3
+	bpl.b	.base_c
+	bset.b	d7,fr_dstdata+3(a5)
+.base_c	ror.b	#1,d3
+	bpl.b	.base_d
+	bset.b	d7,fr_dstdata+2(a5)
+.base_d	rts
+
+
+;-------------------------------------------------------------------------
+; Local function - GetRGBXX( ColorMap (a0), Index (d0), GfxBase (a6)
+;-------------------------------------------------------------------------
+; Retreives 32 bit color values. If under -V38 then values are taken from
+; a table and GetRGB4. If under V39+ then GetRGB32 is used. Values are
+; 32 bit left aligned for each color component, as documented in AutoDocs.
+;-------------------------------------------------------------------------
+
+GetRGBXX
+	link	a5,#-12
+	movem.l	a0-a1,-(sp)
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.b	.V39
+
+.V38	CALLLIB	_LVOGetRGB4
+	move.w	d0,d1
+	move.w	d0,d2
+	andi.w	#$F00,d0
+	andi.w	#$0F0,d1
+	andi.w	#$00F,d2
+	lsr.w	#6,d0
+	lsr.w	#2,d1
+	lsl.w	#2,d2
+	move.l	.xpnd32(pc,d0.w),d0
+	move.l	.xpnd32(pc,d1.w),d1
+	move.l	.xpnd32(pc,d2.w),d2
+	bra.b	.exit
+
+.V39	lea.l	-12(a5),a1
+	moveq.l	#1,d1
+	CALLLIB	_LVOGetRGB32
+	move.l	-12(a5),d0
+	move.l	-8(a5),d1
+	move.l	-4(a5),d2
+
+.exit	movem.l	(sp)+,a0-a1
+	unlk	a5
+
+.xpnd32	dc.l	$00000000,$11111111,$22222222,$33333333
+	dc.l	$44444444,$55555555,$66666666,$77777777
+	dc.l	$88888888,$99999999,$AAAAAAAA,$BBBBBBBB
+	dc.l	$CCCCCCCC,$DDDDDDDD,$EEEEEEEE,$FFFFFFFF
+
+;-------------------------------------------------------------------------
+; Local function - ConvertPalette( remapInfo(a3), stackframe(a5) )
+;-------------------------------------------------------------------------
+; Fills allocated space with table indicating which color should replace
+; the original.
+;-------------------------------------------------------------------------
+cp_colorred	equr	d0
+cp_colorgrn	equr	d1
+cp_colorblu	equr	d2
+cp_sourceindex	equr	d3
+cp_destindex	equr	d4
+cp_bestmatch	equr	d5
+cp_bitmaptype	equr	d7
+
+ConvertPalette
+	movea.l	fr_convtable(a5),a2
+	lea.l	GetColor32(pc),a4
+	movea.l	_GfxBase,a6
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.b	.functionV39
+	lea.l	GetColor4(pc),a4
+.functionV39
+	cmp.b	#bitmapHAM8,fr_srcinfo(a5)
+	beq.w	.simple
+
+	moveq.l	#0,cp_sourceindex
+	btst.b	#REMAPB_TRANSPARENT,remap_Flags+01(a3)
+	beq.b	.scan_loop
+	moveq.l	#1,cp_sourceindex
+	clr.w	(a2)+
+.scan_loop
+	movea.l	remap_SrcColorMap(a3),a0
+	moveq.l	#0,d1				; source
+	move.l	cp_sourceindex,d0
+	move.b	fr_srcinfo(a5),cp_bitmaptype
+	jsr	(a4)
+	move.w	cp_colorred,fr_colorred(a5)
+	move.w	cp_colorgrn,fr_colorgrn(a5)
+	move.w	cp_colorblu,fr_colorblu(a5)
+
+	move.l	#1000,cp_bestmatch
+
+	moveq.l	#0,cp_destindex
+	btst.b	#REMAPB_TRANSPARENT,remap_Flags+01(a3)
+	beq.b	.match_loop
+	moveq.l	#1,cp_destindex
+.match_loop
+	movea.l	remap_DstColorMap(a3),a0
+	moveq.l	#1,d1				; dest
+	move.l	cp_destindex,d0
+	move.b	fr_dstinfo(a5),cp_bitmaptype
+	jsr	(a4)
+	sub.w	fr_colorred(a5),cp_colorred
+	bpl.s	.pos_r
+	neg.w	cp_colorred
+.pos_r	sub.w	fr_colorgrn(a5),cp_colorgrn
+	bpl.s	.pos_g
+	neg.w	cp_colorgrn
+.pos_g	sub.w	fr_colorblu(a5),cp_colorblu
+	bpl.s	.pos_b
+	neg.w	cp_colorblu
+.pos_b	add.w	cp_colorgrn,cp_colorred
+	add.w	cp_colorblu,cp_colorred
+	bne.s	.differ
+	move.w	cp_destindex,(a2)+	; perfect match for current color
+	bra.b	.go_scn			; and proceed with next color
+
+.differ	cmp.w	cp_colorred,cp_bestmatch
+	bls.b	.worse
+	move.w	cp_destindex,(a2)		; set current color to best match
+	move.w	cp_colorred,cp_bestmatch	; set best match to current color
+.worse
+	inc.w	cp_destindex
+	cmp.w	fr_dstnumcolors+2(a5),cp_destindex
+	bne.b	.match_loop
+
+	cmpi.b	#bitmapHAM,fr_dstinfo(a5)
+	bne.b	.notHAM
+	move.w	#-1,(a2)
+.notHAM	addq.w	#2,a2			; next position in conv. table
+.go_scn	inc.w	cp_sourceindex
+	cmp.w	fr_srcnumcolors+2(a5),cp_sourceindex
+	bne.w	.scan_loop
+
+	rts
+
+
+.simple	clrf.l	cp_destindex
+
+.loop	movea.l	remap_DstColorMap(a3),a0
+	moveq.l	#1,d1				; amount
+	move.l	cp_destindex,d0
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.b	.rgb32
+
+.rgb4	CALLLIB	_LVOGetRGB4
+	bra.b	.store
+
+.rgb32	CALLLIB	_LVOGetRGB32
+	move.b	fr_colortable+00(a5),d0
+	swap.w	d0
+	move.w	fr_colortable+04(a5),d0
+	move.b	fr_colortable+08(a5),d0
+
+.store	move.l	d0,(a2)+
+
+	inc.w	cp_destindex
+	cmp.w	fr_dstnumcolors+2(a5),cp_destindex
+	bne.b	.loop
+
+	rts
+;-------------------------------------------------------------------------
+
+
+
+;-------------------------------------------------------------------------
+expand	dc.w	$00,$11,$22,$33,$44,$55,$66,$77
+	dc.w	$88,$99,$AA,$BB,$CC,$DD,$EE,$FF
+;-------------------------------------------------------------------------
+GetColor32
+	cmp.b	#bitmapHAM,cp_bitmaptype
+	bne.s	.skip00
+	tst.w	d1			; destination ?
+	bne.b	.skip03			; if so, get color 0-15
+
+	move.w	d0,cp_colorgrn
+	move.w	d0,cp_colorblu
+	andi.w	#$F00,cp_colorred
+	andi.w	#$0F0,cp_colorgrn
+	andi.w	#$00F,cp_colorblu
+	lsr.w	#7,cp_colorred
+	lsr.w	#3,cp_colorgrn
+	lsl.w	#1,cp_colorblu
+	move.w	expand(pc,cp_colorred.w),cp_colorred
+	move.w	expand(pc,cp_colorgrn.w),cp_colorgrn
+	move.w	expand(pc,cp_colorblu.w),cp_colorblu
+	rts
+
+.skip00	moveq.l	#1,d1
+	lea.l	fr_colortable(a5),a1
+	cmpi.b	#bitmapEHB,cp_bitmaptype
+	bne.b	.skip01
+	cmpi.w	#32,d0
+	beq.b	.skip02
+	bls.b	.skip01
+
+.skip02	subi.l	#32,d0
+	CALLLIB	_LVOGetRGB32
+	clrf.l	cp_colorred
+	clrf.l	cp_colorgrn
+	clrf.l	cp_colorblu
+	move.b	fr_colortable+0(a5),cp_colorred
+	move.b	fr_colortable+4(a5),cp_colorgrn
+	move.b	fr_colortable+8(a5),cp_colorblu
+	lsr.w	#1,cp_colorred
+	lsr.w	#1,cp_colorgrn
+	lsr.w	#1,cp_colorblu
+	rts
+
+.skip01	CALLLIB	_LVOGetRGB32
+	clrf.l	cp_colorred
+	clrf.l	cp_colorgrn
+	clrf.l	cp_colorblu
+	move.b	fr_colortable+0(a5),cp_colorred
+	move.b	fr_colortable+4(a5),cp_colorgrn
+	move.b	fr_colortable+8(a5),cp_colorblu
+	rts
+
+.skip03	moveq.l	#1,d1
+	lea.l	fr_colortable(a5),a1
+	CALLLIB	_LVOGetRGB32
+	clrf.l	cp_colorred
+	clrf.l	cp_colorgrn
+	clrf.l	cp_colorblu
+	move.b	fr_colortable+0(a5),cp_colorred
+	move.b	fr_colortable+4(a5),cp_colorgrn
+	move.b	fr_colortable+8(a5),cp_colorblu
+	rts
+
+;-------------------------------------------------------------------------
+GetColor4
+	cmp.b	#bitmapHAM,cp_bitmaptype
+	bne.b	.skip00
+	tst.w	d1			; destination ?
+	bne.b	.skip01			; if so, get color 0-15
+
+	move.w	d0,cp_colorgrn
+	move.w	d0,cp_colorblu
+	andi.w	#$F00,cp_colorred
+	andi.w	#$0F0,cp_colorgrn
+	andi.w	#$00F,cp_colorblu
+	lsr.w	#8,cp_colorred
+	lsr.w	#4,cp_colorgrn
+	rts
+
+.skip00	cmpi.b	#bitmapEHB,cp_bitmaptype
+	bne.b	.skip01
+	cmpi.w	#32,d0
+	beq.b	.skip02
+	bls.b	.skip01
+
+.skip02	subi.l	#32,d0
+	CALLLIB	_LVOGetRGB4
+	andi.w	#%0000111011101110,d0
+	lsr.w	#1,d0
+	move.w	d0,cp_colorgrn
+	move.w	d0,cp_colorblu
+	andi.w	#$F00,cp_colorred
+	andi.w	#$0F0,cp_colorgrn
+	andi.w	#$00F,cp_colorblu
+	lsr.w	#8,cp_colorred
+	lsr.w	#4,cp_colorgrn
+	rts
+
+.skip01	CALLLIB	_LVOGetRGB4
+	move.w	d0,cp_colorgrn
+	move.w	d0,cp_colorblu
+	andi.w	#$F00,cp_colorred
+	andi.w	#$0F0,cp_colorgrn
+	andi.w	#$00F,cp_colorblu
+	lsr.w	#8,cp_colorred
+	lsr.w	#4,cp_colorgrn
+	rts
+;-------------------------------------------------------------------------
+
+
+
+;-------------------------------------------------------------------------
+; Local function - DetermineModes( d2, d3, remapInfo(a3), stackframe(a5) )
+;-------------------------------------------------------------------------
+; Set information bytes about the bitmap types and get d2/d3 to represent
+; the actual amount of colors in the src/dst bitmaps.
+;-------------------------------------------------------------------------
+DetermineModes
+;-------------------------------------------------------------------------
+.GetSourceModes
+	move.l	remap_SrcViewModes(a3),d5
+	andi.l	#V_HAM,d5
+	beq.b	.source_not_HAM
+	cmp.w	#8,fr_srcdepth(a5)
+	bne.b	.snHAM8
+	move.l	#128,d2
+	move.b	#bitmapHAM8,fr_srcinfo(a5)
+	bra.b	.sourcemodedetermined
+.snHAM8	move.l	#4096,d2
+	move.b	#bitmapHAM,fr_srcinfo(a5)
+	bra.b	.sourcemodedetermined
+.source_not_HAM
+	move.l	remap_SrcViewModes(a3),d5
+	andi.l	#V_EXTRA_HALFBRITE,d5
+	beq.b	.source_not_EHB
+	moveq.l	#64,d2
+	move.b	#bitmapEHB,fr_srcinfo(a5)
+	bra.b	.sourcemodedetermined
+.source_not_EHB
+	cmp.w	#24,fr_srcdepth(a5)
+	bne.b	.source_not_24bit
+	move.b	#bitmap24bit,fr_srcinfo(a5)
+	bra.b	.sourcemodedetermined
+.source_not_24bit
+	move.b	#bitmapNormal,fr_srcinfo(a5)
+.sourcemodedetermined
+;-------------------------------------------------------------------------
+.GetDestModes
+	move.l	remap_DstViewModes(a3),d5
+	andi.l	#V_HAM,d5
+	beq.b	.dest_not_HAM
+	cmp.w	#8,fr_dstdepth(a5)
+	bne.b	.dnHAM8
+	moveq.l	#64,d3
+	move.b	#bitmapHAM8,fr_dstinfo(a5)
+	bra.b	.destmodedetermined
+.dnHAM8	moveq.l	#16,d3
+	move.b	#bitmapHAM,fr_dstinfo(a5)
+	bra.b	.destmodedetermined
+.dest_not_HAM
+	move.l	remap_DstViewModes(a3),d5
+	andi.l	#V_EXTRA_HALFBRITE,d5
+	beq.b	.dest_not_EHB
+	moveq.l	#64,d3
+	move.b	#bitmapEHB,fr_dstinfo(a5)
+	bra.b	.destmodedetermined
+.dest_not_EHB
+	cmp.w	#24,fr_dstdepth(a5)
+	bne.b	.dest_not_24bit
+	move.b	#bitmap24bit,fr_dstinfo(a5)
+	bra.b	.destmodedetermined
+.dest_not_24bit
+	move.b	#bitmapNormal,fr_dstinfo(a5)
+.destmodedetermined
+	rts
+;-------------------------------------------------------------------------
+
+
+;-------------------------------------------------------------------------
+; automatical source and object module updating
+;-------------------------------------------------------------------------
+
+	AUTO	u\
+	AUTO	wl remap.o\y
+
+;-- END OF FILE ----------------------------------------------------------
+

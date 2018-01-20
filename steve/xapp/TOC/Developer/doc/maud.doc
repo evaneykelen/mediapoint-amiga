@@ -1,0 +1,104 @@
+---------------------------------------------------------------------
+                                  'MAUD'
+
+                       A new audio IFF file format.
+
+                  MS MacroSystem Computer GmbH - Germany
+
+                          P R E L I M I N A R Y
+---------------------------------------------------------------------
+Introduction
+
+MAUD  is  a  new  IFF file format to store sampled audio data.  It is
+intended  to be used to store a one-shot sampled sound, not a sampled
+musical instrument although it is prepared to be expanded.
+
+A short summary should give you a quick overview what MAUD supports:
+
+- variable sample size including 1 upto 32 bits per sample and channel
+- variable number of channels including stereo
+- bit packed storage of samples
+- different compression types (none, A-Law, µ-Law, ADPCMx, ...)
+- data format directly supports commonly used CODEC chips
+- optional additional channel information (future)
+---------------------------------------------------------------------
+The required file header MHDR contains the following information:
+
+- mhdr_Samples
+The  number  of sample frames stored in chunk MDAT.  One sample frame
+consists of 1, 2 or more samples depending on the number of channels.
+
+- mhdr_SampleSizeC
+The  number  of  bits per sample and channel as stored in chunk MDAT.
+This  value  may  be 0 in the future for special, currently undefined
+compression types
+
+- mhdr_SampleSizeU
+The number of bits per sample after decompression.
+
+- mhdr_RateSource
+- mhdr_RateDevide
+To figure out the sample frequency you MUST devide mhdr_RateSource by
+mhdr_RateDevide!   Hardware  devices  often  calculate  their  sample
+frequency  by  deviding  a  clock  source  (crystal  oscillator) by a
+special value.
+
+Examples:
+mhdr_RateSource = 48000, mhdr_RateDevide = 1
+  ==> SampleFrequency = 48000 / 1 = 48000
+mhdr_RateSource = 24576000, mhdr_RateDevide = 768
+  ==> SampleFrequency = 24576000 / 768 = 32000
+
+- mhdr_ChannelInfo
+This value defines what special meaning the stored channels have.  In
+general  this  will  be  MCI_MONO  or  MCI_STEREO.  MCI_MULTIMONO and
+MCI_MULTISTEREO  are  used  for  mono or stereo multichannel playback
+through  a  mono  or stereo output.  MCI_MULTICHANNEL is reserved for
+future expansion where each channel may have a special function which
+will be defined in additional channel info chunks MINF.
+  MCI_MONO         - mono (mhdr_Channels MUST be 1)
+  MCI_STEREO       - stereo (mhdr_Channels MUST be 2)
+  MCI_MULTIMONO    - mono multichannel
+  MCI_MULTISTEREO  - stereo multichannel
+  MCI_MULTICHANNEL - multichannel (requires MINF-chunks) (future)
+
+- mhdr_Channels
+The  number  of  channels  stored  in  chunk MDAT.  This must be 1 if
+mhdr_ChannelInfo is MCI_MONO and 2 if MCI_STEREO.
+
+- mhdr_Compression
+Often  audio data is stored compressed.  See maud.i or maud.h for all
+currently defined compression modes.
+---------------------------------------------------------------------
+Data chunk 'MDAT'
+
+This  chunk contains the pure audio data.  Each sample frame consists
+of  1,  2  or more seperate channels.  If stereo channels are stored,
+the  left  channel  always comes first.  Each sample itself is stored
+with its most significant bit first (Big Endian).  Samples are stored
+bit  packed,  so  there  will be no pad bits or bytes inside the data
+stream.   The  end  of  the  datastream  has  to  be padded to a word
+boundary  to follow the IFF rules. 8 bit samples are stored unsigned,
+so 0 represents minimum analog amplitude while 255 represents maximum
+analog  amplitude.  This  format  is  commonly  used  in the personal
+computer industry. 16 bit samples are stored signed (2's complement).
+-32768  is  used  to  represent  minimum analog amplitude while 32767
+represents   maximum  analog  amplitude.  This  is  the  standard  of
+representing 16 bit digital audio (compact disk).
+
+4 stereo samples with 4 bits each
+32103210 32103210 32103210 32103210
+llllrrrr llllrrrr llllrrrr llllrrrr
+
+3 stereo samples with 3 bits each
+21021021 02102102 10
+lllrrrll lrrrlllr rr000000 00000000
+
+2 mono samples with 16 bits each
+MSB Sample 0  LSB MSB Sample 1  LSB
+v               v v               v
+xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx
+
+Multichannel stereo 6 channels datastream
+c0l c0r c1l c1r c2l c2r   c3l c3r c4l c4r c5l c5r   ...
+---------------------------------------------------------------------

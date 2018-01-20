@@ -1,0 +1,8 @@
+del setup.o    
+del worker.o   
+del doit.o     
+del serial.o   
+del control.o  
+del lowlevel.o 
+del hostser.o  
+del host.o

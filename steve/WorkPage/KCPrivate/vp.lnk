@@ -1,0 +1,4 @@
+FROM LIB:c.o "vp.o"+"spline.o"
+TO "vp"
+LIB LIB:sc.lib LIB:amiga.lib
+

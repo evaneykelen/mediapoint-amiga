@@ -1,0 +1,5 @@
+del inputevent.o      
+del etc.o             
+del itc.o             
+del synchromiditc.o   
+del tempoeditor.o

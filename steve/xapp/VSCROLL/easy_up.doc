@@ -1,0 +1,20 @@
+Easy up.
+
+This is a very short manual for the easy_up scroll. The command listed below
+can be placed anywhere in the text in the following manner:
+
+^fmediapoint^^s20^Text
+
+This example shows the word 'Text' in the mediapoint size 20. The one restriction
+is that there can be only one font per line.
+
+f - set font
+a - set allignment l,r and m
+c - set color xxx
+v - set speed
+m - set middle
+g - set gapsize between character role
+t - set shadow type f for filled other for non filled
+d - set shadow depth
+i - set spacing between lines
+s - set font size

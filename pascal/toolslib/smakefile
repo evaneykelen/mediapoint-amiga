@@ -1,0 +1,32 @@
+CC = sc
+AS = genam
+
+CFLAGS = DEBUG=LINE DATA=NEAR NMINC NOSTREQ NOSTKCHK SAVEDS GST=nb:all.sym NOICONS
+AFLAGS = -iINCLUDE
+
+PA = pascal:toolslib/
+APP1 = pascal:toolslib/tools.lib
+
+.SUFFIXES:	.o	.c	.h
+
+APP10 =\
+ $(PA)allocbitmap24.o $(PA)allocmem.o $(PA)allocplanes24.o\
+ $(PA)getbitmapattr24.o $(PA)getrgb.o $(PA)initbitmap24.o\
+ $(PA)math32bit.o $(PA)palettesize.o $(PA)setrgb.o $(PA)setrgbcm.o\
+ $(PA)chunkytoplanar.o $(PA)planartochunky.o $(PA)loadrgb.o\
+ $(PA)textfuncs.o
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10)
+	oml $(APP1) r $(APP10)
+	oml >toolslib.xref -s -x $(APP1) l
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+#	oml $(APP1) r $*.o
+
+.a.o:
+	$(AS) $*.a
+#	oml $(APP1) r $*.o

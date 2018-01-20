@@ -1,0 +1,31 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY CODE=FAR DATA=FAR STRMERGE GST=nb:all.sym NMINC NOSTKCHK IDIR=nb: NOICONS
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+XAPPNAME = Transitions
+
+APP1 = workpage
+
+APP10 = $(APP1).o lib:/source/_main.o gen:general.o effects.o parse.o pt.o\
+				inthandler.o wp:crawl/crawl.o pascal:ttxt.o pascal:antialias.o\
+				localedate.o workpageasm.o
+
+.SUFFIXES:	.o	.c	.h
+
+all: $(XAPPNAME)
+
+$(XAPPNAME): $(APP10) 
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib lib:amiga.lib lib:debug.lib lib:tools.lib
+TO $(XAPPNAME) $(LFLAGS)
+MAP $(XAPPNAME).map h
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $*.a

@@ -1,0 +1,27 @@
+SynchroGMT              23-Jun-94 09:45:21  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         1924 lib:c.o          c        code            0    0      260
+                       SynchroGMT.o     synchrog code          260    0      7b4
+                       lib:/source/_mai _main.c  code          a14    0      12c
+                       TempoEditor.o    tempoedi code          b40    0      a2c
+                       gen:GenInit.o    geninit. code         156c    0       28
+                       ph:functions.o   function code         1594    0      124
+                       inputevent.o     inputeve code         16b8    0       10
+                       lib:sc.lib       newlist  code         16c8    0       14
+                       lib:sc.lib       createst code         16dc    0       14
+                       lib:sc.lib       createpo code         16f0    0       b8
+                       lib:sc.lib       createex code         17a8    0       6c
+                       lib:sc.lib       _fpinit. code         1814    0       3c
+                       lib:sc.lib       _CXD33.o code         1850    0       c4
+                       lib:sc.lib       _exit.c  code         1914    0       10
+   1 __MERGED        8 SynchroGMT.o     synchrog data            0    0        4
+                       lib:sc.lib       stack.c  data            4    0        4
+                       lib:c.o          c        bss             8    0       28
+                       lib:/source/_mai _main.c  bss            30    0       8c
+                       lib:sc.lib       base.c   bss            bc    0        4
+                       lib:sc.lib       stkptr.c bss            c0    0        4
+                       lib:sc.lib       prgname. bss            c4    0        4
+                       lib:sc.lib       _onexit. bss            c8    0        4
+                       lib:sc.lib       curdir.c bss            cc    0        4
+                       lib:sc.lib       wbmsg.c  bss            d0    0        4

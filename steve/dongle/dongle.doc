@@ -1,0 +1,91 @@
+/*********************************************************
+	HARDWARE DESCRIPTIONS
+
+VCC   -> +5V 				;joyport pin 7
+GND   ->				;joyport pin 8
+CS    -> Paula Potgo bit 14/15		;joyport pin 9
+DI/DO -> Paula Potgo bit 12/13		;joyport pin 5
+SK    -> CIAA bfe001 bit 7		;joyport pin 6	
+
+e2prom 9306/9346 pin assignments 
+
+   1 _ _ 8
+CS -| U |- VCC
+SK -|   |- nc
+DI -|   |- nc
+DO -|   |- GND
+     ---
+
+JoyPort pin#    E2prom pin #
+1 NC            6 NC		
+2 NC            7 NC
+3 NC
+4 NC
+5 ------------- 3 + 4
+6 ------------- 2
+7 ------------- 8
+8 ------------- 5
+9 ------------- 1
+
+
+Since the electrical rise/fall characteristics of the PAULA Potgo pins
+are terrible it was impossible to use these pins for Serial Clock out.
+The e2prom thought it was sometimes doubleclocked and responded with
+sending multiple bits on one cycle. (Hardware made two cycles out of one)
+This is due to the capacitors 0.047 uF and 100 pF which are attached to its
+I/O pins.
+
+CS and DI/DO are however less demanding and can easily use PAULA IO.
+
+*/
+
+HOW TO USE THE DONGLE IN AN APPLICATION
+
+This new dongle has to be inserted into gameport 2 that is,
+the port which is not used by the mouse. If however by mistake 
+the dongle is inserted into gameport 1 then noting damaging happens.
+
+BUT, if someone uncarefully inserts the dongle into the gameport 
+thereby making some nasty shortcircuits then you've got the puppets
+dancing. You may blow your fuse1, a 5.1 Ohm resistor or even worse, 
+your +5V-user voltage from the powersupply.
+
+Just turn your amiga off when inserting the dongle and you have 
+nothing to fear.
+
+
+To implement the dongleroutines into your software simply follow
+these steps (A small step for one man, a big step for mankind) :
+
+-Link the modules : "DongleIO.o" and "Dongle.o" onto your software.
+
+-During the initialisation of your program call the routine 
+
+ "AllocDongle()"
+
+ as if you were allocating some memory.
+ This function returns a TRUE if the dongle could be allocated.
+ If for some dark brown reason the donglesoftware failed it returns
+ a FALSE.
+
+-As you exit your program call
+
+ "FreeDongle()"
+
+ as if you were freeing memory.
+
+-To read data from the dongle from any of the 16 addresses simply 
+ call
+
+ "myData = ReadDongle(nn)"
+
+ and the 16 bit data from address nn will be available in "myData".
+
+
+Functions :
+
+int AllocDongle( void)
+void FreeDongle( void)
+UWORD ReadDongle( UWORD SourceAddr)
+void WriteDongle( UWORD DestAddr, UWORD Data)
+

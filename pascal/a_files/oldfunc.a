@@ -1,0 +1,54 @@
+	move.w	txt_gaussInfo+gf_Bytes(a5),d5	; line offset
+	move.w	d5,d4
+	neg.w	d4
+	movea.l	txt_gaussInfo+gf_BitMap(a5),a1
+	movea.l	bm_Planes(a1),a0
+	movea.l	a0,a2
+	lea.l	.gTable(pc),a3
+	lea.l	.color_disp(pc),a4
+	move.w	txt_gaussInfo+gf_Height(a5),d6
+	subq.w	#3,d6				; stop one line down
+	adda.w	d5,a2				; start one line down
+
+.rep_height
+	move.w	txt_gaussInfo+gf_Width(a5),d7
+	subq.w	#2,d7
+	moveq.l	#12,d1				; start one row from the left
+	movea.l	a2,a0
+.rep_width
+	moveq.l	#0,d3
+	move.l	-2(a0),d0			; retrieve 4 5 6
+	lsr.l	d1,d0
+	and.w	#$7,d0
+	btst	#1,d0
+	bne	no_pix
+	lsl.b	#2,d0
+	move.b	d0,d3
+	and.b	#$10,d3
+	and.b	#$04,d0
+	lsl.b	#1,d0
+	or.b	d0,d3
+	move.l	-2(a0,d4.w),d0			; retrieve 7 6 5
+	lsr.l	d1,d0
+	and.w	#$7,d0
+	lsl.b	#6,d0
+	or.b	d0,d3
+
+	move.l	-2(a0,d5.w),d0			; retrieve 2 1 0
+	lsr.l	d1,d0
+	and.w	#$7,d0
+	lsl.b	#6,d0
+	or.b	d0,d3				; in d3 the value of this pixel
+						; 7 6 5 4 3 2 1 0
+	move.b	0(a4,d3.w),d3	
+	beq	no_pix
+	bsr	put_pixel
+.no_pix	subq.l	#1,d1
+	bpl	no_addr_add
+	addq.l	#2,a0
+	moveq	#15,d1
+.no_addr_add
+	dbra	d7,rep_width	
+	adda.w	d5,a2
+	dbra	d6,rep_height
+

@@ -1,0 +1,55 @@
+test                    15-Sep-94 12:42:34  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         19d8 lib:c.o          c        code            0    0      260
+                       test.o           test.c   code          260    0       7c
+                       simplerexx.o     SimpleRe code          2dc    0      478
+                       lib:sc.lib       _fpinit. code          754    0       30
+                       lib:sc.lib       _MemClea code          784    0       80
+                       lib:sc.lib       _stcul_d code          804    0       30
+                       lib:sc.lib       _stcl_o  code          834    0       30
+                       lib:sc.lib       _stcl_h  code          864    0       3c
+                       lib:sc.lib       _stcd_i  code          8a0    0       54
+                       lib:sc.lib       _strupr. code          8f4    0       3c
+                       lib:sc.lib       _write.c code          930    0      100
+                       lib:sc.lib       _lseek.c code          a30    0       94
+                       lib:sc.lib       _cxd33   code          ac4    0       c4
+                       lib:sc.lib       _exit.c  code          b88    0       5c
+                       lib:sc.lib       _main.c  code          be4    0      2a0
+                       lib:sc.lib       _cxbrk.c code          e84    0      14c
+                       lib:sc.lib       _chkufb. code          fd0    0       4c
+                       lib:sc.lib       _chkabor code         101c    0       50
+                       lib:sc.lib       memchr   code         106c    0       24
+                       lib:sc.lib       strncat  code         1090    0       24
+                       lib:sc.lib       strcat   code         10b4    0       18
+                       lib:sc.lib       strncpy  code         10cc    0       24
+                       lib:sc.lib       memmove  code         10f0    0       2c
+                       lib:sc.lib       exit.c   code         111c    0       54
+                       lib:sc.lib       sprintf. code         1170    0       44
+                       lib:sc.lib       _pfmt.c  code         11b4    0      438
+                       lib:sc.lib       _pf.c    code         15ec    0       7c
+                       lib:sc.lib       DelPort. code         1668    0       44
+                       lib:sc.lib       CrtPort. code         16ac    0       90
+                       lib:sc.lib       io2errno code         173c    0       60
+                       lib:sc.lib       main     code         179c    0       10
+                       lib:amiga.lib    <noname> code         17ac    0      22c
+   1 __MERGED      2fc test.o           test.c   data            0    0       40
+                       simplerexx.o     SimpleRe data           40    0       5c
+                       lib:sc.lib       sigfunc. data           9c    0       24
+                       lib:sc.lib       ctype.c  data           c0    0      104
+                       lib:sc.lib       stack.c  data          1c4    0        4
+                       lib:sc.lib       _iob.c   data          1c8    0       68
+                       lib:sc.lib       _ufb.c   data          230    0        8
+                       lib:sc.lib       _fmode.c data          238    0        8
+                       lib:sc.lib       _cxbrk.c data          240    0       50
+                       lib:sc.lib       exitfunc data          290    0        4
+                       lib:sc.lib       _stdv36. data          294    0       14
+                       lib:sc.lib       _stdwin. data          2a8    0       14
+                       lib:sc.lib       io2errno data          2bc    0       40
+                       lib:c.o          c        bss           2fc    0       54
+                       lib:sc.lib       errno.c  bss           350    0        4
+                       lib:sc.lib       memheap. bss           354    0        4
+                       lib:sc.lib       dosbase  bss           358    0        4
+                       lib:sc.lib       _top.c   bss           35c    0        4
+                       lib:sc.lib       _exit.c  bss           360    0        4
+                       lib:sc.lib       _main.c  bss           364    0       c8

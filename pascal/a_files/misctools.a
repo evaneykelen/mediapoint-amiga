@@ -1,0 +1,2190 @@
+
+;--- misctools.a --------------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/misctools.a 00.024 (16/12/93)
+
+
+	TTL	misctools.a
+	IDNT	misctools.a
+
+
+	INCDIR "include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/view.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"misctools.i"
+
+
+	XREF	_GetGfxBase
+
+	XREF	_LVOGetBitMapAttr
+	XREF	_LVOGetRGB32
+	XREF	_LVOSetRGB32CM
+
+
+	XDEF	_AllocBitMap24
+	XDEF	_AllocPlanes24
+	XDEF	_FreeBitMap24
+	XDEF	_FreePlanes24
+	XDEF	_GetBitMapAttr24
+	XDEF	_PlanarToChunky
+	XDEF	_PlanarToChunky24
+	XDEF	_ChunkyToPlanar
+	XDEF	_GetPaletteSize
+	XDEF	_AllocRememberMP
+	XDEF	_FreeRememberMP
+	XDEF	_GetRGB
+	XDEF	_SetRGBCM
+
+	XDEF	Mulu32
+	XDEF	Divs32
+
+
+;-------------------------------------------------------------------------
+; struct BitMap24 *AllocBitMap24( UBYTE depth, UWORD width, UWORD height,
+;	ULONG memtype, ULONG flags );
+;-------------------------------------------------------------------------
+; Returns (if possible) pointer to created BitMap24 of specified size.
+; The bitmap will possibly not be a true bitmap, but e.g. a 'chunky'
+; bitmap, which will contain just one plane pointer which points to a
+; large region of ubytes with color pens.
+;-------------------------------------------------------------------------
+_AllocBitMap24
+	link	a5,#0
+	movem.l	a2/a6,-(sp)
+
+	movea.l	$4,a6
+	moveq.l	#bm24_SIZEOF,d0
+	moveq.l	#MEMF_ANY,d1
+	CALLLIB	_LVOAllocMem
+	movea.l	d0,a2
+	tst.l	d0
+	beq.b	.exit
+	move.l	#MAGIC_COOKIE_BM24,bm24_MagicCookie(a2)
+
+	move.l	_5thParam(a5),-(sp)
+	move.l	_4thParam(a5),-(sp)
+	move.l	_3rdParam(a5),-(sp)
+	move.l	_2ndParam(a5),-(sp)
+	move.l	_1stParam(a5),-(sp)
+	move.l	a2,-(sp)
+	bsr.b	_AllocPlanes24
+	lea.l	6*4(sp),sp
+	moveq.l	#FALSE,d0
+	tst.l	d0
+	beq.b	.exit
+
+	move.l	a2,-(sp)
+	bsr.w	_FreeBitMap24
+	lea.l	4(sp),sp
+
+.exit	move.l	a2,d0
+	movem.l	(sp)+,a2/a6
+	unlk	a5
+	rts
+
+
+;-------------------------------------------------------------------------
+; BOOL AllocPlanes24( struct BitMap24 *bitmap, UBYTE depth, UWORD width,
+;	UWORD height, ULONG memtype, ULONG flags );
+;-------------------------------------------------------------------------
+; Attempt to allocate the plane(s) for the forementioned BitMap24. The
+; bitmap struct is tested for the presence of a magic cookie. If this
+; cookie is not present, no 24bit or chunky bitmaps can be allocated.
+; Returned is succes, or no succes.
+;-------------------------------------------------------------------------
+_AllocPlanes24
+	link	a5,#0
+	movem.l	d2-d3/a2/a3/a6,-(sp)
+
+	movea.l	_1stParam(a5),a2
+	cmpa.w	#0,a2
+	beq	.exit
+
+	movea.l	$4,a6
+
+	clr.b	bm_Flags(a2)
+	clr.b	bm_Pad(a2)
+
+	btst.b	#BM24B_CLEAR,_6thParam+3(a5)
+	beq.b	.tstCky
+	ori.l	#MEMF_CLEAR,_5thParam(a5)
+
+.tstCky	cmpi.l	#MAGIC_COOKIE_BM24,bm24_MagicCookie(a2)
+	bne	.bm8
+
+;-------------------------------------------------------
+.bm24	moveq.l	#23,d0
+	lea.l	bm24_Planes(a2),a0
+.lp1_24	clr.l	(a0)+
+	dbra	d0,.lp1_24
+;-------------------------------------------------------
+	clr.w	bm24_Flags24(a2)
+
+	btst.b	#BM24B_FASTMEM,_6thParam+3(a5)
+	beq.b	.nFast24
+	ori.w	#BM24B_FASTMEM,bm24_Flags24(a2)
+	andi.l	#~MEMF_CHIP,_5thParam(a5)
+.nFast24
+
+	btst.b	#BM24B_CHUNKY,_6thParam+3(a5)
+	bne	.chunky24
+	btst.b	#BM24B_TRUE_RGB,_6thParam+3(a5)
+	beq.b	.tstInt
+	move.l	#24,_2ndParam(a5)
+	ori.w	#BM24F_TRUE_RGB,bm24_Flags24(a2)
+.tstInt	btst.b	#BM24B_INTERLEAVED,_6thParam+3(a5)	; flags
+	beq.b	.nInt24
+;-------------------------------------------------------
+.Int24	ori.w	#BM24F_INTERLEAVED,bm24_Flags24(a2)
+	move.w	_3rdParam+2(a5),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addi.w	#15,d0
+	lsr.w	#4,d0
+	lsl.w	#1,d0
+	moveq.l	#0,d2
+	move.w	d0,d2
+	moveq.l	#0,d1
+	move.b	_2ndParam+3(a5),d1			; depth
+	move.b	d1,bm24_Depth(a2)
+	mulu.w	d1,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm24_Rows(a2)
+	mulu.w	d1,d0
+	move.l	_5thParam(a5),d1			; memType
+	move.l	d0,bm24_rasSize(a2)
+	CALLLIB	_LVOAllocMem
+	tst.l	d0
+	beq.b	.nInt24
+
+	moveq.l	#0,d1
+	move.b	bm24_Depth(a2),d1
+	subq.w	#1,d1
+	movea.l	d0,a1
+	lea.l	bm24_Planes(a2),a0
+.lp2_24	move.l	a1,(a0)+
+	adda.l	d2,a1
+	dbra	d1,.lp2_24
+	bra	.exit
+;-------------------------------------------------------
+.nInt24	andi.w	#~BM24F_INTERLEAVED,bm24_Flags24(a2)
+	move.w	_3rdParam+2(a5),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addi.w	#15,d0
+	lsr.w	#4,d0
+	lsl.w	#1,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm24_Rows(a2)
+	mulu.w	d1,d0
+	move.l	d0,bm24_rasSize(a2)
+	move.l	d0,d2
+
+	move.b	_2ndParam+3(a5),bm24_Depth(a2)		; depth
+
+	moveq.l	#0,d3
+	move.b	bm24_Depth(a2),d3
+	subq.w	#1,d3
+	lea.l	bm24_Planes(a2),a0
+
+.lp3_24	move.l	a0,-(sp)
+	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	(sp)+,a0
+	move.l	d0,(a0)+
+	beq.b	.free24
+	dbra	d3,.lp3_24
+	bra	.exit
+
+.free24	moveq.l	#23,d3
+	lea.l	bm24_Planes(a2),a0
+.lp4_24	move.l	a0,-(sp)
+	move.l	(a0)+,a1
+	cmpa.w	#0,a1
+	beq	.error
+	move.l	d2,d0
+	CALLLIB	_LVOFreeMem
+	move.l	(sp)+,a0
+	clr.l	(a0)+
+	dbra	d3,.lp4_24
+	bra	.error
+;-------------------------------------------------------
+.chunky24	move.b	_2ndParam+3(a5),bm24_Depth(a2)		; depth
+	ori.w	#BM24F_TRUE_RGB,bm24_Flags24(a2)
+
+	move.w	_3rdParam+2(a5),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addq.w	#7,d0
+	andi.w	#7,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm24_Rows(a2)
+	mulu.w	d1,d0
+	move.l	d0,bm24_rasSize(a2)
+	move.l	d0,d2
+
+	btst.b	#BM24B_TRUE_RGB,bm24_Flags24+1(a2)
+	bne.b	.24bit
+
+.8bit	cmpi.b	#8,bm24_Depth(a2)
+	bls.b	.skip8
+	move.b	#8,bm24_Depth(a2)
+.skip8	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,bm24_Planes(a2)
+	beq	.error
+	bra	.exit
+
+.24bit	ori.w	#BM24F_TRUE_RGB,bm24_Flags24(a2)
+	move.b	#24,bm24_Depth(a2)
+	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,bm24_Planes+0(a2)
+	beq	.free24
+	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,bm24_Planes+4(a2)
+	beq	.free24
+	move.l	d2,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,bm24_Planes+8(a2)
+	beq	.free24
+	bra	.exit
+;-------------------------------------------------------
+
+
+;-------------------------------------------------------
+.bm8	moveq.l	#7,d0
+	lea.l	bm_Planes(a2),a0
+.lp1_8	clr.l	(a0)+
+	dbra	d0,.lp1_8
+;-------------------------------------------------------
+	cmpi.b	#8,_2ndParam+3(a5)
+	bhi	.error
+
+	btst.b	#BM24B_FASTMEM,_6thParam+3(a5)
+	beq.b	.nFast8
+	andi.l	#~MEMF_CHIP,_5thParam(a5)
+.nFast8
+	btst.b	#BM24B_INTERLEAVED,_6thParam+3(a5)	; flags
+	beq.b	.nInt8
+;-------------------------------------------------------
+.Int8	moveq.l	#0,d0
+	move.w	_3rdParam+2(a5),d0			; width
+	addi.l	#15,d0
+	lsr.l	#4,d0
+	lsl.l	#1,d0
+	move.l	d0,d2
+	moveq.l	#0,d1
+	move.b	_2ndParam+3(a5),d1			; depth
+	move.b	d1,bm_Depth(a2)
+	mulu.w	d1,d0
+	move.w	d0,bm_BytesPerRow(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm_Rows(a2)
+	mulu.w	d1,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	tst.l	d0
+	beq.b	.nInt8
+
+	moveq.l	#0,d1
+	move.b	bm_Depth(a2),d1
+	subq.w	#1,d1
+	movea.l	d0,a1
+	lea.l	bm_Planes(a2),a0
+.lp3_8	move.l	a1,(a0)+
+	adda.l	d2,a1
+	dbra	d1,.lp3_8
+	bra.b	.exit
+;-------------------------------------------------------
+.nInt8	moveq.l	#0,d0
+	moveq.l	#0,d2
+	move.w	_3rdParam+2(a5),d0			; width
+	addi.l	#15,d0
+	lsr.l	#3,d0
+	bclr.l	#0,d0
+	move.w	d0,bm_BytesPerRow(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm_Rows(a2)
+	mulu.w	d1,d0
+	move.l	d0,d3
+	move.b	_2ndParam+3(a5),d2
+	move.b	d2,bm_Depth(a2)
+	subq.w	#1,d2
+	lea.l	bm_Planes(a2),a3
+
+.lp2_8	move.l	d3,d0
+	move.l	_5thParam(a5),d1			; memType
+	CALLLIB	_LVOAllocMem
+	move.l	d0,(a3)+
+	beq.b	.free8
+	dbra	d2,.lp2_8
+	bra	.exit
+
+.free8	lea.l	bm_Planes(a2),a3
+	moveq.l	#7,d2
+.lp4_8	movea.l	(a3),a1
+	cmpa.w	#0,a1
+	beq.b	.isfr8
+	move.l	d3,d0
+	CALLLIB	_LVOFreeMem
+.isfr8	clr.l	(a3)+
+	dbra	d2,.lp4_8
+;-------------------------------------------------------
+
+.exit	moveq.l	#TRUE,d0
+.xit	movem.l	(sp)+,d2-d3/a2/a3/a6
+	unlk	a5
+	rts
+.error	moveq.l	#FALSE,d0
+	bra.b	.xit
+
+
+
+;-------------------------------------------------------------------------
+; VOID FreeBitMap24( struct BitMap24 *bitmap );
+;-------------------------------------------------------------------------
+; If bitmap is available, free all memory associated with it and the
+; bitmap structure itself.
+;-------------------------------------------------------------------------
+_FreeBitMap24
+	link	a5,#0
+	movem.l	a6,-(sp)
+
+	tst.l	_1stParam(a5)
+	beq.b	.exit
+
+	move.l	_1stParam(a5),-(sp)
+	bsr.w	_FreePlanes24
+	lea.l	4(sp),sp
+
+	jsr	_GetGfxBase
+	movea.l	d0,a6
+	movea.l	_1stParam(a5),a1
+	moveq.l	#bm24_SIZEOF,d0
+	CALLLIB	_LVOFreeMem
+
+.exit	movem.l	(sp)+,a6
+	unlk	a5
+	rts
+
+
+;-------------------------------------------------------------------------
+; VOID FreePlanes24( struct BitMap24 *bitmap );
+;-------------------------------------------------------------------------
+; If bitmap is available, free all memory associated with the bitmap,
+; except for the bitmap structure itself.
+;-------------------------------------------------------------------------
+_FreePlanes24
+	link	a5,#0
+	movem.l	d2-d3/a2-a3/a6,-(sp)
+
+	movea.l	_1stParam(a5),a2
+	cmpa.w	#0,a2
+	beq	.exit
+
+	jsr	_GetGfxBase
+	movea.l	d0,a6
+	CALLLIB	_LVOWaitBlit
+
+	movea.l	$4,a6
+
+	cmpi.l	#MAGIC_COOKIE_BM24,bm24_MagicCookie(a2)
+	bne.b	.bm8
+
+;-------------------------------------------------------
+.bm24	btst.b	#BM24B_CHUNKY,bm24_Flags24+1(a2)
+	bne.b	.chunky24
+	movea.l	bm24_Planes+4(a2),a0
+	suba.l	bm24_Planes+0(a2),a0
+	cmpa.w	bm24_Modulo(a2),a0
+	bhi.b	.noInt24
+;-------------------------------------------------------
+.Int24	move.l	bm_Planes+0(a2),d0
+	beq.b	.clr24
+	movea.l	d0,a1
+	move.l	bm24_rasSize(a2),d0
+	CALLLIB	_LVOFreeMem
+	bra.b	.clr24
+;-------------------------------------------------------
+.noInt24	moveq.l	#23,d3
+	lea.l	bm24_Planes(a2),a0
+.lp4_24	move.l	a0,-(sp)
+	move.l	(a0)+,a1
+	cmpa.w	#0,a1
+	beq.b	.sk4_24
+	move.l	bm24_rasSize(a2),d0
+	CALLLIB	_LVOFreeMem
+.sk4_24	move.l	(sp)+,a0
+	clr.l	(a0)+
+	dbra	d3,.lp4_24
+	bra.b	.clr24
+;-------------------------------------------------------
+.chunky24	moveq.l	#2,d3
+	lea.l	bm24_Planes(a2),a0
+.lp5_24	move.l	a0,-(sp)
+	move.l	(a0)+,a1
+	cmpa.w	#0,a1
+	beq.b	.sk5_24
+	move.l	bm24_rasSize(a2),d0
+	CALLLIB	_LVOFreeMem
+.sk5_24	move.l	(sp)+,a0
+	clr.l	(a0)+
+	dbra	d3,.lp5_24
+;-------------------------------------------------------
+.clr24	moveq.l	#23,d0
+	lea.l	bm24_Planes(a2),a0
+.lp1_24	clr.l	(a0)+
+	dbra	d0,.lp1_24
+	bra.b	.exit
+;-------------------------------------------------------
+
+
+;-------------------------------------------------------
+.bm8	movea.l	bm_Planes+4(a2),a0
+	suba.l	bm_Planes+0(a2),a0
+	cmpa.w	bm_BytesPerRow(a2),a0
+	bhi.b	.noInt8
+;-------------------------------------------------------
+.Int8	movea.l	bm_Planes+0(a2),a1
+	cmpa.w	#0,a1
+	beq	.clr8
+	move.w	bm_BytesPerRow(a2),d0
+	mulu.w	bm_Rows(a2),d0
+	CALLLIB	_LVOFreeMem
+	bra.b	.clr8
+;-------------------------------------------------------
+.noInt8	move.w	bm_BytesPerRow(a2),d3
+	mulu.w	bm_Rows(a2),d3
+
+	moveq.l	#7,d2
+	lea.l	bm_Planes(a2),a3
+.free8	movea.l	(a3)+,a1
+	cmpa.w	#0,a1
+	beq.b	.isfr8
+	move.l	d3,d0
+	CALLLIB	_LVOFreeMem
+.isfr8	dbra	d2,.free8
+;-------------------------------------------------------
+.clr8	moveq.l	#7,d0
+	lea.l	bm_Planes(a2),a0
+.lp1_8	clr.l	(a0)+
+	dbra	d0,.lp1_8
+;-------------------------------------------------------
+
+.exit	movem.l	(sp),d2-d3/a2-a3/a6
+	unlk	a5
+	rts
+
+
+
+
+
+;-------------------------------------------------------------------------
+; Local function - SetRGBCM( CM (a0), n (d0), R (d1), G (d2), R (d3) )
+;-------------------------------------------------------------------------
+; Stores 32 bit color values. If under V37/V38 then SetRGB4CM is used.
+;-------------------------------------------------------------------------
+
+_SetRGBCM
+	movem.l	d2/d3/a6,-(sp)
+
+	move.l	d0,-(sp)
+	jsr	_GetGfxBase
+	movea.l	d0,a6
+	move.l	(sp)+,d0
+
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.b	.V39
+
+.preV39	move.l	d0,-(sp)
+	moveq.l	#12,d0
+	lsr.l	d0,d1
+	lsr.l	d0,d2
+	lsr.l	d0,d3
+	swap.w	d1
+	swap.w	d2
+	swap.w	d3
+	moveq.l	#$0F,d0
+	and.l	d0,d1
+	and.l	d0,d2
+	and.l	d0,d3
+	move.l	(sp)+,d0
+	CALLLIB	_LVOSetRGB4CM
+	bra.b	.exit
+
+.V39	CALLLIB	_LVOSetRGB32CM
+
+.exit	movem.l	(sp)+,d2/d3/a6
+	rts
+
+
+;-------------------------------------------------------------------------
+; VOID GetRGB( ColorMap (a0), Index (d0), table (a1) )
+;-------------------------------------------------------------------------
+; Retreives 32 bit color values. If under -V38 then values are taken from
+; a table and GetRGB4. If under V39+ then GetRGB32 is used. Values are
+; 32 bit left aligned for each color component, as documented in AutoDocs.
+;-------------------------------------------------------------------------
+
+_GetRGB
+	movem.l	d2/a6,-(sp)
+	move.l	d0,-(sp)
+	jsr	_GetGfxBase
+	movea.l	d0,a6
+	move.l	(sp)+,d0
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.b	.V39
+
+.V37	move.l	a1,-(sp)
+	CALLLIB	_LVOGetRGB4
+	move.l	(sp)+,a1
+	move.w	d0,d1
+	move.w	d0,d2
+	andi.w	#$F00,d0
+	andi.w	#$0F0,d1
+	andi.w	#$00F,d2
+	lsr.w	#6,d0
+	lsr.w	#2,d1
+	lsl.w	#2,d2
+	move.l	.xpnd32(pc,d0.w),0(a1)
+	move.l	.xpnd32(pc,d1.w),4(a1)
+	move.l	.xpnd32(pc,d2.w),8(a1)
+	bra.b	.exit
+
+.V39	moveq.l	#1,d1
+	CALLLIB	_LVOGetRGB32
+
+.exit	movem.l	(sp)+,d2/a6
+	rts
+
+.xpnd32	dc.l	$00000000,$11111111,$22222222,$33333333
+	dc.l	$44444444,$55555555,$66666666,$77777777
+	dc.l	$88888888,$99999999,$AAAAAAAA,$BBBBBBBB
+	dc.l	$CCCCCCCC,$DDDDDDDD,$EEEEEEEE,$FFFFFFFF
+
+
+
+
+;-------------------------------------------------------------------------
+; ULONG GetBitMapAttr24( BitMap(24) (a0), attribute (d1) )
+;-------------------------------------------------------------------------
+; Returns different parameters about the bitmap depending on the
+; attribute specified.
+;-------------------------------------------------------------------------
+
+_GetBitMapAttr24
+	moveq.l	#0,d0
+	cmpi.l	#MAGIC_COOKIE_BM24,bm24_MagicCookie(a0)
+	bne	.BitMap8
+
+.BitMap24	cmpi.w	#BM24A_HEIGHT,d1
+	bne	.width24
+	move.w	bm24_Rows(a0),d0
+	bra	.exit
+
+.width24	cmpi.w	#BM24A_WIDTH,d1
+	bne	.depth24
+	move.w	bm24_PixelWidth(a0),d0
+	bra	.exit
+
+.depth24	cmpi.w	#BM24A_DEPTH,d1
+	bne	.flags24
+	move.b	bm24_Depth(a0),d0
+	bra	.exit
+
+.flags24	cmpi.w	#BM24A_FLAGS,d1
+	bne	.type24
+	move.w	bm24_Flags24(a0),d0
+	bra	.exit
+
+.type24	cmpi.w	#BM24A_TYPE,d1
+	bne	.exit
+	nop
+	bra	.exit
+
+
+.BitMap8	cmpi.w	#BM24A_HEIGHT,d1
+	bne.b	.width8
+	move.w	bm_Rows(a0),d0
+	bra	.exit
+
+.width8	cmpi.w	#BM24A_WIDTH,d1
+	bne.b	.depth8
+	move.w	bm_BytesPerRow(a0),d0
+	lsl.w	#3,d0
+	bra	.exit
+
+.depth8	cmpi.w	#BM24A_DEPTH,d1
+	bne.b	.flags8
+	move.b	bm_Depth(a0),d0
+	bra	.exit
+
+.flags8	cmpi.w	#BM24A_FLAGS,d1
+	bne.b	.type8
+	bra	.exit
+
+.type8	cmpi.w	#BM24A_TYPE,d1
+	bne.b	.exit
+	nop
+
+.exit	rts
+
+
+
+
+_AllocRememberMP
+	addq.l	#4,d0
+	movem.l	d0,-(sp)
+	LINKLIB	_LVOAllocMem,$4
+	movea.l	d0,a0
+	tst.l	d0
+	movem.l	(sp)+,d0
+	beq.b	.exit
+	move.l	d0,(a0)+
+	move.l	a0,d0
+.exit	rts
+
+
+
+_FreeRememberMP
+	cmpa.w	#0,a1
+	beq.b	.exit
+	move.l	-(a1),d0
+	LINKLIB	_LVOFreeMem,$4
+.exit	rts
+
+
+
+Gtab	dc.l	GetChunky1
+	dc.l	GetChunky2
+	dc.l	GetChunky3
+	dc.l	GetChunky4
+	dc.l	GetChunky5
+	dc.l	GetChunky6
+	dc.l	GetChunky7
+	dc.l	GetChunky8
+
+;--------------------------------------------------------------------------
+; func: VOID PlanarToChunky( struct BitMap24 *srcBM (a0), unsigned char
+;	*ChunkyPixels (a1), srcY (d1:16), width (d6:16), height (d7:16) );
+;--------------------------------------------------------------------------
+; Description of this function.
+;--------------------------------------------------------------------------
+
+_PlanarToChunky
+
+	movem.l	d2-d7/a2-a6,-(sp)
+
+	moveq.l	#0,d0
+	move.b	bm24_Depth(a0),d0
+	subq.w	#1,d0
+	andi.w	#$0007,d0
+	lsl.w	#2,d0
+	movea.l	Gtab(pc,d0.w),a6
+
+	addq.w	#7,d6
+	lsr.w	#3,d6
+	subq.w	#1,d6
+	subq.l	#1,d7
+
+.loopY	movem.w	d1/d6,-(sp)
+	move.w	d1,d4
+	mulu.w	bm_BytesPerRow(a0),d4
+
+.loopX	jsr	(a6)		; regs : D0 D1 d4 a0 A2
+
+; D0 = a2b2c2d2e2f2g2h2 a0b0c0d0e0f0g0h0
+; D1 = a3b3c3d3e3f3g3h3 a1b1c1d1e1f1g1h1
+
+	move.l	d1,d2
+	and.l	#$aaaaaaaa,d2
+	and.l	#$55555555,d1
+
+; D1 = --b3--d3--f3--h3 --b1--d1--f1--h1
+; d2 = a3--c3--e3--g3-- a1--c1--e1--g1--
+
+	move.l	d0,d3
+
+	and.l	#$aaaaaaaa,d0
+	and.l	#$55555555,d3
+
+; D0 = a2--c2--e2--g2-- a0--c0--e0--g0--
+; D3 = --b2--d2--f2--h2 --b0--d0--f0--h0
+
+	lsr.l	#1,d0
+
+; D0 = --a2--c2--e2--g2 --a0--c0--e0--g0
+
+	or.l	d2,d0
+
+; D0 = a3a2c3c2e3e2g3g2 a1a0c1c0e1e0g1g0
+
+	add.l	d1,d1
+
+; D1 = b3--d3--f3--h3-- b1--d1--f1--h1--
+	
+	or.l	d3,d1
+
+; D1 = b3b2d3d2f3f2h3h2 b1b0d1d0f1f0h1h0
+
+	move.l	d1,d2
+	andi.l	#$00ff00ff,d2
+	andi.l	#$ff00ff00,d1
+
+; D1 = b3b2d3d2f3f2h3h2 ---------------
+; D2 = ---------------- b1b0d1d0f1f0h1h0
+
+	move.l	d0,d3
+	andi.l	#$00ff00ff,d0
+	andi.l	#$ff00ff00,d3
+
+; D0 = ---------------- a1a0c1c0e1e0g1g0
+; D3 = a3a2c3c2e3e2g3g2 ----------------
+
+	lsr.l	#8,d3
+
+; D3 = ---------------- a3a2c3c2e3e2g3g2
+
+	lsl.l	#8,d2
+	
+; D2 = b1b0d1d0f1f0h1h0 ----------------
+
+	or.l	d2,d0
+	or.l	d3,d1
+	
+; D0 = b1b0d1d0f1f0h1h0 a1a0c1c0e1e0g1g0
+; D1 = b3b2d3d2f3f2h3h2 a3a2c3c2e3e2g3g2
+
+	move.l	d1,d2
+	andi.l	#$33333333,d1
+	andi.l	#$cccccccc,d2
+
+; D1 = ----d3d2----h3h2 ----c3c2----g3g2
+; D2 = b3b2----f3f2---- a3a2----e3e2----
+
+	move.l	d0,d3
+	andi.l	#$cccccccc,d0
+	andi.l	#$33333333,d3
+
+
+; D0 = b1b0----f1f0---- a1a0----e1e0----
+; D3 = ----d1d0----h1h0 ----c1c0----g1g0
+
+	lsl.l	#2,d1
+
+; D1 = d3d2----h3h2---- c3c2----g3g2----
+
+	or.l	d3,d1
+		
+; D1 = d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0
+
+	lsr.l	#2,d0
+
+; D0 = ----b1b0----f1f0 ----a1a0----e1e0
+
+	or.l	d2,d0
+	
+; D0 = b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0
+; D1 = d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0
+
+	swap	d0
+
+; D0 = b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0 ---------------- ----------------
+
+	move.w	d0,d2
+	move.w	d1,d0
+	move.w	d2,d1
+	
+; D0 = b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0 d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0
+
+	swap	d0
+	
+; D0 = d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0 b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0
+
+	move.l	d0,d3
+	andi.l	#$0f0f0f0f,d3
+	andi.l	#$f0f0f0f0,d0
+
+	move.l	d1,d2
+	andi.l	#$0f0f0f0f,d2
+	andi.l	#$f0f0f0f0,d1
+
+; D0 = d3d2d1d0-------- c3c2c1c0-------- b3b2b1b0-------- a3a2a1a0--------
+; D3 = --------h3h2h1h0 --------g3g2g1g0 --------f3f2f1f0 --------e3e2e1e0
+
+	lsr.l	#4,d0
+
+	or.l	d1,d0
+	lsl.l	#4,d2
+
+	or.l	d2,d3
+	
+; D0 = --------d3d2d1d0 --------c3c2c1c0 --------b3b2b1b0 --------a3a2a1a0
+
+	ror.w	#8,d0
+	swap	d0
+	ror.w	#8,d0
+
+; D0 = abcd
+
+	ror.w	#8,d3
+	swap	d3
+	ror.w	#8,d3
+
+; d3 = efgh
+
+	move.l	d0,(a1)+
+	move.l	d3,(a1)+
+	moveq.l	#0,d0
+	moveq.l	#0,d3
+
+	addq.l	#1,d4
+	dbra	d6,.loopX
+
+	movem.w	(sp)+,d1/d6
+	addq.w	#1,d1
+	dbra	d7,.loopY
+
+.exit	movem.l	(sp)+,d2-d7/a2-a6
+	rts
+
+
+
+GetChunky8
+
+	movea.l	bm_Planes+(3*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 3	0003
+
+	swap	d1		;		0300	
+
+	movea.l	bm_Planes+(7*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 7	0307
+
+	rol.l	#8,d1		;		3070
+
+	movea.l	bm_Planes+(5*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 5	3075
+
+	swap	d1		;		7530
+
+	movea.l	bm_Planes+(1*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 1	7531
+
+	movea.l	bm_Planes+(2*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 2	0002
+
+	swap	d0		; 		0200
+
+	movea.l	bm_Planes+(6*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 6	0206
+
+	rol.l	#8,d0		; 		2060
+
+	movea.l	bm_Planes+(4*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 4	2064
+
+	swap	d0		; 		6420
+
+	movea.l	bm_Planes+(0*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 0 	6420
+	rts
+
+
+
+GetChunky7
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+
+	movea.l	bm_Planes+(3*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 3	0003
+
+	swap	d1		;		0300	
+	rol.l	#8,d1		;		3070
+
+	movea.l	bm_Planes+(5*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 5	3075
+
+	swap	d1		;		7530
+
+	movea.l	bm_Planes+(1*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 1	7531
+
+	movea.l	bm_Planes+(2*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 2	0002
+
+	swap	d0		; 		0200
+
+	movea.l	bm_Planes+(6*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 6	0206
+
+	rol.l	#8,d0		; 		2060
+
+	movea.l	bm_Planes+(4*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 4	2064
+
+	swap	d0		; 		6420
+
+	movea.l	bm_Planes+(0*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 0 	6420
+	rts
+
+
+
+GetChunky6
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+
+	movea.l	bm_Planes+(3*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 3	0003
+
+	swap	d1		;		0300	
+	rol.l	#8,d1		;		3070
+
+	movea.l	bm_Planes+(5*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 5	3075
+
+	swap	d1		;		7530
+
+	movea.l	bm_Planes+(1*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 1	7531
+
+	movea.l	bm_Planes+(2*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 2	0002
+
+	swap	d0		; 		0200
+	rol.l	#8,d0		; 		2060
+
+	movea.l	bm_Planes+(4*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 4	2064
+
+	swap	d0		; 		6420
+
+	movea.l	bm_Planes+(0*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 0 	6420
+	rts
+
+
+
+GetChunky5
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+
+	movea.l	bm_Planes+(3*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 3	0003
+
+	swap	d1		;		0300	
+	rol.l	#8,d1		;		3070
+	swap	d1		;		7530
+
+	movea.l	bm_Planes+(1*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 1	7531
+
+	movea.l	bm_Planes+(2*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 2	0002
+
+	swap	d0		; 		0200
+	rol.l	#8,d0		; 		2060
+
+	movea.l	bm_Planes+(4*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 4	2064
+
+	swap	d0		; 		6420
+
+	movea.l	bm_Planes+(0*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 0 	6420
+	rts
+
+
+
+GetChunky4
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+
+	movea.l	bm_Planes+(3*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 3	0003
+
+	swap	d1		;		0300	
+	rol.l	#8,d1		;		3070
+	swap	d1		;		7530
+
+	movea.l	bm_Planes+(1*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 1	7531
+
+	movea.l	bm_Planes+(2*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 2	0002
+
+	swap	d0		; 		0200
+	rol.l	#8,d0		; 		2060
+	swap	d0		; 		6420
+
+	movea.l	bm_Planes+(0*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 0 	6420
+	rts
+
+
+
+GetChunky3
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+
+	movea.l	bm_Planes+(1*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 1	7531
+
+	movea.l	bm_Planes+(2*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 2	0002
+
+	swap	d0		; 		0200
+	rol.l	#8,d0		; 		2060
+	swap	d0		; 		6420
+
+	movea.l	bm_Planes+(0*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 0 	6420
+	rts
+
+
+
+GetChunky2
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+
+	movea.l	bm_Planes+(1*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 1	7531
+
+	movea.l	bm_Planes+(0*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 0 	6420
+	rts
+
+
+
+GetChunky1
+
+	moveq.l	#0,d0
+	moveq.l	#0,d1
+
+	movea.l	bm_Planes+(0*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 0 	6420
+	rts
+
+
+
+
+
+
+;--------------------------------------------------------------------------
+; func: VOID PlanarToChunky24( struct BitMap24 *srcBM (a0), UBYTE
+;	*RGBbytes (a1), srcY (d1:16), width (d6:16), height (d7:16) );
+;--------------------------------------------------------------------------
+; Description of this function.
+;--------------------------------------------------------------------------
+
+_PlanarToChunky24
+
+	movem.l	d2-d7/a2-a6,-(sp)
+
+	addq.w	#7,d6
+	lsr.w	#3,d6
+	subq.w	#1,d6
+	subq.l	#1,d7
+
+.loopY	movem.w	d1/d6,-(sp)
+	move.w	d1,d4
+	mulu.w	bm24_Modulo(a0),d4
+
+.loopX	move.l	a0,-(sp)
+
+	lea.l	bm24_Planes(a0),a0
+	bsr.w	GetChunky24		; regs : D0 D1 d4 a0 A2
+
+	move.b	d0,9(a1)	;0123
+	swap.w	d0		;2301
+	move.b	d0,3(a1)
+	ror.l	#8,d0		;1230
+	move.b	d0,0(a1)
+	swap.w	d0		;3012
+	move.b	d0,6(a1)
+
+	move.b	d3,21(a1)	;0123
+	swap.w	d3		;2301
+	move.b	d3,15(a1)
+	ror.l	#8,d3		;1230
+	move.b	d3,12(a1)
+	swap.w	d3		;3012
+	move.b	d3,18(a1)
+
+	lea.l	(8*4)(a0),a0
+	bsr.w	GetChunky24
+
+	move.b	d0,10(a1)
+	swap.w	d0
+	move.b	d0,4(a1)
+	ror.l	#8,d0
+	move.b	d0,1(a1)
+	swap.w	d0
+	move.b	d0,7(a1)
+
+	move.b	d3,22(a1)
+	swap.w	d3
+	move.b	d3,16(a1)
+	ror.l	#8,d3
+	move.b	d3,13(a1)
+	swap.w	d3
+	move.b	d3,19(a1)
+
+	lea.l	(8*4)(a0),a0
+	bsr.w	GetChunky24
+
+	move.b	d0,11(a1)
+	swap.w	d0
+	move.b	d0,5(a1)
+	ror.l	#8,d0
+	move.b	d0,2(a1)
+	swap.w	d0
+	move.b	d0,8(a1)
+
+	move.b	d3,23(a1)
+	swap.w	d3
+	move.b	d3,17(a1)
+	ror.l	#8,d3
+	move.b	d3,14(a1)
+	swap.w	d3
+	move.b	d3,20(a1)
+
+	move.l	(sp)+,a0
+	adda.w	#3*8,a1
+
+	addq.l	#1,d4
+	dbra	d6,.loopX
+
+	movem.w	(sp)+,d1/d6
+	addq.w	#1,d1
+	dbra	d7,.loopY
+
+.exit	movem.l	(sp)+,d2-d7/a2-a6
+	rts
+
+
+GetChunky24
+	movea.l	(3*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 3	0003
+	swap	d1		;		0300	
+	movea.l	(7*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 7	0307
+	rol.l	#8,d1		;		3070
+	movea.l	(5*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 5	3075
+	swap	d1		;		7530
+	movea.l	(1*4)(a0),a2
+	move.b	(a2,d4.l),d1	; plane 1	7531
+	movea.l	(2*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 2	0002
+	swap	d0		; 		0200
+	movea.l	(6*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 6	0206
+	rol.l	#8,d0		; 		2060
+	movea.l	(4*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 4	2064
+	swap	d0		; 		6420
+	movea.l	(0*4)(a0),a2
+	move.b	(a2,d4.l),d0	; plane 0 	6420
+
+; D0 = a2b2c2d2e2f2g2h2 a0b0c0d0e0f0g0h0
+; D1 = a3b3c3d3e3f3g3h3 a1b1c1d1e1f1g1h1
+
+	move.l	d1,d2
+	and.l	#$aaaaaaaa,d2
+	and.l	#$55555555,d1
+
+; D1 = --b3--d3--f3--h3 --b1--d1--f1--h1
+; d2 = a3--c3--e3--g3-- a1--c1--e1--g1--
+
+	move.l	d0,d3
+
+	and.l	#$aaaaaaaa,d0
+	and.l	#$55555555,d3
+
+; D0 = a2--c2--e2--g2-- a0--c0--e0--g0--
+; D3 = --b2--d2--f2--h2 --b0--d0--f0--h0
+
+	lsr.l	#1,d0
+
+; D0 = --a2--c2--e2--g2 --a0--c0--e0--g0
+
+	or.l	d2,d0
+
+; D0 = a3a2c3c2e3e2g3g2 a1a0c1c0e1e0g1g0
+
+	add.l	d1,d1
+
+; D1 = b3--d3--f3--h3-- b1--d1--f1--h1--
+	
+	or.l	d3,d1
+
+; D1 = b3b2d3d2f3f2h3h2 b1b0d1d0f1f0h1h0
+
+	move.l	d1,d2
+	andi.l	#$00ff00ff,d2
+	andi.l	#$ff00ff00,d1
+
+; D1 = b3b2d3d2f3f2h3h2 ---------------
+; D2 = ---------------- b1b0d1d0f1f0h1h0
+
+	move.l	d0,d3
+	andi.l	#$00ff00ff,d0
+	andi.l	#$ff00ff00,d3
+
+; D0 = ---------------- a1a0c1c0e1e0g1g0
+; D3 = a3a2c3c2e3e2g3g2 ----------------
+
+	lsr.l	#8,d3
+
+; D3 = ---------------- a3a2c3c2e3e2g3g2
+
+	lsl.l	#8,d2
+	
+; D2 = b1b0d1d0f1f0h1h0 ----------------
+
+	or.l	d2,d0
+	or.l	d3,d1
+	
+; D0 = b1b0d1d0f1f0h1h0 a1a0c1c0e1e0g1g0
+; D1 = b3b2d3d2f3f2h3h2 a3a2c3c2e3e2g3g2
+
+	move.l	d1,d2
+	andi.l	#$33333333,d1
+	andi.l	#$cccccccc,d2
+
+; D1 = ----d3d2----h3h2 ----c3c2----g3g2
+; D2 = b3b2----f3f2---- a3a2----e3e2----
+
+	move.l	d0,d3
+	andi.l	#$cccccccc,d0
+	andi.l	#$33333333,d3
+
+
+; D0 = b1b0----f1f0---- a1a0----e1e0----
+; D3 = ----d1d0----h1h0 ----c1c0----g1g0
+
+	lsl.l	#2,d1
+
+; D1 = d3d2----h3h2---- c3c2----g3g2----
+
+	or.l	d3,d1
+		
+; D1 = d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0
+
+	lsr.l	#2,d0
+
+; D0 = ----b1b0----f1f0 ----a1a0----e1e0
+
+	or.l	d2,d0
+	
+; D0 = b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0
+; D1 = d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0
+
+	swap	d0
+
+; D0 = b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0 ---------------- ----------------
+
+	move.w	d0,d2
+	move.w	d1,d0
+	move.w	d2,d1
+	
+; D0 = b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0 d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0
+
+	swap	d0
+	
+; D0 = d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0 b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0
+
+	move.l	d0,d3
+	andi.l	#$0f0f0f0f,d3
+	andi.l	#$f0f0f0f0,d0
+
+	move.l	d1,d2
+	andi.l	#$0f0f0f0f,d2
+	andi.l	#$f0f0f0f0,d1
+
+; D0 = d3d2d1d0-------- c3c2c1c0-------- b3b2b1b0-------- a3a2a1a0--------
+; D3 = --------h3h2h1h0 --------g3g2g1g0 --------f3f2f1f0 --------e3e2e1e0
+
+	lsr.l	#4,d0
+
+	or.l	d1,d0
+	lsl.l	#4,d2
+
+	or.l	d2,d3
+	
+; D0 = --------d3d2d1d0 --------c3c2c1c0 --------b3b2b1b0 --------a3a2a1a0
+
+	ror.w	#8,d0
+	swap	d0
+	ror.w	#8,d0
+
+; D0 = abcd
+
+	ror.w	#8,d3
+	swap	d3
+	ror.w	#8,d3
+
+; d3 = efgh
+	rts
+
+
+
+
+
+
+Ptab	dc.l	PutChunky1
+	dc.l	PutChunky2
+	dc.l	PutChunky3
+	dc.l	PutChunky4
+	dc.l	PutChunky5
+	dc.l	PutChunky6
+	dc.l	PutChunky7
+	dc.l	PutChunky8
+
+;--------------------------------------------------------------------------
+; func: VOID ChunkyToPlanar( unsigned char *ChunkyPixels (a0), struct
+;	BitMap24 *dstBM (a1), dstY (d1:16), width (d6:16), height (d7:16) );
+;--------------------------------------------------------------------------
+; As there is no Chunky -> Planar conversion hardware yet for the Amiga,
+; we will need to use a function to achieve this. This is the function.
+;--------------------------------------------------------------------------
+
+;
+; For convenience and efficiency, this routine processes 8 pixels at
+; a time.  In effect, it rotates the 64 bits (from the 8 consecutive
+; 8-bit pixels) in the chunky pixel figure above counterclockwise 90
+; degrees so that the data is organized as in the planar pixel figure
+; above.
+;
+; This routine proceeds like this:
+;
+; (A) Initialize
+; (B) Process 8 pixels at a time
+;     (B1) Load registers with 8 pixels in chunky form
+;     (B2) Rotate bits counterclockwise 90 degrees
+;	   (B2a) Rotate 4x4 groups within full 8x8
+;	   (B2b) Prepare to rotate 2x2 groups within each 4x4 group
+;	   (B2c) Rotate 2x2 groups within each 4x4 group |
+;	   (B2d) Prepare to rotate single bits within each 2x2 group
+;	   (B2e) Rotate single bits within each 2x2 group
+;     (B3)  Store 8 pixels in planar form
+; (C) Continue processing
+; (D) Finish
+
+; Internal register usage:
+;
+;	D0	64-bits of the 8 8-bit pixels
+;	D1	Another 64-bits of the 8 8-bit pixels
+;	D2	Masked copy of D0
+;	D3	Masked copy of D1
+;	D4	Mask
+;	D5	Complement of D4
+;	D6	Line byte counter
+;	A0	Input chunky pixel scanning pointer
+;	A1	Pointer to planepointers
+;	A2	modulo
+;	a3=iters/line
+
+_ChunkyToPlanar
+	movem.l	d2-d7/a2-a6,-(sp)          ;Save appropriate registers
+
+	moveq.l	#0,d0
+	move.b	bm24_Depth(a1),d0
+	subq.w	#1,d0
+	andi.w	#$0007,d0
+	lsl.w	#2,d0
+	movea.l	Ptab(pc,d0.w),a6
+
+; +--------------------------------------+
+; | Step (B): Process 8 pixels at a time |
+; +--------------------------------------+
+
+	addq.w	#7,d6
+	lsr.w	#3,d6			; width/8
+	subq.l	#1,d6
+	subq.l	#1,d7
+
+.loopY	movem.w	d1/d6/d7,-(sp)
+	mulu.w	bm_BytesPerRow(a1),d1
+	move.l	d1,d7			; dest offset
+
+.loopX
+
+; +--------------------------------------------------------+
+; | Step (B1): Load registers with 8 pixels in chunky form |
+; +--------------------------------------------------------+
+
+	move.l	(a0)+,d0	; a b c d
+	rol.w	#8,d0		; a b d c
+	swap	d0
+	rol.w	#8,d0		; d c b a
+	move.l	(a0)+,d1	; a b c d
+	rol.w	#8,d1		; a b d c
+	swap	d1
+	rol.w	#8,d1		; d c b a
+
+; +----------------------------------------------------+
+; | Step (B2): Rotate bits counterclockwise 90 degrees |
+; +----------------------------------------------------+
+;
+; +-----------------------------------------------+
+; | Step (B2a): Rotate 4x4 groups within full 8x8 |
+; +-----------------------------------------------+
+;
+; Registers D0 and D1 are arranged like this:
+;
+;		+-------------+-------------+
+; D0( 7 -  0) = | a7 a6 a5 a4 | a3 a2 a1 a0 |
+; D0(15 -  8) = | b7 b6 b5 b4 | b3 b2 b1 b0 |
+; D0(23 - 16) = | c7 c6 c5 c4 | c3 c2 c1 c0 |
+; D0(31 - 24) = | d7 d6 d5 d4 | d3 d2 d1 d0 |
+;		+-------------+-------------+
+; D1( 7 -  0) = | e7 e6 e5 e4 | e3 e2 e1 e0 |
+; D1(15 -  8) = | f7 f6 f5 f4 | f3 f2 f1 f0 |
+; D1(23 - 16) = | g7 g6 g5 g4 | g3 g2 g1 g0 |
+; D1(31 - 24) = | h7 h6 h5 h4 | h3 h2 h1 h0 |
+;		+-------------+-------------+
+;
+;	 +----+----+	  +----+----+
+;	 | TL | TR |	  | TR | BR |
+; Rotate +----+----+ into +----+----+
+;	 | BL | BR |	  | TL | BL |
+;	 +----+----+	  +----+----+
+;
+; where each ?? (TL, TR, BL, or BR) is a 4-bit by 4-bit submatrix.
+
+
+; D0 = d7d6d5d4d3d2d1d0 c7c6c5c4c3c2c1c0 b7b6b5b4b3b2b1b0 a7a6a5a4a3a2a1a0
+; D1 = h7h6h5h4h3h2h1h0 g7g6g5g4g3g2g1g0 f7f6f5f4f3f2f1f0 e7e6e5e4e3e2e1e0
+
+	Move.L	#$f0f0f0f0,D4
+	Move.L	D4,D5
+	Not.L	D5
+
+	Move.L	D0,D2
+	And.L	D4,D2
+
+; D2 = d7d6d5d4-------- c7c6c5c4-------- b7b6b5b4-------- a7a6a5a4--------
+
+	Move.L	D1,D3
+	And.L	D5,D3
+
+; D3 = --------h3h2h1h0 --------g3g2g1g0 --------f3f2f1f0 --------e3e2e1e0
+
+	LSL.L	#4,D0
+	And.L	D4,D0
+
+; D0 = d3d2d1d0-------- c3c2c1c0-------- b3b2b1b0-------- a3a2a1a0--------
+
+	Or.L	D3,D0
+
+; D0 = d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0 b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0
+
+	LSR.L	#4,D1
+	And.L	D5,D1
+
+; D1 = --------h7h6h5h4 --------g7g6g5g4 --------f7f6f5f4 --------e7e6e5e4
+
+	Or.L	D2,D1
+
+; D1 = d7d6d5d4h7h6h5h4 c7c6c5c4g7g6g5g4 b7b6b5b4f7f6f5f4 a7a6a5a4e7e6e5e4
+
+
+; +----------------------------------------------------------------+
+; | Step (B2b): Prepare to rotate 2x2 groups within each 4x4 group |
+; +----------------------------------------------------------------+
+;
+; Registers D0 and D1 are arranged like this:
+;
+;		+-------------+-------------+
+; D0( 7 -  0) = | a3 a2 a1 a0 | e3 e2 e1 e0 |
+; D0(15 -  8) = | b3 b2 b1 b0 | f3 f2 f1 f0 |
+; D0(23 - 16) = | c3 c2 c1 c0 | g3 g2 g1 g0 |
+; D0(31 - 24) = | d3 d2 d1 d0 | h3 h2 h1 h0 |
+;		+-------------+-------------+
+; D1( 7 -  0) = | a7 a6 a5 a4 | e7 e6 e5 e4 |
+; D1(15 -  8) = | b7 b6 b5 b4 | f7 f6 f5 f4 |
+; D1(23 - 16) = | c7 c6 c5 c4 | g7 g6 g5 g4 |
+; D1(31 - 24) = | d7 d6 d5 d4 | h7 h6 h5 h4 |
+;		+-------------+-------------+
+;
+; Exchange D0(31-16) with D1(15-0)
+
+
+; D0 = d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0 b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0
+; D1 = d7d6d5d4h7h6h5h4 c7c6c5c4g7g6g5g4 b7b6b5b4f7f6f5f4 a7a6a5a4e7e6e5e4
+
+	Swap	D0
+
+; D0 = b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0 d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0
+
+	Move.W	D0,D2
+	Move.W	D1,D0
+	Move.W	D2,D1
+
+; D0 = b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0 b7b6b5b4f7f6f5f4 a7a6a5a4e7e6e5e4
+; D1 = d7d6d5d4h7h6h5h4 c7c6c5c4g7g6g5g4 d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0
+
+	Swap	D0
+
+; D0 = b7b6b5b4f7f6f5f4 a7a6a5a4e7e6e5e4 b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0
+
+
+; +-----------------------------------------------------+
+; | Step (B2c): Rotate 2x2 groups within each 4x4 group |
+; +-----------------------------------------------------+
+;
+; Registers D0 and D1 are arranged like this:
+;
+;		+-------------+-------------+
+; D0( 7 -  0) = | a3 a2 a1 a0 | e3 e2 e1 e0 |
+; D0(15 -  8) = | b3 b2 b1 b0 | f3 f2 f1 f0 |
+; D1( 7 -  0) = | c3 c2 c1 c0 | g3 g2 g1 g0 |
+; D1(15 -  8) = | d3 d2 d1 d0 | h3 h2 h1 h0 |
+;		+-------------+-------------+
+; D0(23 - 16) = | a7 a6 a5 a4 | e7 e6 e5 e4 |
+; D0(31 - 24) = | b7 b6 b5 b4 | f7 f6 f5 f4 |
+; D1(23 - 16) = | c7 c6 c5 c4 | g7 g6 g5 g4 |
+; D1(31 - 24) = | d7 d6 d5 d4 | h7 h6 h5 h4 |
+;		+-------------+-------------+
+;
+;	 +------+------+      +------+------+
+;	 | ??tl | ??tr |      | ??tr | ??br |
+; Rotate +------+------+ into +------+------+
+;	 | ??bl | ??br |      | ??tl | ??bl |
+;	 +------+------+      +------+------+
+;
+; Each ???? (??tl, ??tr, ??bl, or ??br) is a 2-bit by 2-bit
+; submatrix that is part of the 4-bit by 4-bit submatrix ??
+; (TL, TR, BL, or BR):
+;
+; +----+----+
+; | TL | TR |
+; +----+----+
+; | BL | BR |
+; +----+----+
+
+
+; D0 = b7b6b5b4f7f6f5f4 a7a6a5a4e7e6e5e4 b3b2b1b0f3f2f1f0 a3a2a1a0e3e2e1e0
+; D1 = d7d6d5d4h7h6h5h4 c7c6c5c4g7g6g5g4 d3d2d1d0h3h2h1h0 c3c2c1c0g3g2g1g0
+
+	Move.L	#$CCCCCCCC,d4
+	Move.L	D4,D5
+	Not.L	D5
+
+	Move.L	D0,D2
+	And.L	D4,D2
+
+; D2 = b7b6----f7f6---- a7a6----e7e6---- b3b2----f3f2---- a3a2----e3e2----
+
+	Move.L	D1,D3
+	And.L	D5,D3
+
+; D3 = ----d5d4----h5h4 ----c5c4----g5g4 ----d1d0----h1h0 ----c1c0----g1g0
+
+	LSL.L	#2,D0
+	And.L	D4,D0
+
+; D0 = b5b4----f5f4---- a5a4----e5e4---- b1b0----f1f0---- a1a0----e1e0----
+
+	Or.L	D3,D0
+
+; D0 = b5b4d5d4f5f4h5h4 a5a4c5c4e5e4g5g4 b1b0d1d0f1f0h1h0 a1a0c1c0e1e0g1g0
+
+	LSR.L	#2,D1
+	And.L	D5,D1
+
+; D1 = ----d7d6----h7h6 ----c7c6----g7g6 ----d3d2----h3h2 ----c3c2----g3g2
+
+	Or.L	D2,D1
+
+; D1 = b7b6d7d6f7f6h7h6 a7a6c7c6e7e6g7g6 b3b2d3d2f3f2h3h2 a3a2c3c2e3e2g3g2
+
+
+; +-----------------------------------------------------------------+
+; | Step (B2d): Prepare to rotate single bits within each 2x2 group |
+; +-----------------------------------------------------------------+
+;
+; Registers D0 and D1 are arranged like this:
+;
+;		+-------------+-------------+
+; D0( 7 -  0) = | a1 a0 c1 c0 | e1 e0 g1 g0 |
+; D0(15 -  8) = | b1 b0 d1 d0 | f1 f0 h1 h0 |
+; D1( 7 -  0) = | a3 a2 c3 c2 | e3 e2 g3 g2 |
+; D1(15 -  8) = | b3 b2 d3 d2 | f3 f2 h3 h2 |
+;		+-------------+-------------+
+; D0(23 - 16) = | a5 a4 c5 c4 | e5 e4 g5 g4 |
+; D0(31 - 24) = | b5 b4 d5 d4 | f5 f4 h5 h4 |
+; D1(23 - 16) = | a7 a6 c7 c6 | e7 e6 g7 g6 |
+; D1(31 - 24) = | b7 b6 d7 d6 | f7 f6 h7 h6 |
+;		+-------------+-------------+
+;
+; Exchange D0(15-8) with D1(7-0), and exchange D0(31-24) with D1(23-16)
+
+
+; D0 = b5b4d5d4f5f4h5h4 a5a4c5c4e5e4g5g4 b1b0d1d0f1f0h1h0 a1a0c1c0e1e0g1g0
+; D1 = b7b6d7d6f7f6h7h6 a7a6c7c6e7e6g7g6 b3b2d3d2f3f2h3h2 a3a2c3c2e3e2g3g2
+
+	move.l	#$ff00ff00,d4
+	Move.L	D4,D5
+	Not.L	D5
+
+	Move.L	D0,D2
+	And.L	D4,D2
+
+; D2 = b5b4d5d4f5f4h5h4 ---------------- b1b0d1d0f1f0h1h0 ----------------
+
+	LSR.L	#8,D2
+
+; D2 = ---------------- b5b4d5d4f5f4h5h4 ---------------- b1b0d1d0f1f0h1h0
+
+	Move.L	D1,D3
+	And.L	D5,D3
+
+; D3 = ---------------- a7a6c7c6e7e6g7g6 ---------------- a3a2c3c2e3e2g3g2
+
+	LSL.L	#8,D3
+
+; D3 = a7a6c7c6e7e6g7g6 ---------------- a3a2c3c2e3e2g3g2 ----------------
+
+	And.L	D5,D0
+
+; D0 = ---------------- a5a4c5c4e5e4g5g4 ---------------- a1a0c1c0e1e0g1g0
+
+	Or.L	D3,D0
+
+; D0 = a7a6c7c6e7e6g7g6 a5a4c5c4e5e4g5g4 a3a2c3c2e3e2g3g2 a1a0c1c0e1e0g1g0
+
+	And.L	D4,D1
+
+; D1 = b7b6d7d6f7f6h7h6 ---------------- b3b2d3d2f3f2h3h2 ----------------
+
+	Or.L	D2,D1
+
+; D1 = b7b6d7d6f7f6h7h6 b5b4d5d4f5f4h5h4 b3b2d3d2f3f2h3h2 b1b0d1d0f1f0h1h0
+
+
+; +------------------------------------------------------+
+; | Step (B2e): Rotate single bits within each 2x2 group |
+; +------------------------------------------------------+
+;
+; Registers D0 and D1 are arranged like this:
+;
+;		+-------------+-------------+
+; D0( 7 -  0) = | a1 a0 c1 c0 | e1 e0 g1 g0 |
+; D1( 7 -  0) = | b1 b0 d1 d0 | f1 f0 h1 h0 |
+; D0(15 -  8) = | a3 a2 c3 c2 | e3 e2 g3 g2 |
+; D1(15 -  8) = | b3 b2 d3 d2 | f3 f2 h3 h2 |
+;		+-------------+-------------+
+; D0(23 - 16) = | a5 a4 c5 c4 | e5 e4 g5 g4 |
+; D1(23 - 16) = | b5 b4 d5 d4 | f5 f4 h5 h4 |
+; D0(31 - 24) = | a7 a6 c7 c6 | e7 e6 g7 g6 |
+; D1(31 - 24) = | b7 b6 d7 d6 | f7 f6 h7 h6 |
+;		+-------------+-------------+
+;
+;	 +--------+--------+	  +--------+--------+
+;	 | ????TL | ????TR |	  | ????TR | ????BR |
+; Rotate +--------+--------+ into +--------+--------+
+;	 | ????BL | ????BR |	  | ????TL | ????BL |
+;	 +--------+--------+	  +--------+--------+
+;
+; Each ?????? (?????TL, ????TR, ????BL, or ????BR) is a single bit
+; that is part of the 2-bit by 2-bit submatrix ???? (??tl, ??tr, ??bl,
+; or ??br):
+;
+; +------+------+
+; | ??tl | ??tr |
+; +------+------+
+; | ??bl | ??br |
+; +------+------+
+;
+; Each ???? (??tl, ??tr, ??bl, or ??br) is a 2-bit by 2-bit submatrix
+; that is part of the 4-bit by 4-bit submatrix ?? (TL, TR, BL, or BR):
+;
+; +----+----+
+; | TL | TR |
+; +----+----+
+; | BL | BR |
+; +----+----+
+
+
+; D0 = a7a6c7c6e7e6g7g6 a5a4c5c4e5e4g5g4 a3a2c3c2e3e2g3g2 a1a0c1c0e1e0g1g0
+; D1 = b7b6d7d6f7f6h7h6 b5b4d5d4f5f4h5h4 b3b2d3d2f3f2h3h2 b1b0d1d0f1f0h1h0
+
+	Move.L	#$AAAAAAAA,D4
+	Move.L	D4,D5
+	Not.L	D5
+
+	Move.L	D0,D2
+	And.L	D4,D2
+
+; D2 = a7--c7--e7--g7-- a5--c5--e5--g5-- a3--c3--e3--g3-- a1--c1--e1--g1--
+
+	Move.L	D1,D3
+	And.L	D5,D3
+
+; D3 = --b6--d6--f6--h6 --b4--d4--f4--h4 --b2--d2--f2--h2 --b0--d0--f0--h0
+
+	add.l	d0,d0
+	And.L	D4,D0
+
+; D0 = a6--c6--e6--g6-- a4--c4--e4--g4-- a2--c2--e2--g2-- a0--c0--e0--g0--
+
+	Or.L	D3,D0
+
+; D0 = a6b6c6d6e6f6g6h6 a4b4c4d4e4f4g4h4 a2b2c2d2e2f2g2h2 a0b0c0d0e0f0g0h0
+
+; +-------------------------------------------+
+; | Step (B3):  Store 8 pixels in planar form |
+; +-------------------------------------------+
+;
+; Registers D0 and D1 are arranged like this:
+;
+;		+-------------+-------------+
+; D0( 7 -  0) = | a0 b0 c0 d0 | e0 f0 g0 h0 |
+; D1( 7 -  0) = | a1 b1 c1 d1 | e1 f1 g1 h1 |
+; D0(15 -  8) = | a2 b2 c2 d2 | e2 f2 g2 h2 |
+; D1(15 -  8) = | a3 b3 c3 d3 | e3 f3 g3 h3 |
+;		+-------------+-------------+
+; D0(23 - 16) = | a4 b4 c4 d4 | e4 f4 g4 h4 |
+; D1(23 - 16) = | a5 b5 c5 d5 | e5 f5 g5 h5 |
+; D0(31 - 24) = | a6 b6 c6 d6 | e6 f6 g6 h6 |
+; D1(31 - 24) = | a7 b7 c7 d7 | e7 f7 g7 h7 |
+;		+-------------+-------------+
+
+	jsr	(a6)
+
+; +-------------------------------+
+; | Step (C): Continue processing |
+; +-------------------------------+
+
+	addq.l	#1,d7
+	dbra	d6,.loopX
+
+	movem.w	(sp)+,d1/d6/d7
+	addq.l	#1,d1
+	dbra	d7,.loopY
+
+.exit	MoveM.L (A7)+,D2-D7/A2-a6	; Restore registers
+	Rts				; Return
+
+
+
+PutChunky8
+
+; D0 = a6b6c6d6e6f6g6h6 a4b4c4d4e4f4g4h4 a2b2c2d2e2f2g2h2 a0b0c0d0e0f0g0h0
+
+	movea.l	bm_Planes+(0*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 0
+	Swap	D0
+	LSR.L	#1,D1
+	And.L	D5,D1
+
+; D1 = --b7--d7--f7--h7 --b5--d5--f5--h5 --b3--d3--f3--h3 --b1--d1--f1--h1
+
+
+; D0 = a2b2c2d2e2f2g2h2 a0b0c0d0e0f0g0h0 a6b6c6d6e6f6g6h6 a4b4c4d4e4f4g4h4
+
+	move.l	bm_Planes+(4*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 4
+	RoR.L	#8,D0
+
+; D0 = a4b4c4d4e4f4g4h4 a2b2c2d2e2f2g2h2 a0b0c0d0e0f0g0h0 a6b6c6d6e6f6g6h6
+
+	move.l	bm_Planes+(6*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 6
+	Or.L	D2,D1
+
+; D1 = a7b7c7d7e7f7g7h7 a5b5c5d5e5f5g5h5 a3b3c3d3e3f3g3h3 a1b1c1d1e1f1g1h1
+	Swap	D0
+
+; D0 = a0b0c0d0e0f0g0h0 a6b6c6d6e6f6g6h6 a4b4c4d4e4f4g4h4 a2b2c2d2e2f2g2h2
+
+	move.l	bm_Planes+(2*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 2
+
+	move.l	bm_Planes+(1*4)(a1),a2
+	Move.B	D1,(a2,d7.l)	; plane 1
+	Swap	D1
+
+; D1 = a3b3c3d3e3f3g3h3 a1b1c1d1e1f1g1h1 a7b7c7d7e7f7g7h7 a5b5c5d5e5f5g5h5
+
+	move.l	bm_Planes+(5*4)(a1),a2
+	move.b	d1,(a2,d7.l)	; plane 5
+	RoR.L	#8,D1
+
+; D1 = a5b5c5d5e5f5g5h5 a3b3c3d3e3f3g3h3 a1b1c1d1e1f1g1h1 a7b7c7d7e7f7g7h7
+
+	move.l	bm_Planes+(7*4)(a1),a2
+	move.b	d1,(a2,d7.l)	; plane 7
+	Swap	D1
+
+; D1 = a1b1c1d1e1f1g1h1 a7b7c7d7e7f7g7h7 a5b5c5d5e5f5g5h5 a3b3c3d3e3f3g3h3
+
+	move.l	bm_Planes+(3*4)(a1),a2
+	move.b	d1,(a2,d7.l)	; plane 3
+	rts
+
+
+
+PutChunky7
+	movea.l	bm_Planes+(0*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 0
+	Swap	D0
+	LSR.L	#1,D1
+	And.L	D5,D1
+
+	move.l	bm_Planes+(4*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 4
+	RoR.L	#8,D0
+
+	move.l	bm_Planes+(6*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 6
+	Or.L	D2,D1
+
+	Swap	D0
+
+	move.l	bm_Planes+(2*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 2
+
+	move.l	bm_Planes+(1*4)(a1),a2
+	Move.B	D1,(a2,d7.l)	; plane 1
+	Swap	D1
+
+	move.l	bm_Planes+(5*4)(a1),a2
+	move.b	d1,(a2,d7.l)	; plane 5
+
+	RoR.L	#8,D1
+	Swap	D1
+
+	move.l	bm_Planes+(3*4)(a1),a2
+	move.b	d1,(a2,d7.l)	; plane 3
+	rts
+
+
+
+PutChunky6
+	movea.l	bm_Planes+(0*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 0
+	Swap	D0
+	LSR.L	#1,D1
+	And.L	D5,D1
+
+	move.l	bm_Planes+(4*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 4
+
+	RoR.L	#8,D0
+	Or.L	D2,D1
+	Swap	D0
+
+	move.l	bm_Planes+(2*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 2
+
+	move.l	bm_Planes+(1*4)(a1),a2
+	Move.B	D1,(a2,d7.l)	; plane 1
+	Swap	D1
+
+	move.l	bm_Planes+(5*4)(a1),a2
+	move.b	d1,(a2,d7.l)	; plane 5
+
+	RoR.L	#8,D1
+	Swap	D1
+
+	move.l	bm_Planes+(3*4)(a1),a2
+	move.b	d1,(a2,d7.l)	; plane 3
+	rts
+
+
+
+PutChunky5
+	movea.l	bm_Planes+(0*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 0
+	Swap	D0
+	LSR.L	#1,D1
+	And.L	D5,D1
+
+	move.l	bm_Planes+(4*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 4
+
+	RoR.L	#8,D0
+	Or.L	D2,D1
+	Swap	D0
+
+	move.l	bm_Planes+(2*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 2
+
+	move.l	bm_Planes+(1*4)(a1),a2
+	Move.B	D1,(a2,d7.l)	; plane 1
+
+	Swap	D1
+	RoR.L	#8,D1
+	Swap	D1
+
+	move.l	bm_Planes+(3*4)(a1),a2
+	move.b	d1,(a2,d7.l)	; plane 3
+	rts
+
+
+
+PutChunky4
+	movea.l	bm_Planes+(0*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 0
+	Swap	D0
+	LSR.L	#1,D1
+	And.L	D5,D1
+
+	RoR.L	#8,D0
+	Or.L	D2,D1
+	Swap	D0
+
+	move.l	bm_Planes+(2*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 2
+
+	move.l	bm_Planes+(1*4)(a1),a2
+	Move.B	D1,(a2,d7.l)	; plane 1
+
+	Swap	D1
+	RoR.L	#8,D1
+	Swap	D1
+
+	move.l	bm_Planes+(3*4)(a1),a2
+	move.b	d1,(a2,d7.l)	; plane 3
+	rts
+
+
+
+PutChunky3
+	movea.l	bm_Planes+(0*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 0
+	Swap	D0
+	LSR.L	#1,D1
+	And.L	D5,D1
+
+	RoR.L	#8,D0
+	Or.L	D2,D1
+	Swap	D0
+
+	move.l	bm_Planes+(2*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 2
+
+	move.l	bm_Planes+(1*4)(a1),a2
+	Move.B	D1,(a2,d7.l)	; plane 1
+	rts
+
+
+
+PutChunky2
+	movea.l	bm_Planes+(0*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 0
+	LSR.L	#1,D1
+	And.L	D5,D1
+	Or.L	D2,D1
+	move.l	bm_Planes+(1*4)(a1),a2
+	Move.B	D1,(a2,d7.l)	; plane 1
+	rts
+
+
+
+PutChunky1
+	movea.l	bm_Planes+(0*4)(a1),a2
+	move.b	d0,(a2,d7.l)	; plane 0
+	rts
+
+
+******************************************************************************
+
+
+
+
+_GetPaletteSize
+	movem.l	d2,-(sp)
+	moveq.l	#1,d0
+	moveq.l	#0,d2
+	move.b	bm_Depth(a0),d2
+	lsl.l	d2,d0		; 1<<Depth
+	movem.l	d1,-(sp)
+	andi.l	#V_HAM,d1
+	movem.l	(sp)+,d1
+	beq.b	.EHB
+
+.HAM	moveq.l	#16,d0		; HAM
+	cmp.w	#8,d2
+	bne.b	.exit
+	moveq.l	#64,d0		; HAM8
+	bra.b	.exit
+
+.EHB	movem.l	d1,-(sp)
+	andi.l	#V_EXTRA_HALFBRITE,d1
+	movem.l	(sp)+,d1
+	beq.b	.exit
+	moveq.l	#64,d0		; EHB
+
+.exit	movem.l	(sp)+,d2
+	rts
+
+
+
+;-------------------------------------------------------------------------
+Mulu32	movem.l	d2-d4,-(sp)
+	move.w	d1,d3
+	move.w	d2,d4
+	swap	d1
+	swap	d2
+
+	mulu	d3,d2
+	mulu	d4,d1
+	mulu	d4,d3
+
+	add.w	d2,d1
+
+	swap	d1
+	clr.w	d1
+
+	add.l	d3,d1
+	movem.l	(sp)+,d2-d4
+	rts
+;-------------------------------------------------------------------------
+
+
+
+
+
+;-------------------------------------------------------------------------
+; 32 bit signed integer division - developed by dr. Arthur Norman
+;
+; Divides 32-bit integer in D1 by 32-bit divisor in D2
+; Returns 32-bit quotiënt in D1, rest in D2
+;-------------------------------------------------------------------------
+Divs32	tst.l	d2			; noemer < 0 ?
+	bpl.s	.div00			; nee
+	neg.l	d2			; maak noemer positief
+	bsr.s	.div00			; delen alsof positief
+	neg.l	d1			; antwoord nu negatief maken
+	rts				; en terug
+
+.div00	tst.l	d1			; teller < 0
+	bpl.s	.divu			; beide operands positief
+	neg.l	d1			; maak teller positief
+	bsr.s	.divu			; voer deling uit
+	neg.l	d1			; corrigeer teken quotiënt
+	neg.l	d2			; corrigeer teken rest
+	rts				; voltooid
+
+.divu	cmpi.l	#$ffff,d2		; nagaan of D2H nul is
+	bls.s	.divx			; D2 < 16, gebruik subroutine
+
+	cmp.l	d1,d2			; nagaan of D2 <= D1
+	beq.b	.div01			; D1=D2, eenvoudig geval
+	bls.b	.div02			; moeilijk geval
+; hier is D1 < D2, dus het resultaat is nul
+	move.l	d1,d2			; rest correct maken
+	moveq.l	#0,d1			; resultaat nul
+	rts
+; hier is D1 = D2, dus het resultaat is 1
+.div01	moveq.l	#0,d2			; rest nul
+	moveq.l	#1,d1			; resultaat 1
+	rts
+
+.div02	movem.l	d3-d5,-(sp)		; werkregisters wegzetten
+	move.l	d2,d3			; noemer wegzetten
+	clr.w	d3			; D3L leegmaken
+	swap	d3			; D3 = D2 / $10000
+	addq.l	#1,d3			; D3 = 1 + (D2 / $10000)
+; schaalfactor in D7. teller en noemer schalen
+	move.l	d1,d4			; D4 = teller
+	move.l	d2,d5			; D5 = noemer
+	move.l	d3,d2			; schaalfactor in D2 voor DIVX
+	bsr.b	.divx			; D1 = D1 / schaalfactor
+	move.l	d5,d2			; vervang noemer
+	divu.w	d3,d2			; D2L = D2 / schaalfactor
+; D2 moet nu in 16 bits passen
+	divu.w	d2,d1			; deel geschaalde termen
+
+	andi.l	#$ffff,d1		; D1H = 0
+.div03	move.l	d5,d2			; oorspronkelijke noemer herstellen
+	move.l	d5,d3			; ook in d3
+	swap	d3			; D3L = D2H
+	mulu.w	d1,d2			; D2 = D1 * D2L
+	mulu.w	d1,d3			; D3 = D1 * D2H, D3H is nul
+	swap	d3			; overbrengen naar meest sign. #
+	add.l	d3,d2			; geef produkt; overdracht niet mog.
+	sub.l	d4,d2			; oorspronkelijke teller aftrekken
+	bhi.s	.div04			; te hoog, rest negatief
+	neg.l	d2			; teken wijzigen
+	cmp.l	d2,d5			; vergelijken met oorspr. noemer
+	bhi.s	.div05			; goed, rest binnen limiet
+	addq.l	#1,d1			; quotiënt vermeederen
+	bra.s	.div03			; opnieuw proberen
+.div04	subq.l	#1,d1			; quotiënt verminderen
+	bra.s	.div03			; opnieuw proberen
+; juist!
+.div05	movem.l	(sp)+,d3-d5		; registers herstellen
+	rts
+
+.divx	movem.w	d1/d3,-(sp)		; D1L en D3L wegzetten
+	clr.w	d1			; D1L leegmaken
+	swap	d1			; D1 = D1H
+	divu.w	d2,d1			; D1L = D1H / D2
+	move.w	d1,d3			; gedeeltelijk resultaat wegzetten
+	move.w	(sp)+,d1		; D1L ophalen
+; D1H bevat D1H rest D2, D1L als bij betreden routine
+	divu.w	d2,d1			; D1L = (D1L + (D1H rest D2)) / D2
+	swap	d1			; D1L bevat nu rest
+	moveq.l	#0,d2			; D2 leeghalen
+	move.w	d1,d2			; rest naar d2
+	move.w	d3,d1			; D1L = meest sign. quotiënt
+	swap	d1			; verwisselen -> quotiënt 32 bits
+	move.w	(sp)+,d3		; D3L herstellen
+	rts				; klaar
+;-------------------------------------------------------------------------
+
+
+
+
+
+;-------------------------------------------------------------------------
+; automatical source and object module updating
+;-------------------------------------------------------------------------
+
+*	AUTO	u\
+*	AUTO	wl pascal:misctools.o\y
+
+;-- END OF FILE ----------------------------------------------------------
+

@@ -1,0 +1,102 @@
+
+;--- GetRGB.a -----------------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/getrgb.a 01.002 (02.18.94)
+
+
+	TTL	GetRGB.a
+	IDNT	GetRGB.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"toolslib.i"
+
+
+	XREF	_GfxBase
+	XREF	_LVOGetRGB32
+
+	XDEF	_GetRGB
+	XDEF	@GetRGB
+
+
+	SECTION	GetRGB,CODE
+
+
+;-------------------------------------------------------------------------
+; VOID GetRGB( ColorMap (a0), firstcolor (d0), ncolors (d1), table (a1) )
+;-------------------------------------------------------------------------
+; Retrieves 32 bit color values. If under -V38 then values are taken from
+; a table and GetRGB4. If under V39+ then GetRGB32 is used. Values are
+; 32 bit left aligned for each color component, as documented in AutoDocs.
+;-------------------------------------------------------------------------
+
+_GetRGB	move.l	4(sp),a0
+	move.l	8(sp),d0
+	move.l	12(sp),d1
+	move.l	16(sp),a1
+
+@GetRGB	movem.l	d2/a6,-(sp)
+
+	cmpa.w	#0,a0
+	beq	.error
+
+	movea.l	_GfxBase,a6
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi	.V39
+
+	subq.w	#1,d1
+	bmi	.error
+.preV39	movem.l	d0-d1/a0,-(sp)
+	move.l	a1,-(sp)
+	CALLLIB	_LVOGetRGB4
+	move.l	(sp)+,a1
+	move.w	d0,d1
+	move.w	d0,d2
+	andi.w	#$F00,d0
+	andi.w	#$0F0,d1
+	andi.w	#$00F,d2
+	lsr.w	#6,d0
+	lsr.w	#2,d1
+	lsl.w	#2,d2
+	move.l	.xpnd32(pc,d0.w),(a1)+
+	move.l	.xpnd32(pc,d1.w),(a1)+
+	move.l	.xpnd32(pc,d2.w),(a1)+
+	movem.l	(sp)+,d0-d1/a0
+	addq.w	#1,d0
+	dbra	d1,.preV39
+	bra	.exit
+
+.V39	CALLLIB	_LVOGetRGB32
+
+.exit	movem.l	(sp)+,d2/a6
+	rts
+
+.error	clr.l	(a1)+
+	clr.l	(a1)+
+	clr.l	(a1)+
+	bra	.exit
+
+.xpnd32	dc.l	$00000000,$11111111,$22222222,$33333333
+	dc.l	$44444444,$55555555,$66666666,$77777777
+	dc.l	$88888888,$99999999,$AAAAAAAA,$BBBBBBBB
+	dc.l	$CCCCCCCC,$DDDDDDDD,$EEEEEEEE,$FFFFFFFF
+
+
+;-- END OF FILE ----------------------------------------------------------

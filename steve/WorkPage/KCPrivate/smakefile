@@ -1,0 +1,27 @@
+CC = sc
+
+CFLAGS = STRUCTUREEQUIVALENCE
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+AS = asm
+
+XAPPNAME = vp
+
+# the modules needed by each application
+APP10 = vp.o spline.o
+
+# make all the applications
+all: $(XAPPNAME)
+
+$(XAPPNAME): $(APP10) 
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:scm.lib lib:sc.lib lib:amiga.lib lib:debug.lib
+TO vp $(LFLAGS)
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

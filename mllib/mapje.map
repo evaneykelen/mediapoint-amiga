@@ -1,0 +1,77 @@
+mediapoint.library      26-Oct-94 13:53:28  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         def8 lib:libent.o     libent   code            0    0       20
+                       lib:libinit.o    libinit. code           20    2      154
+                       errors.o         errors.c code          180    6      5c8
+                       events.o         events.c code          76c    0      770
+                       fonts.o          fonts.c  code          edc    8     1a20
+                       fr.o             fr.c     code         292c    0      14c
+                       gadgsliders.o    gadgslid code         2a78    7      924
+                       init.o           init.c   code         33c8    0      188
+                       medialinklib.o   medialin code         3550    5     4dd8
+                       newlist.o        newlist. code         8348    0      67c
+                       popup.o          popup.c  code         89c4    0     1250
+                       rexx1.o          rexx1.c  code         9c14    2      388
+                       rexx2.o          rexx2.c  code         9fa8    0      4b4
+                       sprites.o        sprites. code         a45c    0      12c
+                       strgad.o         strgad.c code         a588    0      154
+                       stdlist.o        stdlist. code         a6dc    3     13d4
+                       vectors.o        vectors. code         bac4    1      388
+                       winreq.o         winreq.c code         be54    3      dc4
+                       lib:sc.lib       userlibt code         cc2c    0        4
+                       lib:sc.lib       userlibi code         cc30    0        4
+                       lib:sc.lib       tqsort.c code         cc34    0       30
+                       lib:sc.lib       sqsort.c code         cc64    0       34
+                       lib:sc.lib       _swmem   code         cc98    0       1c
+                       lib:sc.lib       stricmp  code         ccb4    0       3c
+                       lib:sc.lib       _stcul_d code         ccf0    0       30
+                       lib:sc.lib       _stcl_o  code         cd20    0       30
+                       lib:sc.lib       _stcl_h  code         cd50    0       3c
+                       lib:sc.lib       _stcd_i  code         cd8c    0       54
+                       lib:sc.lib       stccpy.c code         cde0    0       44
+                       lib:sc.lib       stcarg.c code         ce24    0       70
+                       lib:sc.lib       _strupr. code         ce94    0       3c
+                       lib:sc.lib       _cxd33   code         ced0    0       c4
+                       lib:sc.lib       _cxm33   code         cf94    0       20
+                       lib:sc.lib       _cxm22   code         cfb4    0       30
+                       lib:sc.lib       strchr   code         cfe4    0       18
+                       lib:sc.lib       strncmp  code         cffc    0       30
+                       lib:sc.lib       strcat   code         d02c    0       18
+                       lib:sc.lib       memmove  code         d044    0       2c
+                       lib:sc.lib       qsort.c  code         d070    0       e0
+                       lib:sc.lib       sscanf.c code         d150    0       5c
+                       lib:sc.lib       sprintf. code         d1ac    0       44
+                       lib:sc.lib       _sfmt.c  code         d1f0    0      618
+                       lib:sc.lib       _pfmt.c  code         d808    0      438
+                       lib:sc.lib       _sf.c    code         dc40    0      168
+                       lib:sc.lib       _pf.c    code         dda8    0       7c
+                       lib:sc.lib       DelPort. code         de24    0       44
+                       lib:sc.lib       CrtPort. code         de68    0       90
+   1 <noname>      204 T:R4OM4.0000     __Libfun code            0    0      204
+   2 __MERGED      51c lib:libent.o     libent   data            0    0        4
+                       lib:libinit.o    libinit. data            4    0       10
+                       errors.o         errors.c data           14    0       a4
+                       events.o         events.c data           b8    0        c
+                       fonts.o          fonts.c  data           c4    0      108
+mediapoint.library      26-Oct-94 13:53:28  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       fr.o             fr.c     data          1cc    0       20
+                       gadgsliders.o    gadgslid data          1ec    0        8
+                       init.o           init.c   data          1f4    0       98
+                       medialinklib.o   medialin data          28c    0       90
+                       newlist.o        newlist. data          31c    0        4
+                       popup.o          popup.c  data          320    0       14
+                       rexx1.o          rexx1.c  data          334    0       30
+                       rexx2.o          rexx2.c  data          364    0       24
+                       stdlist.o        stdlist. data          388    0       14
+                       winreq.o         winreq.c data          39c    0       7c
+                       lib:sc.lib       ctype.c  data          418    0      104
+                       fonts.o          fonts.c  bss           51c    0       14
+                       init.o           init.c   bss           530    0       30
+                       medialinklib.o   medialin bss           560    0        4
+                       sprites.o        sprites. bss           564    0       10
+                       winreq.o         winreq.c bss           574    0       60
+                       lib:sc.lib       sscanf.c bss           5d4    0        8
+   3 <noname>      22c LIB:AMIGA.LIB    <noname> code            0    0      22c

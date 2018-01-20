@@ -1,0 +1,43 @@
+* $Revision Header * Header built automatically - do not edit! *************
+*
+*	(C) Copyright 1990 by Olaf 'Olsen' Barthel & MXM
+*
+*	Name .....: Format.asm
+*	Created ..: Monday 21-Jan-91 20:12
+*	Revision .: 1
+*
+*	Date            Author          Comment
+*	=========       ========        ====================
+*	11-Apr-91       Olsen           Added atol.
+*	21-Jan-91       Olsen           Created this file!
+*
+* $Revision Header *********************************************************
+
+CALL	macro
+	xref	_LVO\1
+	jsr	_LVO\1(a6)
+	endm
+
+	csect	text,0,0,1,2
+
+	xdef	_SPrintf
+
+_SPrintf:
+	movem.l	a2/a3/a6,-(sp)
+
+	move.l	 4+12(sp),a3
+	move.l	 8+12(sp),a0
+	lea	12+12(sp),a1
+	lea	stuffchar(pc),a2
+
+	move.l	4,a6
+	CALL	RawDoFmt
+
+	movem.l	(sp)+,a2/a3/a6
+
+	rts
+
+stuffchar:
+	move.b	d0,(a3)+
+	rts
+  END

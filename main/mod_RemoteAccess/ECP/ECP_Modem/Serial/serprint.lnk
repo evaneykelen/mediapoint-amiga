@@ -1,0 +1,4 @@
+FROM LIB:c.o "serprint.o"
+TO "serprint"
+LIB LIB:sc.lib LIB:amiga.lib
+

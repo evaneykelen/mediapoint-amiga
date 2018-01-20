@@ -1,0 +1,23 @@
+workdos                 02-Apr-94 15:24:29  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text          a2c lib:cres.o       c        code            0    0      2b4
+                       workdos.o        workdos. code          2b4    0      42c
+                       lib:/source/_mai _main.c  code          6e0    0      12c
+                       gen:geninit.o    geninit. code          80c    0       28
+                       lib:sc.lib       _fpinit. code          834    0       30
+                       lib:sc.lib       _MemClea code          864    0       80
+                       lib:sc.lib       _exit.c  code          8e4    0       5c
+                       lib:sc.lib       strcat   code          940    0       18
+                       lib:sc.lib       DelPort. code          958    0       44
+                       lib:sc.lib       CrtPort. code          99c    0       90
+   1 __MERGED       34 workdos.o        workdos. data            0    0        4
+                       lib:sc.lib       sigfunc. data            4    0       24
+                       lib:sc.lib       stack.c  data           28    0        4
+                       lib:sc.lib       _ufb.c   data           2c    0        8
+                       lib:cres.o       c        bss            34    0       50
+                       lib:/source/_mai _main.c  bss            84    0       8c
+                       lib:sc.lib       memheap. bss           110    0        4
+                       lib:sc.lib       dosbase  bss           114    0        4
+                       lib:sc.lib       _top.c   bss           118    0        4
+                       lib:sc.lib       _exit.c  bss           11c    0        4

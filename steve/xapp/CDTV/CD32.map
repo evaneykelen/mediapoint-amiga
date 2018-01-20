@@ -1,0 +1,61 @@
+CD32                    26-Oct-94 14:35:28  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         390c lib:cres.o       c        code            0    0      2b4
+                       setup2.o         setup2.c code          2b4    0      fb4
+                       doit.o           doit.c   code         1268    0      13c
+                       serial.o         serial.c code         13a4    0      71c
+                       demo:gen/_main.o _main.c  code         1ac0    0      12c
+                       demo:gen/general general. code         1bec    0       e4
+                       demo:gen/support support. code         1cd0    0      30c
+                       demo:gen/worker. worker.c code         1fdc    0      398
+                       demo:gen/wait50h <noname> code         2374    0      118
+                       lib:sc.lib       _fpinit. code         248c    0       30
+                       lib:sc.lib       _MemClea code         24bc    0       80
+                       lib:sc.lib       _stcul_d code         253c    0       30
+                       lib:sc.lib       _stcl_o  code         256c    0       30
+                       lib:sc.lib       _stcl_h  code         259c    0       3c
+                       lib:sc.lib       _stcd_i  code         25d8    0       54
+                       lib:sc.lib       stccpy.c code         262c    0       44
+                       lib:sc.lib       _strupr. code         2670    0       3c
+                       lib:sc.lib       _cxd33   code         26ac    0       c4
+                       lib:sc.lib       _exit.c  code         2770    0       5c
+                       lib:sc.lib       strcat   code         27cc    0       18
+                       lib:sc.lib       memmove  code         27e4    0       2c
+                       lib:sc.lib       free     code         2810    0      16c
+                       lib:sc.lib       malloc   code         297c    0      174
+                       lib:sc.lib       sscanf.c code         2af0    0       5c
+                       lib:sc.lib       sprintf. code         2b4c    0       44
+                       lib:sc.lib       _sfmt.c  code         2b90    0      618
+                       lib:sc.lib       _pfmt.c  code         31a8    0      438
+                       lib:sc.lib       _sf.c    code         35e0    0      168
+                       lib:sc.lib       _pf.c    code         3748    0       7c
+                       lib:sc.lib       DelPort. code         37c4    0       44
+                       lib:sc.lib       DelExtIO code         3808    0       2c
+                       lib:sc.lib       CrtPort. code         3834    0       90
+                       lib:sc.lib       CrtExtIO code         38c4    0       48
+   1 __MERGED      b00 setup2.o         setup2.c data            0    0      878
+                       doit.o           doit.c   data          878    0       48
+                       serial.o         serial.c data          8c0    0       e0
+                       demo:gen/general general. data          9a0    0        4
+                       demo:gen/support support. data          9a4    0       14
+                       demo:gen/worker. worker.c data          9b8    0       10
+                       lib:sc.lib       mstep.c  data          9c8    0        4
+                       lib:sc.lib       sigfunc. data          9cc    0       24
+                       lib:sc.lib       ctype.c  data          9f0    0      104
+                       lib:sc.lib       stack.c  data          af4    0        4
+                       lib:sc.lib       _ufb.c   data          af8    0        8
+                       lib:cres.o       c        bss           b00    0       50
+                       setup2.o         setup2.c bss           b50    0        c
+                       demo:gen/_main.o _main.c  bss           b5c    0       8c
+                       demo:gen/support support. bss           be8    0      218
+                       lib:sc.lib       errno.c  bss           e00    0        4
+                       lib:sc.lib       memheap. bss           e04    0        4
+                       lib:sc.lib       memtype. bss           e08    0        4
+                       lib:sc.lib       dosbase  bss           e0c    0        4
+                       lib:sc.lib       _top.c   bss           e10    0        4
+CD32                    26-Oct-94 14:35:28  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       _exit.c  bss           e14    0        4
+                       lib:sc.lib       sscanf.c bss           e18    0        8

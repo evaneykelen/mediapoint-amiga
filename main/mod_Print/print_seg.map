@@ -1,0 +1,94 @@
+print_seg               28-Aug-94 15:07:40  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         66f4 lib:c.o          c        code            0    0      260
+                       print_seg.o      print_se code          260    0      764
+                       printsupport.o   printsup code          9c4    0     1858
+                       printsup2.o      printsup code         221c    0      490
+                       times.o          times.c  code         26ac    0      bd8
+                       errors.o         errors.c code         3284    0      298
+                       sc:source/_main. _main.c  code         351c    0      12c
+                       lib:scm.lib      _sfmt.c  code         3648    0      6b8
+                       lib:scm.lib      _pfmt.c  code         3d00    0      840
+                       lib:scm.lib      sscanf.c code         4540    0       5c
+                       lib:scm.lib      sprintf. code         459c    0       44
+                       lib:scm.lib      _fpinit. code         45e0    0       30
+                       lib:scm.lib      _cxvfd   code         4610    0      404
+                       lib:scm.lib      _cxv54   code         4a14    0      10c
+                       lib:scm.lib      _cxv53   code         4b20    0       b4
+                       lib:scm.lib      _cxv45   code         4bd4    0       68
+                       lib:scm.lib      _cxv43   code         4c3c    0       d4
+                       lib:scm.lib      _cxv35   code         4d10    0       54
+                       lib:scm.lib      _cxv34   code         4d64    0       94
+                       lib:scm.lib      _cxspc5  code         4df8    0       94
+                       lib:scm.lib      _cxren5  code         4e8c    0       64
+                       lib:scm.lib      _cxnrm5  code         4ef0    0       9c
+                       lib:scm.lib      _cxnrm4  code         4f8c    0       84
+                       lib:scm.lib      _cxm55   code         5010    0      198
+                       lib:scm.lib      _cxfxt5  code         51a8    0       ec
+                       lib:scm.lib      _cxferr. code         5294    0       10
+                       lib:scm.lib      _cxd55   code         52a4    0      240
+                       lib:scm.lib      _cxc55   code         54e4    0       7c
+                       lib:scm.lib      _cxadj5  code         5560    0       84
+                       lib:scm.lib      _cxa55   code         55e4    0      250
+                       lib:sc.lib       _MemClea code         5834    0       80
+                       lib:sc.lib       strnicmp code         58b4    0       88
+                       lib:sc.lib       stricmp  code         593c    0       3c
+                       lib:sc.lib       _stcul_d code         5978    0       30
+                       lib:sc.lib       _stcl_o  code         59a8    0       30
+                       lib:sc.lib       _stcl_h  code         59d8    0       3c
+                       lib:sc.lib       _stcd_i  code         5a14    0       54
+                       lib:sc.lib       stccpy.c code         5a68    0       44
+                       lib:sc.lib       _strupr. code         5aac    0       3c
+                       lib:sc.lib       _write.c code         5ae8    0      100
+                       lib:sc.lib       _lseek.c code         5be8    0       94
+                       lib:sc.lib       _cxfpe.c code         5c7c    0       3c
+                       lib:sc.lib       _cxd33   code         5cb8    0       c4
+                       lib:sc.lib       _exit.c  code         5d7c    0       5c
+                       lib:sc.lib       _cxbrk.c code         5dd8    0      14c
+                       lib:sc.lib       _chkufb. code         5f24    0       4c
+                       lib:sc.lib       _chkabor code         5f70    0       50
+                       lib:sc.lib       memchr   code         5fc0    0       24
+                       lib:sc.lib       strcat   code         5fe4    0       18
+                       lib:sc.lib       memmove  code         5ffc    0       2c
+                       lib:sc.lib       free     code         6028    0      16c
+                       lib:sc.lib       malloc   code         6194    0      174
+                       lib:sc.lib       exit.c   code         6308    0       54
+print_seg               28-Aug-94 15:07:40  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       _sf.c    code         635c    0      168
+                       lib:sc.lib       _pf.c    code         64c4    0       7c
+                       lib:sc.lib       DelPort. code         6540    0       44
+                       lib:sc.lib       DelExtIO code         6584    0       2c
+                       lib:sc.lib       CrtExtIO code         65b0    0       48
+                       lib:sc.lib       raise.c  code         65f8    0       64
+                       lib:sc.lib       signal.c code         665c    0       38
+                       lib:sc.lib       io2errno code         6694    0       60
+   1 chip            4 print_seg.o      print_se datachip        0    0        4
+   2 __MERGED      ba4 print_seg.o      print_se data            0    0      350
+                       printsupport.o   printsup data          350    0      348
+                       printsup2.o      printsup data          698    0       10
+                       times.o          times.c  data          6a8    0      2b8
+                       errors.o         errors.c data          960    0       10
+                       lib:sc.lib       mstep.c  data          970    0        4
+                       lib:sc.lib       sigfunc. data          974    0       24
+                       lib:sc.lib       ctype.c  data          998    0      104
+                       lib:sc.lib       stack.c  data          a9c    0        4
+                       lib:sc.lib       _iob.c   data          aa0    0       68
+                       lib:sc.lib       _ufb.c   data          b08    0        8
+                       lib:sc.lib       _cxbrk.c data          b10    0       50
+                       lib:sc.lib       exitfunc data          b60    0        4
+                       lib:sc.lib       io2errno data          b64    0       40
+                       lib:c.o          c        bss           ba4    0       54
+                       print_seg.o      print_se bss           bf8    0       50
+                       printsupport.o   printsup bss           c48    0        c
+                       errors.o         errors.c bss           c54    0      218
+                       sc:source/_main. _main.c  bss           e6c    0       8c
+                       lib:scm.lib      sscanf.c bss           ef8    0        8
+                       lib:sc.lib       errno.c  bss           f00    0        4
+                       lib:sc.lib       memheap. bss           f04    0        4
+                       lib:sc.lib       memtype. bss           f08    0        4
+                       lib:sc.lib       dosbase  bss           f0c    0        4
+                       lib:sc.lib       _top.c   bss           f10    0        4
+                       lib:sc.lib       _exit.c  bss           f14    0        4

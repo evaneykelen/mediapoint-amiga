@@ -1,0 +1,29 @@
+CC = sc
+
+CFLAGS = NOSTACKCHECK STRINGMERGE NOMULTIPLEINCLUDES OPTIMIZE
+AFLAGS = -iINCLUDE
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+# these are my applications
+APP1 = PlaySamp
+
+# the modules needed by each application
+APP10 = playsampone.o loadsampone.o asm/soundplay.o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10) smakefile
+	slink <WITH <
+FROM $(APP10) LIBRARY lib:sc.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

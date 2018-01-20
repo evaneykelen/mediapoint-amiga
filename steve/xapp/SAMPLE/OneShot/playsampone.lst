@@ -1,0 +1,128 @@
+
+;SAS/C Amiga Compiler (Phase 1)  6.2                01:14:04                                                                                         Page 1
+
+
+;Line#  Block                                  Source
+;  1       0  // File		: playsampone.c
+;  2       0  // Uses		: sampleone.h
+;  3       0  //	Date		: 20-1-1994
+;  4       0  // Author	: ing. C. Lieshout
+;  5       0  // Desc.		: Play a Sample from chipmem
+;  6       0  //
+;  7
+;  8       0  //#include <stdio.h>
+;  9       0  #include <exec/types.h>
+;===> Including file "include:exec/types.h"
+
+; 10       0  #include <exec/execbase.h>
+;===> Including file "include:exec/execbase.h"
+
+;===> Including file "include:exec/lists.h"
+
+;===> Including file "include:exec/nodes.h"
+
+;===> Including file "include:exec/interrupts.h"
+
+;===> Including file "include:exec/libraries.h"
+
+;===> Including file "include:exec/tasks.h"
+
+; 11       0  #include <exec/memory.h>
+;===> Including file "include:exec/memory.h"
+
+; 12       0  #include <exec/tasks.h>
+; 13       0  #include	<exec/libraries.h>
+; 14       0  #include	"sampleone.h"
+;===> Including file "sampleone.h"
+
+;  9.001   0  //	File		:	sampleone.h
+;  9.002   0  //	Uses		:
+;  9.003   0  //	Date		:	3 - july 1993, 19-jan-1994
+;  9.004   0  //	Author	:	ing. C. Lieshout
+;  9.005   0  //	Desc.		:	structs and defines used in de oneshot sample player
+;  9.006   0  //
+;  9.007
+;  9.008   0  #define SEEK_END 2
+;  9.009   0  #define SEEK_CUR 1
+;  9.010   0  #define SEEK_SET 0
+;  9.011
+;  9.012   0  #define SI_STEREO		0x80
+;  9.013
+;  9.014   0  typedef struct
+;  9.015   0  {
+;  9.016   0  	UBYTE	*sounddata;
+;  9.017   0  	LONG	memsize;
+;  9.018   0  	LONG	soundlength;
+;  9.019
+;  9.020   0  	UWORD	period;
+;  9.021   0  	UWORD channel;
+;  9.022
+;  9.023   0  	UBYTE	type;						// type sample
+;  9.024   0  	UBYTE	end;
+;  9.025
+;  9.026   0  	LONG	audiosig;
+;  9.027   0  	LONG	audionum;
+
+;SAS/C Amiga Compiler (Phase 1)  6.2                01:14:04                                                                                         Page 2
+
+
+;Line#  Block                                  Source
+;  9.028
+;  9.029   0  	LONG	task;
+;  9.030
+;  9.031   0  	LONG dum;
+;  9.032   0  	struct Interrupt int_audio;	// the audio interupt structure
+;  9.033   0  	LONG dum2;
+;  9.034
+;  9.035   0  	long old_audio;
+;  9.036   0  	struct Library *DOSBase;
+;  9.037   0  } SoundInfoOne;
+; 15       0  #include <proto/exec.h>
+;===> Including file "include:proto/exec.h"
+
+;===> Including file "include:clib/exec_protos.h"
+
+;===> Including file "include:pragmas/exec_pragmas.h"
+
+;===> Including file "include:clib/alib_protos.h"
+
+;===> Including file "include:devices/timer.h"
+
+;===> Including file "include:exec/io.h"
+
+;===> Including file "include:exec/ports.h"
+
+;===> Including file "include:devices/keymap.h"
+
+;===> Including file "include:libraries/commodities.h"
+
+;===> Including file "include:utility/hooks.h"
+
+;===> Including file "include:intuition/classes.h"
+
+;===> Including file "include:intuition/classusr.h"
+
+;===> Including file "include:graphics/graphint.h"
+
+; 16       0  #include <pragmas/exec_pragmas.h>
+; 17
+; 18       0  int loadsoundfile( SoundInfoOne *sinfo, char *filename );
+; 19       0  void freesound( SoundInfoOne *sinfo );
+; 20       0  void exit_sound( SoundInfoOne *sinfo );
+; 21       0  void play_sound( SoundInfoOne *sinfo );
+; 22
+; 23       0  int test( void )
+; 24       0  {
+; 25       1  	SoundInfoOne si;
+; 26       1  	int ret;
+; 27       1  	ret = loadsoundfile( &si, "sf:ToddsKeys" );
+; 28       1  	if( ret == 1 )
+; 29       1  	{
+; 30       2  		play_sound( &si );
+; 31       2  		Wait( si.audiosig );
+; 32       2  		Wait( si.audiosig );
+; 33       2  		exit_sound( &si );
+; 34       2  	}
+; 35       1  	freesound( &si );
+; 36       1  	return 0;
+; 37       1  }

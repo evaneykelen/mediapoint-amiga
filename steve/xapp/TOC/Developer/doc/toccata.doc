@@ -1,0 +1,727 @@
+
+TABLE OF CONTENTS
+
+toccata.library/--background--
+toccata.library/T_Capture
+toccata.library/T_Expand
+toccata.library/T_FindFrequency
+toccata.library/T_GetPart
+toccata.library/T_LoadSettings
+toccata.library/T_NextFrequency
+toccata.library/T_Pause
+toccata.library/T_Playback
+toccata.library/T_RawPlayback
+toccata.library/T_SaveSettings
+toccata.library/T_SetPart
+toccata.library/T_StartLevel
+toccata.library/T_Stop
+toccata.library/T_StopLevel
+
+
+toccata.library/--background--                       toccata.library/--background--
+
+All information in this document is preliminary and subject to change!
+
+Future:
+        - multichannel harddisk playback
+        - multichannel sample playback
+        - A-Law, µ-Law conversion routines
+        - 8SVX file support
+
+
+toccata.library/T_RawPlayback                       toccata.library/T_RawPlayback
+
+   NAME
+        T_RawPlayback - raw data playback
+
+   SYNOPSIS
+        Success = T_RawPlayback(Tags)
+        D0                      A0
+
+        BOOL T_RawPlayback(struct TagItem *);
+
+   FUNCTION
+        This function initializes the toccata hardware for direct playback through
+        the toccata FIFOs without caching.
+
+        You have to provide two buffers. Buffer 1 must be initialized before
+        calling T_RawPlayback() either with silence or with real audio data.
+        Buffer 2 must be filled directly after calling
+        T_RawPlayback(). If Buffer 1 has been played by the Toccata interrupt
+        you (TT_RawTask) will be signalled (TT_RawMask). While Toccata plays
+        Buffer 2 you have to refill Buffer 1 and then call RawReply(). After
+        the next signal Toccata will play Buffer 1 again and you have to refill
+        Buffer 2 and call RawReply() again. This procedure repeats again and again
+        until T_Stop() is called or an error occured.
+
+        You may change the interrupt handling. In fact you can decide between 
+        a few long and many short interrupts (TT_RawIrqSize).
+
+        T_RawPlayback() is stopped by a call to T_Stop(). You have to call T_Stop()
+        after an error occured!
+
+        If you playback stereo data you first have to send one sample for the
+        left channel then one sample for the right channel.
+
+        Depending on the mode, different values must be used to produce
+        silence: 8-Bit: 0x7F, 16-Bit: 0x00, A-Law: 0x55, µ-Law: 0x7f.
+
+        If the process which refills the buffer runs on a priority <+20 you have
+        to use a TT_BufferSize of at least 32768 byte for proper operation. Using
+        a priority of >+20 you can go down to a TT_BufferSize of 512 byte. The 
+        normal range of user task priorities ranges from -5 to +5, so be very 
+        carefull if going beyond +5!
+
+   INPUTS
+        Tags - One or more of the following tags:
+               TT_IrqPri     - Priority of playback interrupt (Default: 105)
+               TT_Mode       - set the playback mode
+                               (ULONG, default: ToccataControl settings)
+                               see toccata.i or toccata.h for possible values
+                               Mono playback plays the same audio sample on
+                               both channels.
+               TT_Frequency  - select the playback frequency
+                               (ULONG, default: ToccataControl settings)
+                               Possible values are:
+                               5513, 6615, 8000, 9600, 11025, 16000, 18900, 22050,
+                               27429, 32000, 33075, 37800, 44100 and 48000 Hz.
+                               If you do not provide one of these frequencies,
+                               the nearest found frequency will be used.
+               TT_ErrorTask  - Task to notify if an error occurs
+               TT_ErrorMask  - Signal mask to send if an error occurs
+                               You have to call T_Stop() then!
+               TT_RawTask    - Task to notify if the buffer or FIFO has to be
+                               refilled.
+               TT_RawMask    - Signal mask to send.
+               TT_RawBuffer1 - A pointer to the first buffer.
+               TT_RawBuffer2 - A pointer to the second buffer.
+               TT_BufferSize - Raw playback buffer size (ULONG, Default: 32768)
+                               Size MUST be a multiple of 512!
+               TT_RawIrqSize - (ULONG, default 512)
+                               Amount of data transferred by one interrupt.
+                               TT_RawIrqSize MUST be one of 32, 64, 128, 256, 512.
+               TT_RawReply   - ti_Data points to a ULONG in which toccata.library
+                               will stick the address of the function RawReply().
+   RESULT
+        Success - TRUE/FALSE
+
+   NOTE
+        Since TT_Mode and TT_Frequency default to the ToccataControl settings
+        there is no need to set these values by your application.
+
+        This call is guaranteed to preserve all registers except D0.
+
+   EXAMPLE
+
+   BUGS
+
+   SEE ALSO
+        T_Playback(), T_Stop()
+
+toccata.library/T_SaveSettings                     toccata.library/T_SaveSettings
+
+   NAME
+        T_SaveSettings - Save the current settings.
+
+   SYNOPSIS
+        Success = T_SaveSettings(Flags)
+                                 D0
+
+        BOOL T_SaveSettings(ULONG);
+
+   FUNCTION
+        Save the current settings set by T_SetPart() to ENV: or ENVARC:.
+
+   INPUTS
+        Flags  - 0: Save to ENV:
+                 1: Save to ENV: and ENVARC:
+
+   RESULT
+        Success - TRUE/FALSE
+
+   NOTE
+        This call is guaranteed to preserve all registers except D0.
+
+   EXAMPLE
+
+   BUGS
+
+   SEE ALSO
+        T_LoadSettings()
+
+toccata.library/T_LoadSettings                     toccata.library/T_LoadSettings
+
+   NAME
+        T_LoadSettings - Load the current settings.
+
+   SYNOPSIS
+        Success = T_LoadSettings(Flags)
+                                 D0
+
+        BOOL T_LoadSettings(ULONG);
+
+   FUNCTION
+        Load the current settings from ENV: or ENVARC: and set all hardware
+        registers according to the new values. You may read these values using
+        T_GetPart().
+
+   INPUTS
+        Flags  - 0: Load from ENV:
+                 1: Load from ENVARC:
+
+   RESULT
+        Success - TRUE/FALSE
+
+   NOTE
+        This call is guaranteed to preserve all registers except D0.
+
+   EXAMPLE
+
+   BUGS
+
+   SEE ALSO
+        T_SaveSettings()
+
+toccata.library/T_Expand                                toccata.library/T_Expand
+
+   NAME
+        T_Expand - Expand an A-Law or µ-Law value to 16 bit signed.
+
+   SYNOPSIS
+        ExpVal = T_Expand(Value, Mode)
+                          D0     D1
+
+        WORD T_Expand(UBYTE, ULONG);
+
+   FUNCTION
+        Expand an A-Law or µ-Law value to 16 bit signed.
+
+   INPUTS
+        Value  - An 8 bit A-Law or µ-Law value.
+        Mode   - one of:
+                 MMODE_ALAW - Expand an A-Law value.
+                 MMODE_ULAW - Expand an µ-Law value.
+   RESULT
+        ExpVal - The expanded 16 bit value. (see BUGS)
+
+   NOTE
+        In fact this function returns a LONG value since some people might
+        not be able to tell their compiler how to use a WORD.
+
+        This call is guaranteed to preserve all registers except D0.
+
+   EXAMPLE
+
+   BUGS
+        This function currently does not expand the values, they only are
+        decrypted and scaled to a range of +/- 32512 which should be sufficient
+        for implementation.
+
+   SEE ALSO
+
+
+toccata.library/T_StartLevel                       toccata.library/T_StartLevel
+
+   NAME
+        T_StartLevel - start level indicator
+
+   SYNOPSIS
+        Success = T_StartLevel(Tags)
+        D0                     A0
+
+        BOOL T_StartLevel(struct TagItem *);
+
+   FUNCTION
+        Start the level indicator. Currently it can only run if neither capture
+        nor playback is active. You may start or stop the level indicator anytime
+        even if capture or playback is active, in this case it will start as soon
+        as capture/playback is stopped. If capture or playback is started while
+        the level indicator is active, the level indicator will be paused.
+
+   INPUTS
+        Tags - One or more of the following tags:
+               TT_Window    - Window ptr for capture processes (Default: NULL)
+               TT_IoPri     - Priority of level process (Default: -1)
+               TT_IrqPri    - Priority of level interrupt (Default: 105)
+               TT_Level     - Callback function CB_Level().
+                              This function will be called if new level values
+                              should be displayed.
+
+                              CB_Level(Left, Right)
+                                       D0    D1
+
+                              void CB_Level(ULONG, ULONG);
+
+                              Currently, Left and Right will give you values from
+                              0 upto 126, 149 will be sent if an overflow occured.
+                              This is subject to change!
+
+                              Make sure to call geta4() in your function
+                              because it runs under control of a different
+                              process than the rest of your application!
+               TT_ErrorTask - task to notify if an error occurs
+               TT_ErrorMask - signal mask to send if an error occurs
+                              The task will not be notified if level handling
+                              is aborted by a call to T_StopLevel().
+   RESULT
+
+   NOTE
+        This call is guaranteed to preserve all registers except D0.
+
+   EXAMPLE
+
+   BUGS
+
+   SEE ALSO
+
+
+toccata.library/T_Capture                       toccata.library/T_Capture
+
+   NAME
+        T_Capture - capture data
+
+   SYNOPSIS
+        Success = T_Capture(Tags)
+        D0                  A0
+
+        BOOL T_Capture(struct TagItem *);
+
+   FUNCTION
+        Capture data.
+
+   INPUTS
+        Tags - One or more of the following tags:
+               TT_Window     - Window ptr for capture processes (Default: NULL)
+               TT_BufferPri  - Priority of buffer process (Default: 2)
+               TT_IoPri      - Priority of save process (Default: 1)
+               TT_IrqPri     - Priority of capture interrupt (Default: 105)
+               TT_BufferSize - Capture buffer size (Default: 100 KByte)
+                               Size MUST be a multiple of 512!
+               TT_Save       - Callback function CB_Save().
+                               This function will be called if some data has to
+                               be saved.
+
+                               Success = CB_Save(Data, Size)
+                               D0                A0    D0
+
+                               BOOL CB_Save(UBYTE *, ULONG);
+
+                               Return TRUE (1) if the data could be saved.
+                               Return FALSE (0) if an error occured, which causes
+                               capture to stop.
+
+                               Make sure to call geta4() in your function
+                               because it runs under control of a different
+                               process than the rest of your application!
+               TT_Mode       - select the capture mode
+                               (ULONG, default: ToccataControl settings)
+                               see toccata.i or toccata.h for possible values
+                               Mono capture only captures data from the left channel.
+               TT_Frequency  - select the capture frequency
+                               (ULONG, default: ToccataControl settings)
+                               Possible values are:
+                               5513, 6615, 8000, 9600, 11025, 16000, 18900, 22050,
+                               27429, 32000, 33075, 37800, 44100 and 48000 Hz.
+                               If you do not provide one of these frequencies,
+                               the nearest found frequency will be used.
+               TT_FileName   - Path and name of a FORM MAUD file to capture to.
+               TT_Length     - Number of bytes to capture (NOT samples).
+                               Defaults to unlimited.
+               TT_ErrorTask  - task to notify if an error occurs
+               TT_ErrorMask  - signal mask to send if an error occurs
+                               The task will not be notified if capture
+                               is aborted by a call to T_Stop().
+   RESULT
+
+   NOTE
+        Since TT_Mode and TT_Frequency default to the ToccataControl settings
+        there is no need to set these values by your application.
+
+        This call is guaranteed to preserve all registers except D0.
+
+   EXAMPLE
+
+   BUGS
+
+   SEE ALSO
+
+
+toccata.library/T_Playback                       toccata.library/T_Playback
+
+   NAME
+        T_Playback - playback data
+
+   SYNOPSIS
+        Success = T_Playback(Tags)
+        D0                   A0
+
+        BOOL T_Playback(struct TagItem *);
+
+   FUNCTION
+        Playback data.
+
+   INPUTS
+        Tags - One or more of the following tags:
+               TT_Window     - Window ptr for playback processes (Default: NULL)
+               TT_IoPri      - Priority of load process (Default: 1)
+               TT_IrqPri     - Priority of playback interrupt (Default: 105)
+               TT_BufferSize - Playback buffer size (Default: 100 KByte)
+                               Size MUST be a multiple of 512!
+               TT_Load       - Callback function CB_Load().
+                               This function will be called if some data has to
+                               be loaded.
+
+                               ActualSize = CB_Load(Data, Size)
+                               D0                   A0    D0
+
+                               LONG CB_Load(UBYTE *, ULONG);
+
+                               ActualSize is the number of bytes read by your
+                               function. ActualSize may be 0. If an error occurs
+                               return a negative value (-1), which causes playback
+                               to stop.
+
+                               Make sure to call geta4() in your function
+                               because it runs under control of a different
+                               process than the rest of your application!
+               TT_Mode       - set the playback mode
+                               (ULONG, default: ToccataControl settings)
+                               see toccata.i or toccata.h for possible values
+                               Mono playback plays the same audio sample on
+                               both channels.
+               TT_Frequency  - select the playback frequency
+                               (ULONG, default: ToccataControl settings)
+                               Possible values are:
+                               5513, 6615, 8000, 9600, 11025, 16000, 18900, 22050,
+                               27429, 32000, 33075, 37800, 44100 and 48000 Hz.
+                               If you do not provide one of these frequencies,
+                               the nearest found frequency will be used.
+               TT_FileName   - Path and name of a FORM MAUD file to play.
+               TT_Length     - Number of bytes to play (NOT samples).
+                               Ignored if TT_FileName is used.
+                               Defaults to unlimited.
+               TT_ErrorTask  - task to notify if an error occurs
+               TT_ErrorMask  - Signal mask to send if an error occurs or playback
+                               stops at the end of a file.
+                               The task will not be notified if the playback
+                               is aborted by a call to T_Stop().
+               TT_SmartPlay   - Do not stop playing if CB_Load() is too slow.
+                                (BOOL, default FALSE). If TT_SmartPlay is FALSE
+                                the playback process will stop if CB_Load() is
+                                to slow. If TT_SmartPlay is TRUE the playback
+                                process will play 'silence' until CB_Load() returns.
+   RESULT
+
+   NOTE
+        Since TT_Mode and TT_Frequency default to the ToccataControl settings
+        there is no need to set these values by your application.
+
+        This call is guaranteed to preserve all registers except D0.
+
+   EXAMPLE
+
+   BUGS
+
+   SEE ALSO
+
+
+toccata.library/T_Pause                       toccata.library/T_Pause
+
+   NAME
+        T_Pause - pause capture or playback
+
+   SYNOPSIS
+        T_Pause(Pause)
+                D0
+
+        void T_Pause(ULONG);
+
+   FUNCTION
+        Pause or continue capture or playback.
+
+   INPUTS
+        Pause - If Pause is 1 (TRUE) capture or playback will be paused
+                until T_Pause(0) is called. Pause stays active even if
+                you call T_Stop(), T_Capture() or T_Playback(), so it
+                behaves like a real tape recorder.
+   RESULT
+
+   NOTE
+        This call is guaranteed to preserve all registers.
+
+   EXAMPLE
+
+   BUGS
+
+   SEE ALSO
+
+
+toccata.library/T_Stop                                     toccata.library/T_Stop
+
+   NAME
+        T_Stop - stop capture or playback
+
+   SYNOPSIS
+        T_Stop(Flags)
+
+        void T_Stop(ULONG);
+
+   FUNCTION
+        Stop capture or playback. It is save to call T_Stop()
+        even if capture or playback is not running.
+
+   INPUTS
+        Flags -
+           TSF_DONTSAVECACHE - If this flag is set, capture and saving of cached 
+                         data is stopped immediately. If TSF_NOCACHE is clear, 
+                         capture is stopped and all cached data will be stored 
+                         (to disk) before T_Stop() returns.
+   RESULT
+
+   NOTE
+        This call is guaranteed to preserve all registers.
+
+   EXAMPLE
+
+   BUGS
+
+   SEE ALSO
+
+
+toccata.library/T_StopLevel                          toccata.library/T_StopLevel
+
+   NAME
+        T_StopLevel - stop level indicator
+
+   SYNOPSIS
+        T_StopLevel()
+
+        void T_StopLevel(void);
+
+   FUNCTION
+        Stop the level indicator. It is save to call T_StopLevel()
+        even if it is not running.
+
+   INPUTS
+
+   RESULT
+
+   NOTE
+        This call is guaranteed to preserve all registers.
+
+   EXAMPLE
+
+   BUGS
+
+   SEE ALSO
+
+
+toccata.library/T_FindFrequency               toccata.library/T_FindFrequency
+
+   NAME
+        T_FindFrequency - find the nearest possible frequency
+
+   SYNOPSIS
+        ExactFrequency = T_FindFrequency(Frequency)
+        D0                               D0
+
+        ULONG T_FindFrequency(ULONG);
+
+   FUNCTION
+        Find the nearest possible sample frequency.
+
+   INPUTS
+        Frequency - Any frequency.
+
+   RESULT
+        ExactFrequency - A frequency nearest the provided frequency, which
+                         Toccata can handle.
+
+   NOTE
+        This call is guaranteed to preserve all registers except D0.
+
+   EXAMPLE
+        T_FindFrequency(44000) would return 44100.
+
+   BUGS
+
+   SEE ALSO
+        T_FindFrequency()
+
+
+toccata.library/T_NextFrequency                toccata.library/T_NextFrequency
+
+   NAME
+        T_NextFrequency - Get the next available frequency.
+
+   SYNOPSIS
+        NextFrequency = T_NextFrequency(Frequency)
+        D0                              D0
+
+        ULONG T_NextFrequency(ULONG);
+
+   FUNCTION
+        Get the exact value of the next available frequency. Using this
+        function you may get a list of all available frequencies. (see example)
+
+   INPUTS
+        Frequency - Any frequency or NULL to get the first frequency
+                    in the list.
+
+   RESULT
+        NextFrequency - The next frequency in the list or NULL if there are no
+                        more frequencies in the list.
+
+   NOTE
+        This call is guaranteed to preserve all registers except D0.
+
+   EXAMPLE
+        Go through the list of all available Frequencys:
+
+               moveq     #0,d0              ;set A0 to NULL
+        Loop:  CALLRET   NextFrequency      ;get the first/next frequency
+                                            ;do anything with it
+               tst.l     d0                 ;reached the end?
+               bne       Loop               ;no, not yet
+
+   BUGS
+
+   SEE ALSO
+        T_FindFrequency()
+
+
+toccata.library/T_SetPart                   toccata.library/T_SetPart
+
+   NAME
+        T_SetPart - Control parts of the hardware.
+
+   SYNOPSIS
+        T_SetPart(Tags)
+                  A0
+
+        void T_SetPart(struct TagItem *);
+
+   FUNCTION
+        Using this function you have shared access to all important hardware
+        registers of the Toccata board.
+
+   INPUTS
+        Tags - A tag list containing any number of PAT_xxx tags.
+
+               PAT_MixLineLeft  - left line mix volume control
+               PAT_MixLineRight - right line mix volume control
+               PAT_MixAux1Left  - left Aux1 mix volume control
+               PAT_MixAux1Right - right Aux1 mix volume control
+               PAT_MixAux2Left  - left Aux2 mix volume control
+               PAT_MixAux2Right - right Aux2 mix volume control
+                         (BYTE) Default: Muted
+                         Volume control for analog mixing. A level of -24 mutes
+                         this channel. Levels from -23 .. +8 control the volume.
+                         Each step is 1.5 dB, (-23 = -34.5dB, 0 = 0dB, 8 = +12dB)
+                         These values may be set anytime.
+               PAT_InputVolumeLeft  - left input gain
+               PAT_InputVolumeRight - right input gain
+                         (BYTE) Default: 0 = 0dB
+                         Controls the input gain. Valid values range from 0 to 15,
+                         where 0 = 0dB and 15 = +22.5dB.
+                         These values may be set anytime.
+               PAT_OutputVolumeLeft  - left output attenuate
+               PAT_OutputVolumeRight - right output attenuate
+                         (BYTE) Default: Muted
+                         Controls the output attenuation. Valid values range
+                         from 0 to -64 where 0 = 0dB, -63 = -94.5dB
+                         and -64 mutes the output.
+                         These values may be set anytime.
+               PAT_LoopbackVolume - loopback attenuate
+                         (BYTE) Default: Muted
+                         Controls the loopback attenuation. Valid values range
+                         from 0 to -64 where 0 = 0dB, -63 = -94.5dB
+                         and -64 mutes the output.
+                         This value may be set anytime.
+               PAT_Input - (ULONG) input select (one of MINPUT_xxx)
+               PAT_MicGain - (BOOL) activate the +20dB microphone gain
+               PAT_Mode - (ULONG) Set the default capture/playback mode
+               PAT_Frequency - (ULONG) Set the default capture/playback frequency
+
+   RESULT
+
+   NOTE
+        This call is guaranteed to preserve all registers.
+
+   EXAMPLE
+        Set the output volume to -6dB:
+
+               pea       TAG_DONE
+               pea       -4
+               pea       PAT_OutputVolumeLeft
+               pea       -4
+               pea       PAT_OutputVolumeRight
+               movea.l   a7,a0
+               CALLMA    SetPart
+               lea       5*4(a7),a7
+
+   BUGS
+
+   SEE ALSO
+        T_GetPart()
+
+
+toccata.library/T_GetPart                   toccata.library/T_GetPart
+
+   NAME
+        T_GetPart - Control parts of the hardware.
+
+   SYNOPSIS
+        T_GetPart(Tags)
+                  A0
+
+        void T_GetPart(struct TagItem *);
+
+   FUNCTION
+        Retrieve the value of the specified part, according to the
+        values chosen in the tag list.  For each entry in the tag list,
+        ti_Tag identifies the part, and ti_Data is a pointer to
+        the long variable where you wish the sign extended result to 
+        be stored.
+
+   INPUTS
+        Tags - A tag list containing any number of PAT_xxx tags.
+
+               PAT_MixLineLeft       - left line mix volume control
+               PAT_MixLineRight      - right line mix volume control
+               PAT_MixAux1Left       - left Aux1 mix volume control
+               PAT_MixAux1Right      - right Aux1 mix volume control
+               PAT_MixAux2Left       - left Aux2 mix volume control
+               PAT_MixAux2Right      - right Aux2 mix volume control
+               PAT_InputVolumeLeft   - left input gain
+               PAT_InputVolumeRight  - right input gain
+               PAT_OutputVolumeLeft  - left output attenuate
+               PAT_OutputVolumeRight - right output attenuate
+               PAT_LoopbackVolume    - loopback attenuate
+               PAT_Input             - selected input
+               PAT_MicGain           - microphone gain active
+               PAT_Mode              - the default capture/playback mode
+               PAT_Frequency         - the default capture/playback frequency
+
+   RESULT
+
+   NOTE
+        This call is guaranteed to preserve all registers.
+
+   EXAMPLE
+        Get the current output volume:
+
+               pea       TAG_DONE
+               pea       OutVolLeft
+               pea       PAT_OutputVolumeLeft
+               pea       OutVolRight
+               pea       PAT_OutputVolumeRight
+               movea.l   a7,a0
+               CALLMA    GetPart
+               lea       5*4(a7),a7
+
+   BUGS
+
+   SEE ALSO
+        T_SetPart()
+

@@ -1,0 +1,11 @@
+	section code
+
+	XDEF	_Int_IEWorkPageServer
+	XREF	_Int_IEWorkPageHandler
+		
+_Int_IEWorkPageServer:
+	movem.l	a0/a1,-(a7)
+	jsr		_Int_IEWorkPageHandler
+	addq.l	#8,a7
+	rts
+	END

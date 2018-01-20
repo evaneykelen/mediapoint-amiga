@@ -1,0 +1,28 @@
+CC = sc
+
+CFLAGS = DEFINE=TINY CODE=FAR DATA=FAR STRMERGE GST=nb:all.sym NMINC NOSTKCHK IDIR=nb: STREQ NOICONS DEBUG=LINE
+LFLAGS = NODEBUG
+
+XAPPNAME = Transitions
+
+APP1 = workpage
+
+APP10 = $(APP1).o lib:/source/_main.o gp:general.o effects.o workpageasm.o
+
+.SUFFIXES:	.o	.c	.h
+
+all: $(XAPPNAME)
+
+$(XAPPNAME): $(APP10) 
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib lib:amiga.lib lib:debug.lib
+TO $(XAPPNAME) $(LFLAGS)
+MAP $(XAPPNAME).map h
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $*.a

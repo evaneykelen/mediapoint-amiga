@@ -1,0 +1,800 @@
+SAS AMIGA 680x0OBJ Module Disassembler V6.01
+Copyright © 1992 SAS Institute, Inc.
+
+
+Amiga Object File Loader V1.00
+68000 Instruction Set
+
+EXTERNAL DEFINITIONS
+
+_WP_InitFontList 0000-00    _WP_FreeFontList 006C-00    
+_WP_OpenTypeFace 00BA-00    _WP_AddFontToList 01AE-00    _WP_ParseText 020E-00
+_WP_FetchString 0514-00    _WP_FetchInteger 054E-00
+
+SECTION 00 "text" 000005A0 BYTES
+;   1: #include <exec/exec.h>
+;   2: #include <exec/types.h>
+;   3: #include <exec/lists.h>
+;   4: #include <exec/nodes.h>
+;   5: #include <exec/memory.h>
+;   6: #include <graphics/gfx.h>
+;   7: #include <graphics/gfxmacros.h>
+;   8: #include <graphics/rastport.h>
+;   9: #include <libraries/diskfont.h>
+;  10: #include <string.h>
+;  11: #include <stdio.h>
+;  12: #include <proto/exec.h>
+;  13: #include <proto/diskfont.h>
+;  14: #include <proto/graphics.h>
+;  15: 
+;  16: #include "nb:capsdefines.h"
+;  17: #include "nb:newdefines.h"
+;  18: 
+;  19: #include "pascal:include/toolslib.h"
+;  20: #include "pascal:include/txed.h"
+;  21: #include "pascal:include/txedstyles.h"
+;  22: #include "pascal:include/txedtools.h"
+;  23: #include "pascal:include/colsearch.h"
+;  24: #include "pascal:include/scarem.h"
+;  25: #include "nb:parser.h"
+;  26: #include "nb:capsstructs.h"
+;  27: 
+;  28: /**** defines ****/
+;  29: 
+;  30: #define RAWBUFSIZE 2000
+;  31: 
+;  32: /**** function declarations ****/
+;  33: 
+;  34: struct List *WP_InitFontList(void);
+;  35: void WP_FreeFontList(struct List *list);
+;  36: struct TextFont *WP_OpenTypeFace(struct List *list, STRPTR name, int size);
+;  37: BOOL WP_AddFontToList(STRPTR fontName, int fontSize, struct TextFont *ptr,
+;  38: 											struct List *list);
+;  39: BOOL WP_ParseText(struct List *list, UBYTE *buffer, struct EditWindow *ew);
+;  40: void WP_FetchString(STRPTR buffer, STRPTR dest, int max, int *count);
+;  41: void WP_FetchInteger(STRPTR buffer, int *dest, int *count);
+;  42: 
+;  43: /******** WP_InitFontList() ********/
+;  44: /* 
+;  45:  * Allocates memory for list header, returns pointer to it or NULL on error.
+;  46:  *
+;  47:  */
+;  48: 
+;  49: struct List *WP_InitFontList(void)
+;  50: {
+       | 0000  48E7 0016                      MOVEM.L     A3/A5-A6,-(A7)
+;  51: struct List *list;
+;  52: struct TextFont *textFont;
+;  53: 
+;  54: 	list = (struct List *)AllocMem(sizeof(struct List),MEMF_CLEAR);
+       | 0004  700E                           MOVEQ       #0E,D0
+       | 0006  7201                           MOVEQ       #01,D1
+       | 0008  4841                           SWAP        D1
+       | 000A  2C78 0004                      MOVEA.L     0004,A6
+       | 000E  4EAE FF3A                      JSR         FF3A(A6)
+       | 0012  2A40                           MOVEA.L     D0,A5
+;  55: 	if ( list!=NULL )
+       | 0014  200D                           MOVE.L      A5,D0
+       | 0016  6736                           BEQ.B       004E
+;  56: 	{
+;  57: 		NewList(list);
+       | 0018  2F0D                           MOVE.L      A5,-(A7)
+       | 001A  4EBA  0000-XX.1                JSR         _NewList(PC)
+;  58: 		/**** by default add topaz to the list for fall back purposes ****/
+;  59: 		textFont = WP_OpenTypeFace(list, "topaz.font", 8);
+       | 001E  4878 0008                      PEA         0008
+       | 0022  487A 0032                      PEA         0032(PC)
+       | 0026  2F0D                           MOVE.L      A5,-(A7)
+       | 0028  4EB9  0000 00BA-00             JSR         00.000000BA
+       | 002E  4FEF 0010                      LEA         0010(A7),A7
+       | 0032  2640                           MOVEA.L     D0,A3
+       | 0034  4A80                           TST.L       D0
+;  60: 		if ( textFont!=NULL )
+       | 0036  6716                           BEQ.B       004E
+;  61: 			WP_AddFontToList("topaz.font", 8, textFont, list);
+       | 0038  2F0D                           MOVE.L      A5,-(A7)
+       | 003A  2F0B                           MOVE.L      A3,-(A7)
+       | 003C  4878 0008                      PEA         0008
+       | 0040  487A 0014                      PEA         0014(PC)
+       | 0044  4EB9  0000 01AE-00             JSR         00.000001AE
+       | 004A  4FEF 0010                      LEA         0010(A7),A7
+;  62: 	}
+;  63: 
+;  64: 	return(list);
+       | 004E  200D                           MOVE.L      A5,D0
+;  65: }
+       | 0050  4CDF 6800                      MOVEM.L     (A7)+,A3/A5-A6
+       | 0054  4E75                           RTS
+       | 0056  746F                           MOVEQ       #6F,D2
+       | 0058  7061                           MOVEQ       #61,D0
+       | 005A  7A2E                           MOVEQ       #2E,D5
+       | 005C  666F                           BNE.B       00CD
+       | 005E  6E74                           BGT.B       00D4
+       | 0060  0000 2E66                      ORI.B       #66,D0
+       | 0064  6F6E                           BLE.B       00D4
+       | 0066  7400                           MOVEQ       #00,D2
+       | 0068  2564 0000                      MOVE.L      -(A4),0000(A2)
+;  66: 
+;  67: /******** WP_FreeFontList() ********/
+;  68: /*
+;  69:  * Frees all fonts, list nodes and list header
+;  70:  *
+;  71:  */
+;  72: 
+;  73: void WP_FreeFontList(struct List *list)
+;  74: {
+       | 006C  594F                           SUBQ.W      #4,A7
+       | 006E  48E7 0016                      MOVEM.L     A3/A5-A6,-(A7)
+       | 0072  2A6F 0014                      MOVEA.L     0014(A7),A5
+;  75: struct FontListRecord *work_FLR, *next_FLR;
+;  76: 
+;  77: 	if ( list==NULL )	// you don't fool me...
+       | 0076  200D                           MOVE.L      A5,D0
+       | 0078  6738                           BEQ.B       00B2
+;  78: 		return;
+;  79: 
+;  80: 	work_FLR = (struct FontListRecord *)(list->lh_Head);	// first node
+       | 007A  2655                           MOVEA.L     (A5),A3
+;  81: 	while( next_FLR = (struct FontListRecord *)(work_FLR->node.ln_Succ) )
+       | 007C  2053                           MOVEA.L     (A3),A0
+       | 007E  2F48 000C                      MOVE.L      A0,000C(A7)
+       | 0082  6722                           BEQ.B       00A6
+;  82: 	{
+;  83: 		if ( work_FLR->ptr != NULL )
+       | 0084  202B 0044                      MOVE.L      0044(A3),D0
+       | 0088  670A                           BEQ.B       0094
+;  84: 			CloseFont(work_FLR->ptr);
+       | 008A  2240                           MOVEA.L     D0,A1
+       | 008C  2C6C  0000-XX.2                MOVEA.L     _GfxBase(A4),A6
+       | 0090  4EAE FFB2                      JSR         FFB2(A6)
+;  85: 		FreeMem(work_FLR, sizeof(struct FontListRecord));
+       | 0094  224B                           MOVEA.L     A3,A1
+       | 0096  7048                           MOVEQ       #48,D0
+       | 0098  2C78 0004                      MOVEA.L     0004,A6
+       | 009C  4EAE FF2E                      JSR         FF2E(A6)
+;  86: 		work_FLR = next_FLR;
+       | 00A0  266F 000C                      MOVEA.L     000C(A7),A3
+;  87: 	}
+       | 00A4  60D6                           BRA.B       007C
+;  88: 
+;  89: 	FreeMem(list, sizeof(struct List));
+       | 00A6  224D                           MOVEA.L     A5,A1
+       | 00A8  700E                           MOVEQ       #0E,D0
+       | 00AA  2C78 0004                      MOVEA.L     0004,A6
+       | 00AE  4EAE FF2E                      JSR         FF2E(A6)
+;  90: }
+       | 00B2  4CDF 6800                      MOVEM.L     (A7)+,A3/A5-A6
+       | 00B6  584F                           ADDQ.W      #4,A7
+       | 00B8  4E75                           RTS
+;  91: 
+;  92: /******** WP_OpenTypeFace() ********/
+;  93: /*
+;  94:  * 'name' is e.g. MediaLink.font.
+;  95:  *
+;  96:  */
+;  97: 
+;  98: struct TextFont *WP_OpenTypeFace(struct List *list, STRPTR name, int size)
+;  99: {
+       | 00BA  9EFC 0044                      SUBA.W      #0044,A7
+       | 00BE  48E7 0136                      MOVEM.L     D7/A2-A3/A5-A6,-(A7)
+       | 00C2  2E2F 0064                      MOVE.L      0064(A7),D7
+       | 00C6  266F 0060                      MOVEA.L     0060(A7),A3
+       | 00CA  2A6F 005C                      MOVEA.L     005C(A7),A5
+; 100: struct TextAttr textAttr;
+; 101: struct FontListRecord *FLR;
+; 102: TEXT fname[50];
+; 103: struct TextFont *textFont;
+; 104: 
+; 105: 	stccpy(fname, name, 50);
+       | 00CE  4878 0032                      PEA         0032
+       | 00D2  2F0B                           MOVE.L      A3,-(A7)
+       | 00D4  486F 001E                      PEA         001E(A7)
+       | 00D8  4EBA  0000-XX.1                JSR         _stccpy(PC)
+; 106: 	strlwr(fname);	// convert string to lowercase
+       | 00DC  486F 0022                      PEA         0022(A7)
+       | 00E0  4EBA  0000-XX.1                JSR         ___strlwr(PC)
+       | 00E4  4FEF 0010                      LEA         0010(A7),A7
+; 107: 
+; 108: 	/**** first try to find font in our font list ****/
+; 109: 
+; 110: 	for(FLR=(struct FontListRecord *)list->lh_Head;
+       | 00E8  2F55 004C                      MOVE.L      (A5),004C(A7)
+; 111: 			FLR->node.ln_Succ;
+       | 00EC  206F 004C                      MOVEA.L     004C(A7),A0
+       | 00F0  4A90                           TST.L       (A0)
+       | 00F2  6730                           BEQ.B       0124
+; 112: 			FLR=(struct FontListRecord *)FLR->node.ln_Succ)
+; 113: 	{
+; 114: 		if ( !strcmp(fname, FLR->fontName) && FLR->fontSize==size ) // found
+       | 00F4  43E8 000E                      LEA         000E(A0),A1
+       | 00F8  45EF 0016                      LEA         0016(A7),A2
+       | 00FC  101A                           MOVE.B      (A2)+,D0
+       | 00FE  B019                           CMP.B       (A1)+,D0
+       | 0100  6618                           BNE.B       011A
+       | 0102  4A00                           TST.B       D0
+       | 0104  66F6                           BNE.B       00FC
+       | 0106  6612                           BNE.B       011A
+       | 0108  7000                           MOVEQ       #00,D0
+       | 010A  3028 0042                      MOVE.W      0042(A0),D0
+       | 010E  B087                           CMP.L       D7,D0
+       | 0110  6608                           BNE.B       011A
+; 115: 			return(FLR->ptr);
+       | 0112  2028 0044                      MOVE.L      0044(A0),D0
+       | 0116  6000 008C                      BRA.W       01A4
+; 116: 	}
+       | 011A  206F 004C                      MOVEA.L     004C(A7),A0
+       | 011E  2F50 004C                      MOVE.L      (A0),004C(A7)
+       | 0122  60C8                           BRA.B       00EC
+; 117: 
+; 118: 	/**** not in list, open new font ****/
+; 119: 
+; 120: 	textAttr.ta_Name	= (UBYTE *)fname;
+       | 0124  41EF 0016                      LEA         0016(A7),A0
+       | 0128  2F48 0050                      MOVE.L      A0,0050(A7)
+; 121: 	textAttr.ta_YSize	= size;
+       | 012C  2007                           MOVE.L      D7,D0
+       | 012E  3F40 0054                      MOVE.W      D0,0054(A7)
+; 122: 	textAttr.ta_Style	= FS_NORMAL;
+       | 0132  422F 0056                      CLR.B       0056(A7)
+; 123: 	textAttr.ta_Flags	= NULL;
+       | 0136  422F 0057                      CLR.B       0057(A7)
+; 124: 
+; 125: 	if ( strcmp(fname, "topaz.font")==0 && (size==8 || size==9) )
+       | 013A  43FA FF1A                      LEA         FF1A(PC),A1
+       | 013E  1218                           MOVE.B      (A0)+,D1
+       | 0140  B219                           CMP.B       (A1)+,D1
+       | 0142  661E                           BNE.B       0162
+       | 0144  4A01                           TST.B       D1
+       | 0146  66F6                           BNE.B       013E
+       | 0148  6618                           BNE.B       0162
+       | 014A  7208                           MOVEQ       #08,D1
+       | 014C  BE81                           CMP.L       D1,D7
+       | 014E  6706                           BEQ.B       0156
+       | 0150  7209                           MOVEQ       #09,D1
+       | 0152  BE81                           CMP.L       D1,D7
+       | 0154  660C                           BNE.B       0162
+; 126: 		textAttr.ta_Flags	|= FPF_ROMFONT;
+       | 0156  122F 0057                      MOVE.B      0057(A7),D1
+       | 015A  0001 0001                      ORI.B       #01,D1
+       | 015E  1F41 0057                      MOVE.B      D1,0057(A7)
+; 127: 
+; 128: 	textFont = (struct TextFont *)OpenDiskFont(&textAttr);
+       | 0162  41EF 0050                      LEA         0050(A7),A0
+       | 0166  2C6C  0000-XX.2                MOVEA.L     _DiskfontBase(A4),A6
+       | 016A  4EAE FFE2                      JSR         FFE2(A6)
+; 129: 	if (textFont==NULL)
+       | 016E  2F40 0048                      MOVE.L      D0,0048(A7)
+       | 0172  660E                           BNE.B       0182
+; 130: 	{
+; 131: 		FLR=(struct FontListRecord *)list->lh_Head;	// first list entry contains topaz
+       | 0174  2F55 004C                      MOVE.L      (A5),004C(A7)
+; 132: 		return( FLR->ptr );
+       | 0178  206F 004C                      MOVEA.L     004C(A7),A0
+       | 017C  2028 0044                      MOVE.L      0044(A0),D0
+       | 0180  6022                           BRA.B       01A4
+; 133: 	}
+; 134: 
+; 135: 	/**** add font to font list ****/
+; 136: 
+; 137: 	if ( !WP_AddFontToList(fname, size, textFont, list) )
+       | 0182  2F0D                           MOVE.L      A5,-(A7)
+       | 0184  2F2F 004C                      MOVE.L      004C(A7),-(A7)
+       | 0188  2F07                           MOVE.L      D7,-(A7)
+       | 018A  486F 0022                      PEA         0022(A7)
+       | 018E  4EB9  0000 01AE-00             JSR         00.000001AE
+       | 0194  4FEF 0010                      LEA         0010(A7),A7
+       | 0198  4A40                           TST.W       D0
+       | 019A  6604                           BNE.B       01A0
+; 138: 		return(NULL);
+       | 019C  7000                           MOVEQ       #00,D0
+       | 019E  6004                           BRA.B       01A4
+; 139: 
+; 140: 	return(textFont);
+       | 01A0  202F 0048                      MOVE.L      0048(A7),D0
+; 141: }
+       | 01A4  4CDF 6C80                      MOVEM.L     (A7)+,D7/A2-A3/A5-A6
+       | 01A8  DEFC 0044                      ADDA.W      #0044,A7
+       | 01AC  4E75                           RTS
+; 142: 
+; 143: /******** WP_AddFontToList() ********/
+; 144: /*
+; 145:  * Allocate node for font list and copy font into in it
+; 146:  *
+; 147:  */
+; 148: 
+; 149: BOOL WP_AddFontToList(STRPTR fontName, int fontSize, struct TextFont *ptr,
+; 150: 											struct List *list)
+; 151: {
+       | 01AE  594F                           SUBQ.W      #4,A7
+       | 01B0  48E7 0116                      MOVEM.L     D7/A3/A5-A6,-(A7)
+       | 01B4  2E2F 001C                      MOVE.L      001C(A7),D7
+       | 01B8  266F 0020                      MOVEA.L     0020(A7),A3
+       | 01BC  2A6F 0018                      MOVEA.L     0018(A7),A5
+; 152: struct FontListRecord *FLR;
+; 153: 
+; 154: 	FLR = (struct FontListRecord *)AllocMem(sizeof(struct FontListRecord),MEMF_CLEAR);
+       | 01C0  7048                           MOVEQ       #48,D0
+       | 01C2  7201                           MOVEQ       #01,D1
+       | 01C4  4841                           SWAP        D1
+       | 01C6  2C78 0004                      MOVEA.L     0004,A6
+       | 01CA  4EAE FF3A                      JSR         FF3A(A6)
+; 155: 	if (FLR==NULL)
+       | 01CE  2F40 0010                      MOVE.L      D0,0010(A7)
+       | 01D2  4A80                           TST.L       D0
+       | 01D4  6730                           BEQ.B       0206
+; 156: 		return(FALSE);
+; 157: 
+; 158: 	stccpy(FLR->fontName, fontName, 50);
+       | 01D6  2040                           MOVEA.L     D0,A0
+       | 01D8  D0FC 000E                      ADDA.W      #000E,A0
+       | 01DC  4878 0032                      PEA         0032
+       | 01E0  2F0D                           MOVE.L      A5,-(A7)
+       | 01E2  2F08                           MOVE.L      A0,-(A7)
+       | 01E4  4EBA  0000-XX.1                JSR         _stccpy(PC)
+; 159: 	FLR->fontSize = fontSize;
+       | 01E8  2007                           MOVE.L      D7,D0
+       | 01EA  206F 001C                      MOVEA.L     001C(A7),A0
+       | 01EE  3140 0042                      MOVE.W      D0,0042(A0)
+; 160: 	FLR->ptr = ptr;
+       | 01F2  214B 0044                      MOVE.L      A3,0044(A0)
+; 161: 	AddTail(list, (struct Node *)FLR);
+       | 01F6  2248                           MOVEA.L     A0,A1
+       | 01F8  206F 0030                      MOVEA.L     0030(A7),A0
+       | 01FC  4EAE FF0A                      JSR         FF0A(A6)
+; 162: 
+; 163: 	return(TRUE);
+       | 0200  4FEF 000C                      LEA         000C(A7),A7
+       | 0204  7001                           MOVEQ       #01,D0
+; 164: }
+       | 0206  4CDF 6880                      MOVEM.L     (A7)+,D7/A3/A5-A6
+       | 020A  584F                           ADDQ.W      #4,A7
+       | 020C  4E75                           RTS
+; 165: 
+; 166: /******** WP_ParseText() ********/
+; 167: 
+; 168: BOOL WP_ParseText(struct List *list, UBYTE *buffer, struct EditWindow *ew)
+; 169: {
+       | 020E  9EFC 004C                      SUBA.W      #004C,A7
+       | 0212  48E7 2734                      MOVEM.L     D2/D5-D7/A2-A3/A5,-(A7)
+       | 0216  266F 0070                      MOVEA.L     0070(A7),A3
+       | 021A  2A6F 006C                      MOVEA.L     006C(A7),A5
+; 170: struct FontListRecord *FLR;
+; 171: int i, fontsize, add, numChars, n;
+; 172: LONG actualLen;
+; 173: TEXT fontname[50];
+; 174: struct TextFont *charFont;
+; 175: UWORD	charStyle;
+; 176: UBYTE	charColor;
+; 177: UBYTE underlineColor;
+; 178: 
+; 179: 	/**** set default values ****/
+; 180: 
+; 181: 	FLR=(struct FontListRecord *)list->lh_Head;	// first list entry contains topaz
+       | 021E  2F55 0064                      MOVE.L      (A5),0064(A7)
+; 182: 
+; 183: 	charFont	= FLR->ptr;	// topaz
+       | 0222  206F 0064                      MOVEA.L     0064(A7),A0
+       | 0226  2F68 0044 0054                 MOVE.L      0044(A0),0054(A7)
+; 184: 	charStyle = 0;
+       | 022C  426F 0020                      CLR.W       0020(A7)
+; 185: 	charColor = 2;
+       | 0230  7002                           MOVEQ       #02,D0
+; 186: 	underlineColor = 2;
+; 187: 
+; 188: 	/**** parse the raw buffer and create the text buffer ****/
+; 189: 
+; 190: 	numChars=0;	// number of characters actually stored in text buffer
+       | 0232  7C00                           MOVEQ       #00,D6
+; 191: 	actualLen = strlen(buffer);
+       | 0234  204B                           MOVEA.L     A3,A0
+       | 0236  4A18                           TST.B       (A0)+
+       | 0238  66FC                           BNE.B       0236
+       | 023A  5388                           SUBQ.L      #1,A0
+       | 023C  91CB                           SUBA.L      A3,A0
+       | 023E  2A08                           MOVE.L      A0,D5
+; 192: 
+; 193: 	for(i=0; i<actualLen; i++)
+       | 0240  42AF 0060                      CLR.L       0060(A7)
+       | 0244  1F40 001E                      MOVE.B      D0,001E(A7)
+       | 0248  1F40 001F                      MOVE.B      D0,001F(A7)
+       | 024C  202F 0060                      MOVE.L      0060(A7),D0
+       | 0250  B085                           CMP.L       D5,D0
+       | 0252  6C00 029E                      BGE.W       04F2
+; 194: 	{
+; 195: 		if ( buffer[i]=='^' )						// start of command sequence
+       | 0256  725E                           MOVEQ       #5E,D1
+       | 0258  B233 0800                      CMP.B       00(A3,D0.L),D1
+       | 025C  6600 01B2                      BNE.W       0410
+; 196: 		{
+; 197: 			i++;
+       | 0260  52AF 0060                      ADDQ.L      #1,0060(A7)
+; 198: 			if ( buffer[i]=='f' )					// font name follows
+       | 0264  206F 0060                      MOVEA.L     0060(A7),A0
+       | 0268  7066                           MOVEQ       #66,D0
+       | 026A  2208                           MOVE.L      A0,D1
+       | 026C  B033 1800                      CMP.B       00(A3,D1.L),D0
+       | 0270  6632                           BNE.B       02A4
+; 199: 			{
+; 200: 				i++;
+       | 0272  52AF 0060                      ADDQ.L      #1,0060(A7)
+; 201: 				WP_FetchString(&buffer[i], fontname, 50, &i);
+       | 0276  204B                           MOVEA.L     A3,A0
+       | 0278  D1EF 0060                      ADDA.L      0060(A7),A0
+       | 027C  486F 0060                      PEA         0060(A7)
+       | 0280  4878 0032                      PEA         0032
+       | 0284  486F 002A                      PEA         002A(A7)
+       | 0288  2F08                           MOVE.L      A0,-(A7)
+       | 028A  4EB9  0000 0514-00             JSR         00.00000514
+; 202: 				strcat(fontname, ".font");
+       | 0290  487A FDD0                      PEA         FDD0(PC)
+       | 0294  486F 0036                      PEA         0036(A7)
+       | 0298  4EBA  0000-XX.1                JSR         _strcat(PC)
+       | 029C  4FEF 0018                      LEA         0018(A7),A7
+       | 02A0  6000 0248                      BRA.W       04EA
+; 203: 			}
+; 204: 			else if ( buffer[i]=='s' )		// size follows
+       | 02A4  7073                           MOVEQ       #73,D0
+       | 02A6  B033 1800                      CMP.B       00(A3,D1.L),D0
+       | 02AA  6642                           BNE.B       02EE
+; 205: 			{
+; 206: 				i++;
+       | 02AC  52AF 0060                      ADDQ.L      #1,0060(A7)
+; 207: 				WP_FetchInteger(&buffer[i], &fontsize, &i);
+       | 02B0  204B                           MOVEA.L     A3,A0
+       | 02B2  D1EF 0060                      ADDA.L      0060(A7),A0
+       | 02B6  486F 0060                      PEA         0060(A7)
+       | 02BA  486F 0060                      PEA         0060(A7)
+       | 02BE  2F08                           MOVE.L      A0,-(A7)
+       | 02C0  4EB9  0000 054E-00             JSR         00.0000054E
+; 208: 				charFont = WP_OpenTypeFace(list, fontname, fontsize);
+       | 02C6  2EAF 0068                      MOVE.L      0068(A7),(A7)
+       | 02CA  486F 002E                      PEA         002E(A7)
+       | 02CE  2F0D                           MOVE.L      A5,-(A7)
+       | 02D0  6100 FDE8                      BSR.W       00BA
+       | 02D4  4FEF 0014                      LEA         0014(A7),A7
+; 209: 				if ( charFont == NULL )
+       | 02D8  2F40 0054                      MOVE.L      D0,0054(A7)
+       | 02DC  6600 020C                      BNE.W       04EA
+; 210: 					charFont = FLR->ptr;
+       | 02E0  206F 0064                      MOVEA.L     0064(A7),A0
+       | 02E4  2F68 0044 0054                 MOVE.L      0044(A0),0054(A7)
+       | 02EA  6000 01FE                      BRA.W       04EA
+; 211: 			}
+; 212: 			else if ( buffer[i]=='c' )		// color follows
+       | 02EE  7063                           MOVEQ       #63,D0
+       | 02F0  B033 1800                      CMP.B       00(A3,D1.L),D0
+       | 02F4  662A                           BNE.B       0320
+; 213: 			{
+; 214: 				i++;
+       | 02F6  52AF 0060                      ADDQ.L      #1,0060(A7)
+; 215: 				WP_FetchInteger(&buffer[i], &n, &i);
+       | 02FA  204B                           MOVEA.L     A3,A0
+       | 02FC  D1EF 0060                      ADDA.L      0060(A7),A0
+       | 0300  486F 0060                      PEA         0060(A7)
+       | 0304  486F 005C                      PEA         005C(A7)
+       | 0308  2F08                           MOVE.L      A0,-(A7)
+       | 030A  4EB9  0000 054E-00             JSR         00.0000054E
+       | 0310  4FEF 000C                      LEA         000C(A7),A7
+; 216: 				charColor = n;
+       | 0314  202F 0058                      MOVE.L      0058(A7),D0
+       | 0318  1F40 001F                      MOVE.B      D0,001F(A7)
+       | 031C  6000 01CC                      BRA.W       04EA
+; 217: 			}
+; 218: 			else if ( buffer[i]=='l' )		// f from lf follows
+       | 0320  706C                           MOVEQ       #6C,D0
+       | 0322  B033 1800                      CMP.B       00(A3,D1.L),D0
+       | 0326  6672                           BNE.B       039A
+; 219: 			{
+; 220: 				ew->TEI->text[numChars].charFont				= charFont;
+       | 0328  246F 0074                      MOVEA.L     0074(A7),A2
+       | 032C  226A 0012                      MOVEA.L     0012(A2),A1
+       | 0330  2006                           MOVE.L      D6,D0
+       | 0332  E780                           ASL.L       #3,D0
+       | 0334  2469 0020                      MOVEA.L     0020(A1),A2
+       | 0338  D5C0                           ADDA.L      D0,A2
+       | 033A  24AF 0054                      MOVE.L      0054(A7),(A2)
+; 221: 				ew->TEI->text[numChars].charStyle				= charStyle;
+       | 033E  226F 0074                      MOVEA.L     0074(A7),A1
+       | 0342  2069 0012                      MOVEA.L     0012(A1),A0
+       | 0346  2268 0020                      MOVEA.L     0020(A0),A1
+       | 034A  D3C0                           ADDA.L      D0,A1
+       | 034C  322F 0020                      MOVE.W      0020(A7),D1
+       | 0350  1341 0005                      MOVE.B      D1,0005(A1)
+; 222: 				ew->TEI->text[numChars].charColor				= charColor;
+       | 0354  226F 0074                      MOVEA.L     0074(A7),A1
+       | 0358  2069 0012                      MOVEA.L     0012(A1),A0
+       | 035C  2268 0020                      MOVEA.L     0020(A0),A1
+       | 0360  D3C0                           ADDA.L      D0,A1
+       | 0362  136F 001F 0006                 MOVE.B      001F(A7),0006(A1)
+; 223: 				ew->TEI->text[numChars].underlineColor	= underlineColor;
+       | 0368  226F 0074                      MOVEA.L     0074(A7),A1
+       | 036C  2069 0012                      MOVEA.L     0012(A1),A0
+       | 0370  2268 0020                      MOVEA.L     0020(A0),A1
+       | 0374  D3C0                           ADDA.L      D0,A1
+       | 0376  136F 001E 0004                 MOVE.B      001E(A7),0004(A1)
+; 224: 				ew->TEI->text[numChars].charCode				= 0x0a;
+       | 037C  226F 0074                      MOVEA.L     0074(A7),A1
+       | 0380  2069 0012                      MOVEA.L     0012(A1),A0
+       | 0384  2268 0020                      MOVEA.L     0020(A0),A1
+       | 0388  D3C0                           ADDA.L      D0,A1
+       | 038A  137C 000A 0007                 MOVE.B      #0A,0007(A1)
+; 225: 				numChars++;
+       | 0390  5286                           ADDQ.L      #1,D6
+; 226: 
+; 227: 				i=i+2;
+       | 0392  54AF 0060                      ADDQ.L      #2,0060(A7)
+       | 0396  6000 0152                      BRA.W       04EA
+; 228: 			}
+; 229: 			else if ( buffer[i]=='a' )		// attribute follows
+       | 039A  7061                           MOVEQ       #61,D0
+       | 039C  B033 1800                      CMP.B       00(A3,D1.L),D0
+       | 03A0  662A                           BNE.B       03CC
+; 230: 			{
+; 231: 				i++;
+       | 03A2  52AF 0060                      ADDQ.L      #1,0060(A7)
+; 232: 				WP_FetchInteger(&buffer[i], &n, &i);
+       | 03A6  204B                           MOVEA.L     A3,A0
+       | 03A8  D1EF 0060                      ADDA.L      0060(A7),A0
+       | 03AC  486F 0060                      PEA         0060(A7)
+       | 03B0  486F 005C                      PEA         005C(A7)
+       | 03B4  2F08                           MOVE.L      A0,-(A7)
+       | 03B6  4EB9  0000 054E-00             JSR         00.0000054E
+       | 03BC  4FEF 000C                      LEA         000C(A7),A7
+; 233: 				charStyle = n;
+       | 03C0  202F 0058                      MOVE.L      0058(A7),D0
+       | 03C4  3F40 0020                      MOVE.W      D0,0020(A7)
+       | 03C8  6000 0120                      BRA.W       04EA
+; 234: 			}
+; 235: 			else if ( buffer[i]=='u' )		// attribute follows
+       | 03CC  7075                           MOVEQ       #75,D0
+       | 03CE  B033 1800                      CMP.B       00(A3,D1.L),D0
+       | 03D2  662A                           BNE.B       03FE
+; 236: 			{
+; 237: 				i++;
+       | 03D4  52AF 0060                      ADDQ.L      #1,0060(A7)
+; 238: 				WP_FetchInteger(&buffer[i], &n, &i);
+       | 03D8  204B                           MOVEA.L     A3,A0
+       | 03DA  D1EF 0060                      ADDA.L      0060(A7),A0
+       | 03DE  486F 0060                      PEA         0060(A7)
+       | 03E2  486F 005C                      PEA         005C(A7)
+       | 03E6  2F08                           MOVE.L      A0,-(A7)
+       | 03E8  4EB9  0000 054E-00             JSR         00.0000054E
+       | 03EE  4FEF 000C                      LEA         000C(A7),A7
+; 239: 				underlineColor = n;
+       | 03F2  202F 0058                      MOVE.L      0058(A7),D0
+       | 03F6  1F40 001E                      MOVE.B      D0,001E(A7)
+       | 03FA  6000 00EE                      BRA.W       04EA
+; 240: 			}
+; 241: 			else if ( buffer[i]==0x5c )		// backslash, linefeed
+       | 03FE  705C                           MOVEQ       #5C,D0
+       | 0400  B033 1800                      CMP.B       00(A3,D1.L),D0
+       | 0404  6600 00E4                      BNE.W       04EA
+; 242: 				i++;
+       | 0408  52AF 0060                      ADDQ.L      #1,0060(A7)
+       | 040C  6000 00DC                      BRA.W       04EA
+; 243: 		}
+; 244: 		else
+; 245: 		{
+; 246: 			if (	(buffer[i]>=0x20 && buffer[i]!=127) ||
+       | 0410  1233 0800                      MOVE.B      00(A3,D0.L),D1
+       | 0414  7420                           MOVEQ       #20,D2
+       | 0416  B202                           CMP.B       D2,D1
+       | 0418  6506                           BCS.B       0420
+       | 041A  747F                           MOVEQ       #7F,D2
+       | 041C  B202                           CMP.B       D2,D1
+       | 041E  6622                           BNE.B       0442
+; 247: 						buffer[i]==0x0d || buffer[i]==0x08 ||
+       | 0420  720D                           MOVEQ       #0D,D1
+       | 0422  B233 0800                      CMP.B       00(A3,D0.L),D1
+       | 0426  671A                           BEQ.B       0442
+       | 0428  7408                           MOVEQ       #08,D2
+       | 042A  B433 0800                      CMP.B       00(A3,D0.L),D2
+       | 042E  6712                           BEQ.B       0442
+; 248: 						buffer[i]==0x0c || buffer[i]==0x0a )
+       | 0430  740C                           MOVEQ       #0C,D2
+       | 0432  B433 0800                      CMP.B       00(A3,D0.L),D2
+       | 0436  670A                           BEQ.B       0442
+       | 0438  740A                           MOVEQ       #0A,D2
+       | 043A  B433 0800                      CMP.B       00(A3,D0.L),D2
+       | 043E  6600 00AA                      BNE.W       04EA
+; 249: 			{
+; 250: 				add=0;
+       | 0442  7E00                           MOVEQ       #00,D7
+; 251: 				if( buffer[i]==0x0d )
+       | 0444  720D                           MOVEQ       #0D,D1
+       | 0446  B233 0800                      CMP.B       00(A3,D0.L),D1
+       | 044A  6614                           BNE.B       0460
+; 252: 				{
+; 253: 					if( buffer[ i + 1 ] != 0x0a )
+       | 044C  720A                           MOVEQ       #0A,D1
+       | 044E  B233 0801                      CMP.B       01(A3,D0.L),D1
+       | 0452  6706                           BEQ.B       045A
+; 254: 						buffer[i]=0x0a;
+       | 0454  1781 0800                      MOVE.B      D1,00(A3,D0.L)
+       | 0458  601C                           BRA.B       0476
+; 255: 					else
+; 256: 						i++;
+       | 045A  52AF 0060                      ADDQ.L      #1,0060(A7)
+       | 045E  6016                           BRA.B       0476
+; 257: 				}
+; 258: 				else if ( buffer[i]=='\\' && buffer[i+1]=='\"' )
+       | 0460  725C                           MOVEQ       #5C,D1
+       | 0462  B233 0800                      CMP.B       00(A3,D0.L),D1
+       | 0466  660E                           BNE.B       0476
+       | 0468  7222                           MOVEQ       #22,D1
+       | 046A  B233 0801                      CMP.B       01(A3,D0.L),D1
+       | 046E  6606                           BNE.B       0476
+; 259: 				{
+; 260: 					buffer[i]='\"';
+       | 0470  1781 0800                      MOVE.B      D1,00(A3,D0.L)
+; 261: 					add=1;
+       | 0474  7E01                           MOVEQ       #01,D7
+; 262: 				}
+; 263: 				ew->TEI->text[numChars].charFont				= charFont;
+       | 0476  226F 0074                      MOVEA.L     0074(A7),A1
+       | 047A  2069 0012                      MOVEA.L     0012(A1),A0
+       | 047E  2006                           MOVE.L      D6,D0
+       | 0480  E780                           ASL.L       #3,D0
+       | 0482  2268 0020                      MOVEA.L     0020(A0),A1
+       | 0486  D3C0                           ADDA.L      D0,A1
+       | 0488  22AF 0054                      MOVE.L      0054(A7),(A1)
+; 264: 				ew->TEI->text[numChars].charStyle				= charStyle;
+       | 048C  226F 0074                      MOVEA.L     0074(A7),A1
+       | 0490  2069 0012                      MOVEA.L     0012(A1),A0
+       | 0494  2268 0020                      MOVEA.L     0020(A0),A1
+       | 0498  D3C0                           ADDA.L      D0,A1
+       | 049A  322F 0020                      MOVE.W      0020(A7),D1
+       | 049E  1341 0005                      MOVE.B      D1,0005(A1)
+; 265: 				ew->TEI->text[numChars].charColor				= charColor;
+       | 04A2  226F 0074                      MOVEA.L     0074(A7),A1
+       | 04A6  2069 0012                      MOVEA.L     0012(A1),A0
+       | 04AA  2268 0020                      MOVEA.L     0020(A0),A1
+       | 04AE  D3C0                           ADDA.L      D0,A1
+       | 04B0  136F 001F 0006                 MOVE.B      001F(A7),0006(A1)
+; 266: 				ew->TEI->text[numChars].underlineColor	= underlineColor;
+       | 04B6  226F 0074                      MOVEA.L     0074(A7),A1
+       | 04BA  2069 0012                      MOVEA.L     0012(A1),A0
+       | 04BE  2268 0020                      MOVEA.L     0020(A0),A1
+       | 04C2  D3C0                           ADDA.L      D0,A1
+       | 04C4  136F 001E 0004                 MOVE.B      001E(A7),0004(A1)
+; 267: 				ew->TEI->text[numChars].charCode				= buffer[i];
+       | 04CA  226F 0074                      MOVEA.L     0074(A7),A1
+       | 04CE  2069 0012                      MOVEA.L     0012(A1),A0
+       | 04D2  2268 0020                      MOVEA.L     0020(A0),A1
+       | 04D6  D3C0                           ADDA.L      D0,A1
+       | 04D8  206F 0060                      MOVEA.L     0060(A7),A0
+       | 04DC  2008                           MOVE.L      A0,D0
+       | 04DE  1373 0800 0007                 MOVE.B      00(A3,D0.L),0007(A1)
+; 268: 				numChars++;
+       | 04E4  5286                           ADDQ.L      #1,D6
+; 269: 				i=i+add;
+       | 04E6  DFAF 0060                      ADD.L       D7,0060(A7)
+; 270: 			}
+; 271: 		}
+; 272: 	}
+       | 04EA  52AF 0060                      ADDQ.L      #1,0060(A7)
+       | 04EE  6000 FD5C                      BRA.W       024C
+; 273: 
+; 274: 	ew->TEI->text[numChars].charCode = 0;
+       | 04F2  226F 0074                      MOVEA.L     0074(A7),A1
+       | 04F6  2069 0012                      MOVEA.L     0012(A1),A0
+       | 04FA  2006                           MOVE.L      D6,D0
+       | 04FC  E780                           ASL.L       #3,D0
+       | 04FE  2268 0020                      MOVEA.L     0020(A0),A1
+       | 0502  D3C0                           ADDA.L      D0,A1
+       | 0504  4229 0007                      CLR.B       0007(A1)
+; 275: 
+; 276: #if 0
+; 277: 	{
+; 278: 	char str[100];
+; 279: 	for(i=0; i<numChars; i++)
+; 280: 	{
+; 281: 		sprintf(str, "%x %d %d %x\n",
+; 282: 				ew->TEI->text[i].charFont,
+; 283: 				ew->TEI->text[i].charStyle,
+; 284: 				ew->TEI->text[i].charColor,
+; 285: 				ew->TEI->text[i].charCode );
+; 286: 		KPrintF(str);
+; 287: 	}
+; 288: 	}
+; 289: #endif
+; 290: 
+; 291: 	return(TRUE);
+       | 0508  7001                           MOVEQ       #01,D0
+; 292: }
+       | 050A  4CDF 2CE4                      MOVEM.L     (A7)+,D2/D5-D7/A2-A3/A5
+       | 050E  DEFC 004C                      ADDA.W      #004C,A7
+       | 0512  4E75                           RTS
+; 293: 
+; 294: /******** WP_FetchString() ********/
+; 295: /*
+; 296:  * buffer points to start of parameter string
+; 297:  * e.g. <fGaramond, buffer points to the G
+; 298:  *
+; 299:  */
+; 300: 
+; 301: void WP_FetchString(STRPTR buffer, STRPTR dest, int max, int *count)
+; 302: {
+       | 0514  48E7 0314                      MOVEM.L     D6-D7/A3/A5,-(A7)
+       | 0518  2E2F 001C                      MOVE.L      001C(A7),D7
+       | 051C  266F 0018                      MOVEA.L     0018(A7),A3
+       | 0520  2A6F 0014                      MOVEA.L     0014(A7),A5
+; 303: int i;
+; 304: 
+; 305: 	for(i=0; i<max; i++)
+       | 0524  7C00                           MOVEQ       #00,D6
+       | 0526  BC87                           CMP.L       D7,D6
+       | 0528  6C1E                           BGE.B       0548
+; 306: 	{
+; 307: 		if ( buffer[i]=='^' )
+       | 052A  705E                           MOVEQ       #5E,D0
+       | 052C  B035 6800                      CMP.B       00(A5,D6.L),D0
+       | 0530  6606                           BNE.B       0538
+; 308: 		{
+; 309: 			dest[i]=0;
+       | 0532  4233 6800                      CLR.B       00(A3,D6.L)
+; 310: 			return;
+       | 0536  6010                           BRA.B       0548
+; 311: 		}
+; 312: 		dest[i] = buffer[i];
+       | 0538  17B5 6800 6800                 MOVE.B      00(A5,D6.L),00(A3,D6.L)
+; 313: 		*count = *count + 1;
+       | 053E  206F 0020                      MOVEA.L     0020(A7),A0
+       | 0542  5290                           ADDQ.L      #1,(A0)
+; 314: 	}
+       | 0544  5286                           ADDQ.L      #1,D6
+       | 0546  60DE                           BRA.B       0526
+; 315: }
+       | 0548  4CDF 28C0                      MOVEM.L     (A7)+,D6-D7/A3/A5
+       | 054C  4E75                           RTS
+; 316: 
+; 317: /******** WP_FetchInteger() ********/
+; 318: /*
+; 319:  * buffer points to start of start of parameter string
+; 320:  * e.g. <s64, buffer points to the 6
+; 321:  *
+; 322:  */
+; 323: 
+; 324: void WP_FetchInteger(STRPTR buffer, int *dest, int *count)
+; 325: {
+       | 054E  9EFC 000C                      SUBA.W      #000C,A7
+       | 0552  48E7 0114                      MOVEM.L     D7/A3/A5,-(A7)
+       | 0556  266F 0020                      MOVEA.L     0020(A7),A3
+       | 055A  2A6F 001C                      MOVEA.L     001C(A7),A5
+; 326: int i;
+; 327: TEXT str[10];
+; 328: 
+; 329: 	for(i=0; i<10; i++)
+       | 055E  7E00                           MOVEQ       #00,D7
+       | 0560  700A                           MOVEQ       #0A,D0
+       | 0562  BE80                           CMP.L       D0,D7
+       | 0564  6C30                           BGE.B       0596
+; 330: 	{
+; 331: 		if ( buffer[i]=='^' )
+       | 0566  705E                           MOVEQ       #5E,D0
+       | 0568  B035 7800                      CMP.B       00(A5,D7.L),D0
+       | 056C  6618                           BNE.B       0586
+; 332: 		{
+; 333: 			str[i]=0;
+       | 056E  4237 780E                      CLR.B       0E(A7,D7.L)
+; 334: 			sscanf(str, "%d", dest);
+       | 0572  2F0B                           MOVE.L      A3,-(A7)
+       | 0574  487A FAF2                      PEA         FAF2(PC)
+       | 0578  486F 0016                      PEA         0016(A7)
+       | 057C  4EBA  0000-XX.1                JSR         _sscanf(PC)
+; 335: 			return;
+       | 0580  4FEF 000C                      LEA         000C(A7),A7
+       | 0584  6010                           BRA.B       0596
+; 336: 		}
+; 337: 		str[i] = buffer[i];
+       | 0586  1FB5 7800 780E                 MOVE.B      00(A5,D7.L),0E(A7,D7.L)
+; 338: 		*count = *count + 1;
+       | 058C  206F 0024                      MOVEA.L     0024(A7),A0
+       | 0590  5290                           ADDQ.L      #1,(A0)
+; 339: 	}
+       | 0592  5287                           ADDQ.L      #1,D7
+       | 0594  60CA                           BRA.B       0560
+; 340: }
+       | 0596  4CDF 2880                      MOVEM.L     (A7)+,D7/A3/A5
+       | 059A  DEFC 000C                      ADDA.W      #000C,A7
+       | 059E  4E75                           RTS

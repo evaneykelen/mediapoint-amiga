@@ -1,0 +1,12 @@
+_LVOMLMMU_AllocMem = -$1e
+_LVOMLMMU_FreeMem = -$24
+_LVOMLMMU_GetMemList = -$2a
+_LVOMLMMU_GetMemStat = -$30
+_LVOMLMMU_SetMemStat = -$36
+_LVOMLMMU_FindMemBlk = -$3C
+_LVOMLMMU_OwnMemBlk = -$42
+_LVOMLMMU_DisOwnMemBlk = -$48
+_LVOMLMMU_SetMemRestrict = -$4e 
+_LVOMLMMU_GetMemRestrict = -$54
+_LVOMLMMU_FlushMem = -$5a
+_LVOMLMMU_SetMemReside = -$60

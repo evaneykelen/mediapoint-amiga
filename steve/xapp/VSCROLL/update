@@ -1,0 +1,5 @@
+del setup.o
+del workvscroll.o
+del inthandler.o
+del preview.o
+del texted.o

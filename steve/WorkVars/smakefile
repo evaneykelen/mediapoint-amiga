@@ -1,0 +1,28 @@
+CC = sc
+
+CFLAGS = DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK STRMERGE STREQ IDIR=nb:
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+APP1 = workvars
+
+APP10 = $(APP1).o var.o lib:/source/_main.o gen:geninit.o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib
+# lib:amiga.lib lib:debug.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $*.a

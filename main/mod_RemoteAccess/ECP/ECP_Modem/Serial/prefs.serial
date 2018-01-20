@@ -1,0 +1,9 @@
+baudrate 38400
+device "serial.device"
+unit 0
+default_path "MP_RA:"
+buffer_size 10256
+convertlf
+priority 127
+supername "LIESHOUT"
+connectionclass 1

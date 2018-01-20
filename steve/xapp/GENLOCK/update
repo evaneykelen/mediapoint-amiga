@@ -1,0 +1,3 @@
+del doit.o
+del setup.o
+del control.o

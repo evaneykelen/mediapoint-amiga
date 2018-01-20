@@ -1,0 +1,80 @@
+testint                 14-Jul-94 14:25:12  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         1d98 lib:cres.o       c        code            0    0      2a8
+                       testint.o        testint. code          2a8    0       9c
+                       inthandler.o     inthandl code          344    0      1c0
+                       workpageasm.o    workpage code          504    0       10
+                       lib:/source/_mai _main.c  code          514    0      12c
+                       lib:sc.lib       newlist  code          640    0       14
+                       lib:sc.lib       createst code          654    0       14
+                       lib:sc.lib       createpo code          668    0       b8
+                       lib:sc.lib       createex code          720    0       6c
+                       lib:sc.lib       _constru code          78c    0       34
+                       lib:sc.lib       _fpinit. code          7c0    0       3c
+                       lib:sc.lib       writes.c code          7fc    0       30
+                       lib:sc.lib       _memclea code          82c    0       2c
+                       lib:sc.lib       _stpcpy. code          858    0       14
+                       lib:sc.lib       _stcul_d code          86c    0       30
+                       lib:sc.lib       _stcl_o. code          89c    0       30
+                       lib:sc.lib       _stcl_h. code          8cc    0       3c
+                       lib:sc.lib       _stcd_i. code          908    0       54
+                       lib:sc.lib       _iob.c   code          95c    0      224
+                       lib:sc.lib       _getbuff code          b80    0       48
+                       lib:sc.lib       _strupr. code          bc8    0       38
+                       lib:sc.lib       _ufb.c   code          c00    0       7c
+                       lib:sc.lib       _write.c code          c7c    0      108
+                       lib:sc.lib       _lseek.c code          d84    0       98
+                       lib:sc.lib       _CXD33.o code          e1c    0       c4
+                       lib:sc.lib       _CXM22.o code          ee0    0       30
+                       lib:sc.lib       _exit.c  code          f10    0       10
+                       lib:sc.lib       _cxbrk.c code          f20    0      14c
+                       lib:sc.lib       _chkufb. code         106c    0       48
+                       lib:sc.lib       _chkabor code         10b4    0       44
+                       lib:sc.lib       memchr.o code         10f8    0       24
+                       lib:sc.lib       memmove. code         111c    0       2c
+                       lib:sc.lib       free.o   code         1148    0      16c
+                       lib:sc.lib       malloc.o code         12b4    0      174
+                       lib:sc.lib       printf.c code         1428    0       7c
+                       lib:sc.lib       fputc.c  code         14a4    0      184
+                       lib:sc.lib       fwrite.c code         1628    0      14c
+                       lib:sc.lib       fflush.c code         1774    0       d8
+                       lib:sc.lib       _pfmt.c  code         184c    0      47c
+                       lib:sc.lib       _pf.c    code         1cc8    0       70
+                       lib:sc.lib       io2errno code         1d38    0       60
+   1 __MERGED      2fc testint.o        testint. data            0    0       5c
+                       inthandler.o     inthandl data           5c    0       20
+                       T:5RSH4.0000     _ctdt.o  data           7c    0       18
+                       lib:sc.lib       mstep.c  data           94    0        4
+                       lib:sc.lib       sigfunc. data           98    0       24
+                       lib:sc.lib       ctype.c  data           bc    0      104
+                       lib:sc.lib       _constru data          1c0    0        4
+                       lib:sc.lib       stack.c  data          1c4    0        4
+                       lib:sc.lib       _iob.c   data          1c8    0       68
+                       lib:sc.lib       _buffsiz data          230    0        4
+                       lib:sc.lib       _ufb.c   data          234    0        8
+                       lib:sc.lib       _fmode.c data          23c    0        8
+testint                 14-Jul-94 14:25:12  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       _cxbrk.c data          244    0       50
+                       lib:sc.lib       _stdv36. data          294    0       14
+                       lib:sc.lib       _stdwin. data          2a8    0       14
+                       lib:sc.lib       io2errno data          2bc    0       40
+                       lib:cres.o       c        bss           2fc    0       24
+                       lib:/source/_mai _main.c  bss           320    0       8c
+                       lib:sc.lib       base.c   bss           3ac    0        4
+                       lib:sc.lib       stkptr.c bss           3b0    0        4
+                       lib:sc.lib       prgname. bss           3b4    0        4
+                       lib:sc.lib       _onexit. bss           3b8    0        4
+                       lib:sc.lib       oserr.c  bss           3bc    0        4
+                       lib:sc.lib       curdir.c bss           3c0    0        4
+                       lib:sc.lib       wbmsg.c  bss           3c4    0        4
+                       lib:sc.lib       errno.c  bss           3c8    0        4
+                       lib:sc.lib       memtype. bss           3cc    0        4
+                       lib:sc.lib       _constru bss           3d0    0        4
+                       lib:sc.lib       _memclea bss           3d4    0        4
+                       lib:sc.lib       _iob.c   bss           3d8    0       30
+                       lib:sc.lib       _ufb.c   bss           408    0        8
+                       lib:sc.lib       printf.c bss           410    0        4
+                       lib:sc.lib       stdioptr bss           414    0        8

@@ -1,0 +1,70 @@
+
+;--- palettesize.a ------------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/palettesize.a 01.001 (02.18.94)
+
+
+	TTL	palettesize.a
+	IDNT	palettesize.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"graphics/view.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"toolslib.i"
+
+
+	XDEF	_GetPaletteSize
+	XDEF	@GetPaletteSize
+
+
+
+	SECTION	GetPaletteSize,CODE
+
+
+_GetPaletteSize
+	move.l	4(sp),a0
+	move.l	8(sp),d0
+@GetPaletteSize
+	movem.l	d2,-(sp)
+	move.l	d0,d1
+	moveq.l	#1,d0
+	moveq.l	#0,d2
+	move.b	bm24_Depth(a0),d2
+	lsl.l	d2,d0		; 1<<Depth
+	movem.l	d1,-(sp)
+	andi.l	#V_HAM,d1
+	movem.l	(sp)+,d1
+	beq.b	.EHB
+
+.HAM	moveq.l	#16,d0		; HAM
+	cmp.w	#8,d2
+	bne.b	.exit
+	moveq.l	#64,d0		; HAM8
+	bra.b	.exit
+
+.EHB	movem.l	d1,-(sp)
+	andi.l	#V_EXTRA_HALFBRITE,d1
+	movem.l	(sp)+,d1
+	beq.b	.exit
+	moveq.l	#64,d0		; EHB
+
+.exit	movem.l	(sp)+,d2
+	rts
+
+
+
+;-- END OF FILE ----------------------------------------------------------

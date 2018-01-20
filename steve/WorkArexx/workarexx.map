@@ -1,0 +1,38 @@
+workarexx               26-Oct-94 13:43:49  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         1a94 lib:cres.o       c        code            0    0      2b4
+                       workarexx.o      workarex code          2b4    0      7d8
+                       lib:/source/_mai _main.c  code          a8c    0      12c
+                       gen:geninit.o    geninit. code          bb8    0       28
+                       rexx.o           rexx.c   code          be0    0      4b4
+                       lib:sc.lib       _fpinit. code         1094    0       30
+                       lib:sc.lib       _MemClea code         10c4    0       80
+                       lib:sc.lib       stricmp  code         1144    0       3c
+                       lib:sc.lib       stptok.c code         1180    0       74
+                       lib:sc.lib       _stcul_d code         11f4    0       30
+                       lib:sc.lib       _stcl_o  code         1224    0       30
+                       lib:sc.lib       _stcl_h  code         1254    0       3c
+                       lib:sc.lib       _stcd_i  code         1290    0       54
+                       lib:sc.lib       stccpy.c code         12e4    0       44
+                       lib:sc.lib       _strupr. code         1328    0       3c
+                       lib:sc.lib       _cxd33   code         1364    0       c4
+                       lib:sc.lib       _exit.c  code         1428    0       5c
+                       lib:sc.lib       strcat   code         1484    0       18
+                       lib:sc.lib       memmove  code         149c    0       2c
+                       lib:sc.lib       sprintf. code         14c8    0       44
+                       lib:sc.lib       _pfmt.c  code         150c    0      438
+                       lib:sc.lib       _pf.c    code         1944    0       7c
+                       lib:sc.lib       DelPort. code         19c0    0       44
+                       lib:sc.lib       CrtPort. code         1a04    0       90
+   1 __MERGED      138 workarexx.o      workarex data            0    0        4
+                       lib:sc.lib       sigfunc. data            4    0       24
+                       lib:sc.lib       ctype.c  data           28    0      104
+                       lib:sc.lib       stack.c  data          12c    0        4
+                       lib:sc.lib       _ufb.c   data          130    0        8
+                       lib:cres.o       c        bss           138    0       50
+                       lib:/source/_mai _main.c  bss           188    0       8c
+                       lib:sc.lib       memheap. bss           214    0        4
+                       lib:sc.lib       dosbase  bss           218    0        4
+                       lib:sc.lib       _top.c   bss           21c    0        4
+                       lib:sc.lib       _exit.c  bss           220    0        4

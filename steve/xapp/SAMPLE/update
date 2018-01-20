@@ -1,0 +1,5 @@
+del preview.o
+del doit.o
+del worksamp.o
+del loadsamp.o
+del setup.o

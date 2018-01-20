@@ -1,0 +1,112 @@
+
+;--- getbitmapattr24.a --------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/getbitmapattr24.a 01.001 (02.18.94)
+
+
+	TTL	getbitmapattr24.a
+	IDNT	getbitmapattr24.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"graphics/gfx.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"toolslib.i"
+
+
+	XDEF	_GetBitMapAttr24
+	XDEF	@GetBitMapAttr24
+
+
+
+	SECTION	GetBitMapAttr24,CODE
+
+
+;-------------------------------------------------------------------------
+; ULONG GetBitMapAttr24( BitMap(24) (a0), attribute (d0) )
+;-------------------------------------------------------------------------
+; Returns different parameters about the bitmap depending on the
+; attribute specified.
+;-------------------------------------------------------------------------
+
+_GetBitMapAttr24
+	move.l	4(sp),a0
+	move.l	8(sp),d0
+@GetBitMapAttr24
+	move.l	d0,d1
+	moveq.l	#0,d0
+	cmpa.w	#0,a0
+	beq	.exit
+	cmpi.l	#MAGIC_COOKIE_BM24,bm24_MagicCookie(a0)
+	bne	.BitMap8
+
+.BitMap24	cmpi.w	#BM24A_HEIGHT,d1
+	bne	.width24
+	move.w	bm24_Rows(a0),d0
+	bra	.exit
+
+.width24	cmpi.w	#BM24A_WIDTH,d1
+	bne	.depth24
+	move.w	bm24_PixelWidth(a0),d0
+	bra	.exit
+
+.depth24	cmpi.w	#BM24A_DEPTH,d1
+	bne	.flags24
+	move.b	bm24_Depth(a0),d0
+	bra	.exit
+
+.flags24	cmpi.w	#BM24A_FLAGS,d1
+	bne	.type24
+	move.w	bm24_Flags24(a0),d0
+	bra	.exit
+
+.type24	cmpi.w	#BM24A_TYPE,d1
+	bne	.exit
+	nop
+	bra	.exit
+
+
+.BitMap8	cmpi.w	#BM24A_HEIGHT,d1
+	bne.b	.width8
+	move.w	bm_Rows(a0),d0
+	bra	.exit
+
+.width8	cmpi.w	#BM24A_WIDTH,d1
+	bne.b	.depth8
+	move.w	bm_BytesPerRow(a0),d0
+	lsl.w	#3,d0
+	bra	.exit
+
+.depth8	cmpi.w	#BM24A_DEPTH,d1
+	bne.b	.flags8
+	move.b	bm_Depth(a0),d0
+	bra	.exit
+
+.flags8	cmpi.w	#BM24A_FLAGS,d1
+	bne.b	.type8
+	bra	.exit
+
+.type8	cmpi.w	#BM24A_TYPE,d1
+	bne.b	.exit
+	nop
+
+.exit	rts
+
+
+;-- END OF FILE ----------------------------------------------------------

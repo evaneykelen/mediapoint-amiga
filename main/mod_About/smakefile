@@ -1,0 +1,27 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR NMINC NOSTKCHK SAVEDS GST=nb:all.sym
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+APP1  = about_seg
+APP10 = about_seg.o sc:source/_main.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:scm.lib lib:sc.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

@@ -1,0 +1,7 @@
+echo "copying..."
+copy nb:mediapoint ux-work:sc/proj2/main/mediapoint QUIET
+echo "mediapoint program copied"
+copy nb:system/#? ux-work:sc/proj2/main/system/ QUIET
+echo "mediapoint system files copied"
+copy nb:xapps/#? ux-work:sc/proj2/main/xapps/ QUIET
+echo "mediapoint xapps copied"

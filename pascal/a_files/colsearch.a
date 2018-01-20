@@ -1,0 +1,717 @@
+
+;--- colsearch.a --------------------------------------------------------+
+; MediaPoint Color Find Routines. Code written by B.O.M.B. AudioVisual   |
+; Entertainment and 1001 Software Development.                           |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;    Cees Lieshout, MediaPoint Inc.                                      |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/colsearch.a 0.013 (22/12/93)
+
+
+	TTL	colsearch.a
+	IDNT	colsearch.a
+
+
+	INCDIR "include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/view.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"misctools.i"
+	INCLUDE	"colsearch.i"
+
+
+	XREF	_GetRGB
+
+
+	XDEF	_InitBaseColor
+	XDEF	_FindColorBest
+	XDEF	_CMapToUBYTES
+	XDEF	_CMapToUWORDS
+
+;	XDEF	_CreateFastTable
+;	XDEF	_FindColorFast
+
+	SECTION	TEXT,CODE
+
+
+  STACKSTRUCT
+	_ULONG	initb_Blu32
+	_ULONG	initb_Grn32
+	_ULONG	initb_Red32
+	_LABEL	initb_RGBtriplet
+	_LABEL	initb_SIZEOF
+
+_InitBaseColor
+	link	a5,#initb_SIZEOF
+	movem.l	a2,-(sp)
+	movea.l	_1stParam(a5),a2
+	clr.w	cth_BaseRED(a2)
+	clr.w	cth_BaseGRN(a2)
+	clr.w	cth_BaseBLU(a2)
+	tst.l	cth_ColorMap(a2)
+	beq	.exit
+
+	movea.l	cth_ColorMap(a2),a0
+	moveq.l	#0,d0
+	lea.l	initb_RGBtriplet(a5),a1
+	jsr	_GetRGB
+	move.b	initb_Red32(a5),cth_BaseRED+1(a2)
+	move.b	initb_Grn32(a5),cth_BaseGRN+1(a2)
+	move.b	initb_Blu32(a5),cth_BaseBLU+1(a2)
+
+.exit	movem.l	(sp)+,a2
+	unlk	a5
+	rts
+
+
+
+;---------------------------------------------------------------------------
+; VOID CMapToUBYTES( struct ColorTableHeader *(a0), vm (d1) )
+;---------------------------------------------------------------------------
+; Fills array with colors from colormap.
+;---------------------------------------------------------------------------
+
+  STACKSTRUCT
+	_ULONG	mct_BLU
+	_ULONG	mct_GRN
+	_ULONG	mct_RED
+	_LABEL	mct_RGBtriplet
+	_LABEL	mct_SIZEOF
+
+_CMapToUBYTES
+	link	a5,#mct_SIZEOF
+	movem.l	d0-d4/a0-a1/a3,-(sp)
+	movea.l	a0,a3
+	tst.l	cth_ColorMap(a3)
+	beq	.exit
+	tst.l	cth_ColorTable(a3)
+	beq	.exit
+	movea.l	cth_ColorMap(a3),a0
+	movea.l	cth_ColorTable(a3),a1
+	move.l	cth_Size(a3),d0
+	cmpi.l	#2^24,d0
+	beq	.exit
+
+	andi.w	#V_EXTRA_HALFBRITE,d1
+	sne.b	d3
+	andi.w	#1,d3
+
+	moveq.l	#0,d2
+
+.loop01	movem.w	d0/d3,-(sp)
+	move.l	d2,d0
+	tst.w	d3
+	beq.b	.noEHB2
+	cmpi.w	#31,d0
+	bls.b	.noEHB2
+	subi.w	#32,d0
+.noEHB2	movem.l	a0-a1,-(sp)
+	lea.l	mct_RGBtriplet(a5),a1
+	jsr	_GetRGB
+	movem.l	(sp)+,a0-a1
+	clr.b	(a1)+
+	cmpi.w	#31,d2
+	shi.b	d4
+	and.b	d4,d3
+	move.b	mct_RED(a5),d1
+	lsr.b	d3,d1
+	move.b	d1,(a1)+
+	move.b	mct_GRN(a5),d1
+	lsr.b	d3,d1
+	move.b	d1,(a1)+
+	move.b	mct_BLU(a5),d1
+	lsr.b	d3,d1
+	move.b	d1,(a1)+
+	movem.w	(sp)+,d0/d3
+
+	addq.w	#1,d2
+	cmp.w	d2,d0
+	bne.b	.loop01
+
+.exit	movem.l	(sp)+,d0-d4/a0-a1/a3
+	unlk	a5
+	rts
+
+
+
+;---------------------------------------------------------------------------
+; VOID CMapToUWORDS( struct ColorTableHeader *(a0), vm (d1) )
+;---------------------------------------------------------------------------
+; Fills array with colors from colormap.
+;---------------------------------------------------------------------------
+
+  STACKSTRUCT
+	_ULONG	cmw_BLU
+	_ULONG	cmw_GRN
+	_ULONG	cmw_RED
+	_LABEL	cmw_RGBtriplet
+	_LABEL	cmw_SIZEOF
+
+_CMapToUWORDS
+	link	a5,#cmw_SIZEOF
+	movem.l	d0-d4/a0-a1/a3,-(sp)
+	movea.l	a0,a3
+	tst.l	cth_ColorMap(a3)
+	beq	.exit
+	tst.l	cth_ColorTable(a3)
+	beq	.exit
+	movea.l	cth_ColorMap(a3),a0
+	movea.l	cth_ColorTable(a3),a1
+	move.l	cth_Size(a3),d0
+	cmpi.l	#2^24,d0
+	beq	.exit
+
+	andi.w	#V_EXTRA_HALFBRITE,d1
+	sne.b	d3
+	andi.w	#1,d3
+
+	moveq.l	#0,d2
+
+.loop01	movem.w	d0/d3,-(sp)
+	move.l	d2,d0
+	tst.w	d3
+	beq.b	.noEHB2
+	cmpi.w	#31,d0
+	bls.b	.noEHB2
+	subi.w	#32,d0
+.noEHB2	movem.l	a0-a1,-(sp)
+	lea.l	cmw_RGBtriplet(a5),a1
+	jsr	_GetRGB
+	movem.l	(sp)+,a0-a1
+;	clr.w	(a1)+
+	cmpi.w	#31,d2
+	shi.b	d4
+	and.b	d4,d3
+	moveq.l	#0,d1
+	move.b	cmw_RED(a5),d1
+	lsr.b	d3,d1
+	move.w	d1,(a1)+
+	move.b	cmw_GRN(a5),d1
+	lsr.b	d3,d1
+	move.w	d1,(a1)+
+	move.b	cmw_BLU(a5),d1
+	lsr.b	d3,d1
+	move.w	d1,(a1)+
+	movem.w	(sp)+,d0/d3
+
+	addq.w	#1,d2
+	cmp.w	d2,d0
+	bne.b	.loop01
+	move.w	#-1,(a1)+
+
+.exit	movem.l	(sp)+,d0-d4/a0-a1/a3
+	unlk	a5
+	rts
+
+
+
+	IFNE	0
+
+*
+* The lookup table stores the matching color-pens for the high 2 bits of
+* each red, green and red values.
+* r7r6g7g6b7b6 thus being 64 entries
+* each entry should have space for the total colormap ( just to be sure ) + 1
+* each entry starts with a number indicating the number of different pens
+* For this test a 64 * 17 = 1088 bytes are needed
+* plus the table itself   = 256 * 4
+*			  + 1344 bytes total
+* ( a 256 lookup table would require 17472 bytes )
+*
+create_lookup_table:
+	move.l	di_ColSquare(a5),a0	; pointer to lookup table	
+	add.l	#12,a0			; do this at beginning
+
+	move.l	a0,a1
+	add.l	#4*64,a1	; point to first free area
+	moveq	#18,d0		; required space for color table
+	moveq	#63,d7		; entries in the table
+.rep_tt:
+	move.l	a1,(a0)+
+	move.b	#0,(a1)		; set entries in sub table on 0
+	add.l	d0,a1		; next sub table
+	dbf	d7,.rep_tt
+
+; Find for every corner of the small box in the colorspace
+; the best fitting colors
+
+	moveq	#3,d7
+	moveq	#0,d0
+.rep3:
+	moveq	#3,d6
+	moveq	#0,d1
+.rep2:
+	moveq	#3,d5
+	moveq	#0,d2
+.rep1:	
+	movem.l	d0-d2/d5,-(a7)
+	bsr	find_best_col
+	movem.l	(a7)+,d0-d2/d5
+	bsr	store_surround
+	add.w	#$40,d2
+	dbf	d5,.rep1
+	add.w	#$40,d1
+	dbf	d6,.rep2
+	add.w	#$40,d0
+	dbf	d7,.rep3
+
+; Each point has it's own pen number
+; Because you round of every value you have to add the surrounding
+; points to each point. So in each box the nearest colors of all
+; its corner-points are given
+	bsr	cols_to_squares
+	rts
+
+cols_to_squares:
+	moveq	#0,d3			; pen number
+	move.l	di_Colors(a5),a2
+	move.l	di_PalSize(a5),d7	; number of colors
+	bra	.incs
+
+.rep_cc:
+	move.w	(a2)+,d0	; red
+.no1:
+	move.w	(a2)+,d1	; green
+.no2:
+	move.w	(a2)+,d1	; blue
+.no3:
+	bsr	store_in_table
+.incs:
+	dbf	d7,.rep_cc
+	rts
+
+*
+* Store an entry in it's surrounding blocks
+*
+store_surround:
+	movem.w	d0/d1/d2,-(a7)
+	bsr	store_in_table		; store in it's own block
+	movem.w	(a7),d0/d1/d2
+
+	sub.w	#$40,d0			; store prev red
+	bsr	store_in_table
+	movem.w	(a7),d0/d1/d2
+
+	sub.w	#$40,d0			; prev red
+	sub.w	#$40,d1			; prev green
+	bsr	store_in_table
+	movem.w	(a7),d0/d1/d2
+
+	sub.w	#$40,d0			; prev red
+	sub.w	#$40,d2			; prev blue
+	bsr	store_in_table
+	movem.w	(a7),d0/d1/d2
+
+	sub.w	#$40,d0			; prev red
+	sub.w	#$40,d1			; prev green
+	sub.w	#$40,d2			; prev blue
+	bsr	store_in_table
+	movem.w	(a7),d0/d1/d2
+
+	sub.w	#$40,d1			; prev green
+	bsr	store_in_table
+	movem.w	(a7),d0/d1/d2
+
+	sub.w	#$40,d2			; prev blue
+	bsr	store_in_table
+	movem.w	(a7),d0/d1/d2
+
+	sub.w	#$40,d1			; prev green
+	sub.w	#$40,d2			; prev blue
+	bsr	store_in_table
+	movem.w	(a7),d0/d1/d2
+
+	movem.w	(a7)+,d0/d1/d2
+	rts
+no_store:
+	rts
+*
+* RGB d0,d1,d2 PenNr. d4
+*
+store_in_table:
+	tst.w	d0
+	bmi	no_store
+	tst.w	d1
+	bmi	no_store
+	tst.w	d2
+	bmi	no_store
+	cmp.w	#255,d0
+	bgt	no_store
+	cmp.w	#255,d1
+	bgt	no_store
+	cmp.w	#255,d2
+	bgt	no_store
+
+	movem.l	d5/d6,-(a7)
+	move.l	di_ColSquare(a5),a0
+	add.l	#12,a0			; do this once
+
+	moveq	#0,d3
+	move.b	d0,d3
+	and.w	#$c0,d3
+	move.w	d1,d5
+	and.w	#$c0,d5
+	lsr.b	#2,d5
+	or.w	d5,d3
+	move.w	d2,d5
+	and.w	#$c0,d5
+	lsr.w	#4,d5
+	or.w	d5,d3
+	move.l	0(a0,d3.w),a0
+	moveq	#0,d5
+	move.l	a0,a1
+	move.b	(a0),d5			; Nr of entries
+	beq	.store_it
+	addq.l	#1,a1			; skip number of entries
+.do_search:
+	cmp.b	(a1)+,d4		; if already stored skip it
+	beq	.no_store
+	subq.b	#1,d5
+	bne	.do_search
+.store_it:
+;	move.l	a1,a0
+	add.b	#1,(a0)
+	move.b	(a0),d5
+	add.l	d5,a0
+	move.b	d4,(a0)
+.no_store:
+	movem.l	(a7)+,d5/d6
+	rts
+*
+* Find the best color with a table fast 
+* Use the color from the RGB square directly
+*
+find_best_col2_fast:
+	lea	OFlowTable(pc),a2
+	move.b	0(a2,d0.w),d0
+	move.b	0(a2,d1.w),d1
+	move.b	0(a2,d2.w),d2
+	and.w	#$ff,d0
+	and.w	#$ff,d1
+	and.w	#$ff,d2
+;	lea	diffs+6(pc),a2
+	movem.w	d0/d1/d2,-(a2)
+
+	move.l	di_ColSquare(a5),a2
+	add.l	#12,a2
+	move.w	#$c0,d3
+	and.w	d3,d0
+	and.w	d3,d1
+	and.w	d3,d2
+	lsr.w	#2,d1
+	lsr.w	#4,d2
+	or.w	d1,d0
+	or.w	d2,d0
+	move.l	0(a2,d0.w),a2
+	moveq	#0,d4
+	move.b	1(a2),d4
+	move.l	di_Colors(a5),a2
+	moveq	#0,d3
+	move.b	d4,d3
+	add.b	d3,d3
+	add.b	d4,d3
+	add.b	d3,d3
+	add.l	d3,a2
+	movem.w	(a2)+,d0/d1/d2
+;	lea	diffs(pc),a2		; store difference
+	sub.w	d0,(a2)+
+	sub.w	d1,(a2)+
+	sub.w	d2,(a2)+
+	rts
+*
+* Find the right RGB square and then find best pen from that square
+*
+find_best_col2:
+	lea	OFlowTable(pc),a2
+	move.b	0(a2,d0.w),d0
+	move.b	0(a2,d1.w),d1
+	move.b	0(a2,d2.w),d2
+	and.w	#$ff,d0
+	and.w	#$ff,d1
+	and.w	#$ff,d2
+;	lea	diffs+6(pc),a2
+	movem.w	d0/d1/d2,-(a2)
+
+	move.l	di_ColSquare(a5),a2
+	add.l	#12,a2	
+	move.w	#$c0,d3
+	and.w	d3,d0
+	and.w	d3,d1
+	and.w	d3,d2
+	lsr.w	#2,d1
+	lsr.w	#4,d2
+	or.w	d1,d0
+	or.w	d2,d0
+	move.l	0(a2,d0.w),a2
+
+	cmp.b	#1,(a2)			; when there are two entries you should
+	bne	.find_best_entry	; select the best from the square
+	move.b	1(a2),d4
+
+	move.l	di_Colors(a5),a2
+	moveq	#0,d3
+	move.b	d4,d3
+	add.b	d3,d3
+	add.b	d4,d3
+	add.b	d3,d3
+	add.l	d3,a2
+	movem.w	(a2)+,d0/d1/d2
+;	lea	diffs(pc),a2		; store difference
+	sub.w	d0,(a2)+
+	sub.w	d1,(a2)+
+	sub.w	d2,(a2)+
+	rts
+
+.find_best_entry:			; find the best match from entries
+	movem.w	d5-d7,-(a7)
+	movem.l	a0/a1,-(a7)
+
+	lea	PythTable(pc),a3
+;	lea	diffs(pc),a1		; get the original colors
+	move.l	di_Colors(a5),a0
+	movem.w	(a1),d0/d1/d2
+
+	move.l	#1000000,d7
+	moveq	#0,d3			; holds the best pen sofar
+	moveq	#0,d4
+	move.l	a0,d6
+	addq.l	#6,d6
+.rep_c:
+	addq.w	#1,d4			; try next pen
+	cmp.b	(a2),d4			; stop at end of square list
+	bgt	.exit_fb
+
+	move.l	di_Colors(a5),a0
+	moveq	#0,d5
+	move.b	0(a2,d4.w),d5		; color in block
+	move.w	d5,d0
+	lsl.w	#2,d5			; * 4
+	add.w	d0,d0
+	add.w	d0,d5			; * 6
+	add.l	d5,a0			; set pointer to rgb values
+
+	movem.w	(a1),d0/d1/d2		
+
+	sub.w	(a0)+,d0		; calculate difference
+	sub.w	(a0)+,d1
+	sub.w	(a0)+,d2
+
+	add.w	d0,d0
+	add.w	d1,d1
+	add.w	d2,d2
+	move.w	0(a3,d0.w),d0		; calculate Pytho's distance
+	add.w	0(a3,d1.w),d0
+	add.w	0(a3,d2.w),d0	
+
+	cmp.l	d0,d7
+	blt	.rep_c
+
+	move.l	a0,d6			; remember color values
+	move.l	d0,d7			; set new minimum
+	move.b	0(a2,d4.w),d3		; remember best pen nr.
+
+	bra	.rep_c
+
+.exit_fb:
+	move.b	1(a2),d4
+	move.w	d3,d4
+	move.l	di_Colors(a5),a2
+	moveq	#0,d3
+	move.b	d4,d3
+	add.b	d3,d3
+	add.b	d4,d3
+	add.b	d3,d3
+	add.l	d3,a2
+	movem.w	(a2)+,d0/d1/d2
+;	lea	diffs(pc),a2		; store difference
+	sub.w	d0,(a2)+
+	sub.w	d1,(a2)+
+	sub.w	d2,(a2)+
+	movem.l	(a7)+,a0/a1
+	movem.w	(a7)+,d5-d7
+	rts
+
+	ENDC
+
+
+*
+* Find best pen by color RGB d0,d1,d2
+*
+_FindColorBest
+	movem.l	d6-d7/a0/a1/a5,-(sp)
+	move.l	a0,a5
+	lea	OFlowTable(pc),a0
+	lea	PythTable(pc),a3
+	move.b	(a0,d0.w),d0
+	move.b	(a0,d1.w),d1
+	move.b	(a0,d2.w),d2
+	and.w	#$ff,d0
+	and.w	#$ff,d1
+	and.w	#$ff,d2
+	
+	moveq	#-1,d3
+	move.l	#1000000,a2
+	moveq	#0,d4
+	move.w	d0,d5
+	move.w	d1,d6
+	move.w	d2,d7
+	move.l	cth_ColorTable(a5),a0
+	move.l	a0,a1
+	addq.l	#6,a1
+
+.rep_c	cmp.w	#-1,(a0)
+	beq	.exit_fb
+	move.w	d5,d0
+	move.w	d6,d1
+	move.w	d7,d2
+	addq.w	#1,d3
+	sub.w	(a0)+,d0
+	sub.w	(a0)+,d1
+	sub.w	(a0)+,d2
+	add.w	d0,d0
+	add.w	d1,d1
+	add.w	d2,d2
+	move.w	0(a3,d0.w),d0		; muls d0,d0
+	add.w	0(a3,d1.w),d0
+	add.w	0(a3,d2.w),d0	
+	cmp.l	d0,a2
+	blt	.rep_c
+	move.l	a0,a1
+	move.l	d0,a2
+	move.w	d3,d4
+	bra	.rep_c
+
+.exit_fb	subq.l	#6,a1
+	sub.w	(a1)+,d5
+	sub.w	(a1)+,d6
+	sub.w	(a1)+,d7
+	move.w	d5,cth_DiffsRED(a5)
+	move.w	d6,cth_DiffsGRN(a5)
+	move.w	d7,cth_DiffsBLU(a5)
+	movem.l	(sp)+,d6-d7/a0/a1/a5
+	move.w	d4,d0
+	rts
+
+
+	dcb.b	$ff,$00
+OFlowTable
+	dc.b	$00,$01,$02,$03,$04,$05,$06,$07
+	dc.b	$08,$09,$0a,$0b,$0c,$0d,$0e,$0f
+	dc.b	$10,$11,$12,$13,$14,$15,$16,$17
+	dc.b	$18,$19,$1a,$1b,$1c,$1d,$1e,$1f
+	dc.b	$20,$21,$22,$23,$24,$25,$26,$27
+	dc.b	$28,$29,$2a,$2b,$2c,$2d,$2e,$2f
+	dc.b	$30,$31,$32,$33,$34,$35,$36,$37
+	dc.b	$38,$39,$3a,$3b,$3c,$3d,$3e,$3f
+	dc.b	$40,$41,$42,$43,$44,$45,$46,$47
+	dc.b	$48,$49,$4a,$4b,$4c,$4d,$4e,$4f
+	dc.b	$50,$51,$52,$53,$54,$55,$56,$57
+	dc.b	$58,$59,$5a,$5b,$5c,$5d,$5e,$5f
+	dc.b	$60,$61,$62,$63,$64,$65,$66,$67
+	dc.b	$68,$69,$6a,$6b,$6c,$6d,$6e,$6f
+	dc.b	$70,$71,$72,$73,$74,$75,$76,$77
+	dc.b	$78,$79,$7a,$7b,$7c,$7d,$7e,$7f
+	dc.b	$80,$81,$82,$83,$84,$85,$86,$87
+	dc.b	$88,$89,$8a,$8b,$8c,$8d,$8e,$8f
+	dc.b	$90,$91,$92,$93,$94,$95,$96,$97
+	dc.b	$98,$99,$9a,$9b,$9c,$9d,$9e,$9f
+	dc.b	$a0,$a1,$a2,$a3,$a4,$a5,$a6,$a7
+	dc.b	$a8,$a9,$aa,$ab,$ac,$ad,$ae,$af
+	dc.b	$b0,$b1,$b2,$b3,$b4,$b5,$b6,$b7
+	dc.b	$b8,$b9,$ba,$bb,$bc,$bd,$be,$bf
+	dc.b	$c0,$c1,$c2,$c3,$c4,$c5,$c6,$c7
+	dc.b	$c8,$c9,$ca,$cb,$cc,$cd,$ce,$cf
+	dc.b	$d0,$d1,$d2,$d3,$d4,$d5,$d6,$d7
+	dc.b	$d8,$d9,$da,$db,$dc,$dd,$de,$df
+	dc.b	$e0,$e1,$e2,$e3,$e4,$e5,$e6,$e7
+	dc.b	$e8,$e9,$ea,$eb,$ec,$ed,$ee,$ef
+	dc.b	$f0,$f1,$f2,$f3,$f4,$f5,$f6,$f7
+	dc.b	$f8,$f9,$fa,$fb,$fc,$fd,$fe,$ff
+	dcb.b	$ff,$ff
+
+	dc.w	$0000,$3f80,$3f01,$3e82,$3e04,$3d86,$3d09,$3c8c
+	dc.w	$3c10,$3b94,$3b19,$3a9e,$3a24,$39aa,$3931,$38b8
+	dc.w	$3840,$37c8,$3751,$36da,$3664,$35ee,$3579,$3504
+	dc.w	$3490,$341c,$33a9,$3336,$32c4,$3252,$31e1,$3170
+	dc.w	$3100,$3090,$3021,$2fb2,$2f44,$2ed6,$2e69,$2dfc
+	dc.w	$2d90,$2d24,$2cb9,$2c4e,$2be4,$2b7a,$2b11,$2aa8
+	dc.w	$2a40,$29d8,$2971,$290a,$28a4,$283e,$27d9,$2774
+	dc.w	$2710,$26ac,$2649,$25e6,$2584,$2522,$24c1,$2460
+	dc.w	$2400,$23a0,$2341,$22e2,$2284,$2226,$21c9,$216c
+	dc.w	$2110,$20b4,$2059,$1ffe,$1fa4,$1f4a,$1ef1,$1e98
+	dc.w	$1e40,$1de8,$1d91,$1d3a,$1ce4,$1c8e,$1c39,$1be4
+	dc.w	$1b90,$1b3c,$1ae9,$1a96,$1a44,$19f2,$19a1,$1950
+	dc.w	$1900,$18b0,$1861,$1812,$17c4,$1776,$1729,$16dc
+	dc.w	$1690,$1644,$15f9,$15ae,$1564,$151a,$14d1,$1488
+	dc.w	$1440,$13f8,$13b1,$136a,$1324,$12de,$1299,$1254
+	dc.w	$1210,$11cc,$1189,$1146,$1104,$10c2,$1081,$1040
+	dc.w	$1000,$0fc0,$0f81,$0f42,$0f04,$0ec6,$0e89,$0e4c
+	dc.w	$0e10,$0dd4,$0d99,$0d5e,$0d24,$0cea,$0cb1,$0c78
+	dc.w	$0c40,$0c08,$0bd1,$0b9a,$0b64,$0b2e,$0af9,$0ac4
+	dc.w	$0a90,$0a5c,$0a29,$09f6,$09c4,$0992,$0961,$0930
+	dc.w	$0900,$08d0,$08a1,$0872,$0844,$0816,$07e9,$07bc
+	dc.w	$0790,$0764,$0739,$070e,$06e4,$06ba,$0691,$0668
+	dc.w	$0640,$0618,$05f1,$05ca,$05a4,$057e,$0559,$0534
+	dc.w	$0510,$04ec,$04c9,$04a6,$0484,$0462,$0441,$0420
+	dc.w	$0400,$03e0,$03c1,$03a2,$0384,$0366,$0349,$032c
+	dc.w	$0310,$02f4,$02d9,$02be,$02a4,$028a,$0271,$0258
+	dc.w	$0240,$0228,$0211,$01fa,$01e4,$01ce,$01b9,$01a4
+	dc.w	$0190,$017c,$0169,$0156,$0144,$0132,$0121,$0110
+	dc.w	$0100,$00f0,$00e1,$00d2,$00c4,$00b6,$00a9,$009c
+	dc.w	$0090,$0084,$0079,$006e,$0064,$005a,$0051,$0048
+	dc.w	$0040,$0038,$0031,$002a,$0024,$001e,$0019,$0014
+	dc.w	$0010,$000c,$0009,$0006,$0004,$0002,$0001,$0000
+PythTable:
+	dc.w	$0000,$0000,$0001,$0002,$0004,$0006,$0009,$000c
+	dc.w	$0010,$0014,$0019,$001e,$0024,$002a,$0031,$0038
+	dc.w	$0040,$0048,$0051,$005a,$0064,$006e,$0079,$0084
+	dc.w	$0090,$009c,$00a9,$00b6,$00c4,$00d2,$00e1,$00f0
+	dc.w	$0100,$0110,$0121,$0132,$0144,$0156,$0169,$017c
+	dc.w	$0190,$01a4,$01b9,$01ce,$01e4,$01fa,$0211,$0228
+	dc.w	$0240,$0258,$0271,$028a,$02a4,$02be,$02d9,$02f4
+	dc.w	$0310,$032c,$0349,$0366,$0384,$03a2,$03c1,$03e0
+	dc.w	$0400,$0420,$0441,$0462,$0484,$04a6,$04c9,$04ec
+	dc.w	$0510,$0534,$0559,$057e,$05a4,$05ca,$05f1,$0618
+	dc.w	$0640,$0668,$0691,$06ba,$06e4,$070e,$0739,$0764
+	dc.w	$0790,$07bc,$07e9,$0816,$0844,$0872,$08a1,$08d0
+	dc.w	$0900,$0930,$0961,$0992,$09c4,$09f6,$0a29,$0a5c
+	dc.w	$0a90,$0ac4,$0af9,$0b2e,$0b64,$0b9a,$0bd1,$0c08
+	dc.w	$0c40,$0c78,$0cb1,$0cea,$0d24,$0d5e,$0d99,$0dd4
+	dc.w	$0e10,$0e4c,$0e89,$0ec6,$0f04,$0f42,$0f81,$0fc0
+	dc.w	$1000,$1040,$1081,$10c2,$1104,$1146,$1189,$11cc
+	dc.w	$1210,$1254,$1299,$12de,$1324,$136a,$13b1,$13f8
+	dc.w	$1440,$1488,$14d1,$151a,$1564,$15ae,$15f9,$1644
+	dc.w	$1690,$16dc,$1729,$1776,$17c4,$1812,$1861,$18b0
+	dc.w	$1900,$1950,$19a1,$19f2,$1a44,$1a96,$1ae9,$1b3c
+	dc.w	$1b90,$1be4,$1c39,$1c8e,$1ce4,$1d3a,$1d91,$1de8
+	dc.w	$1e40,$1e98,$1ef1,$1f4a,$1fa4,$1ffe,$2059,$20b4
+	dc.w	$2110,$216c,$21c9,$2226,$2284,$22e2,$2341,$23a0
+	dc.w	$2400,$2460,$24c1,$2522,$2584,$25e6,$2649,$26ac
+	dc.w	$2710,$2774,$27d9,$283e,$28a4,$290a,$2971,$29d8
+	dc.w	$2a40,$2aa8,$2b11,$2b7a,$2be4,$2c4e,$2cb9,$2d24
+	dc.w	$2d90,$2dfc,$2e69,$2ed6,$2f44,$2fb2,$3021,$3090
+	dc.w	$3100,$3170,$31e1,$3252,$32c4,$3336,$33a9,$341c
+	dc.w	$3490,$3504,$3579,$35ee,$3664,$36da,$3751,$37c8
+	dc.w	$3840,$38b8,$3931,$39aa,$3a24,$3a9e,$3b19,$3b94
+	dc.w	$3c10,$3c8c,$3d09,$3d86,$3e04,$3e82,$3f01,$3f80
+
+;-- END OF FILE ----------------------------------------------------------

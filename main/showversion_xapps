@@ -1,0 +1,58 @@
+failat 100
+
+echo AirLink
+version AirLink
+
+echo CD32
+version CD32
+
+echo CDTV
+version CDTV
+
+echo CDXL
+version CDXL
+
+echo G_Genlock
+version G_Genlock
+
+echo Ion
+version Ion
+
+echo IV-24
+version IV-24
+
+echo LightPen
+version LightPen
+
+echo Midi
+version Midi
+
+echo G_Neptun
+version G_Neptun
+
+echo NewScript
+version NewScript
+
+echo LaserDisc
+version LaserDisc
+
+echo Resource
+version Resource
+
+echo S_Studio16
+version S_Studio16
+
+echo Sample
+version Sample
+
+echo SerialData
+version SerialData
+
+echo S_Toccata
+version S_Toccata
+
+echo CreditRoll
+version CreditRoll
+
+echo VuPort
+version VuPort

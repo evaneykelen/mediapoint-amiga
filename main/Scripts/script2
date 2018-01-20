@@ -1,0 +1,69 @@
+SCRIPTTALK 4, 0
+
+STARTSER
+
+	STARTSER "Root"
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/Great-Britain", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/Greece", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/Ireland", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/Italy", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/Luxembourg", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/Portugal", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/Spain", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/The_Netherlands", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/USA", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+		START
+			PAGE "Work:MediaPoint/Graphics/Maps/World", OFF, 0, 20, 0, 0, 2
+			DURATION 00:00:05:0
+			PROGRAM SU|MO|TU|WE|TH|FR|SA
+		END
+
+	ENDSER
+
+ENDSER

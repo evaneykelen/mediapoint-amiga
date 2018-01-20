@@ -1,0 +1,5 @@
+del control.o  
+del doit.o     
+del serial.o
+del setup.o    
+del worker.o   

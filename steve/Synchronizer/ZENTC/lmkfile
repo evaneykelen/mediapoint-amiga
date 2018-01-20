@@ -1,0 +1,39 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=FAR NMINC STRMERGE STREQ NOSTKCHK IDIR=INCLUDE
+AFLAGS = -iINCLUDE
+LFLAGS = NODEBUG
+
+AS = asm
+PH = ph:
+SC = 
+
+MEDIALINK_SYNCHRO_ZENTC	= $(SC)tempoeditor.o $(SC)inputevent.o \
+													gen:GenInit.o $(PH)functions.o\
+													$(SC)itc.o $(SC)etc.o 
+
+# these are my applications
+APP1 = $(SC)SynchroZENTC
+
+# the modules needed by each application
+APP10 = $(APP1).o lib:/source/_main.o $(MEDIALINK_SYNCHRO_ZENTC)
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:c.o $(APP10)
+LIBRARY lib:sc.lib lib:amiga.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

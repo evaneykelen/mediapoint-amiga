@@ -1,0 +1,7 @@
+SCRIPT "Work:TMP/" "script1" 1
+DEST "Work:SC/proj2/main/system/ECP_Drawer/" "Modem.ECP" "Work:SC/proj2/main/system/CDF_Drawer/" "Modem.CDF"
+
+SCRIPT "Aso:MediaPoint128/Scripts/" "DemoScript" 0
+DEST "Work:SC/proj2/main/system/ECP_Drawer/" "Modem.ECP" "Work:SC/proj2/main/system/CDF_Drawer/" "HarriesModem.CDF"
+DEST "Work:SC/proj2/main/system/ECP_Drawer/" "Network.ECP" "Work:SC/proj2/main/system/CDF_Drawer/" "Network.CDF"
+

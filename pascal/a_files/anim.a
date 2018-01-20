@@ -1,0 +1,722 @@
+
+;--- anim.a -------------------------------------------------------------+
+; MediaPoint IFF Anim Loader. Code written by B.O.M.B. AudioVisual       |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/anim.a 01.006 (19/05/93)
+
+
+	TTL	anim.a
+	IDNT	anim.a
+
+
+	INCDIR "include:"
+
+	INCLUDE "exec/types.i"
+	INCLUDE "exec/memory.i"
+	INCLUDE "exec/funcdef.i"
+	INCLUDE "exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE "graphics/gfx.i"
+	INCLUDE "graphics/view.i"
+	INCLUDE "graphics/graphics_lib.i"
+	INCLUDE "libraries/dos.i"
+	INCLUDE "libraries/dos_lib.i"
+	INCLUDE	"mediapoint/pascal/fiff.i"
+	INCLUDE	"mediapoint/pascal/macros.i"
+
+
+	xref	_SysBase
+	xref	_DOSBase
+	xref	_GfxBase
+
+	xref	_LVOGetRGB32
+	xref	_LVOSetRGB32CM
+	xref	_LVOGetBitMapAttr
+
+	xref	_BOpen
+	xref	_BSeek
+	xref	_BRead
+	xref	_BClose
+
+	xref	_FastInitIFFFrame
+	xref	_FastOpenIFF
+	xref	_FastCloseIFF
+	xref	_FastParseChunk
+	xref	_FastDecodeBody
+	xref	_FastWriteIFF
+
+	xdef	_FastLoadAnim
+	xdef	_FastUnLoadAnim
+
+
+MINIMUM_LARGEST_CHIP	equ	100000
+
+
+; stack frame definitions for _FastLoadAnim
+
+fla_IDbuffer			equ	-4
+fla_FORMSize			equ	-8
+fla_ILBMSize			equ	-12
+fla_FilePos			equ	-16
+fla_StackBuffer			equ	-112	; for ANHD/CMAP buffering
+fla_reg_a4			equ	-116
+fla_FRAMESIZE			equ	-116
+
+;-------------------------------------------------------------------------
+; function : ANIMLIST *_FastLoadAnim( APTR FileName, ULONG PreLoadType )
+;-------------------------------------------------------------------------
+; Loads animation into memory and sets up an animframe list.
+; NULL if error occured, still use FastUnLoadAnim to free resources.
+;-------------------------------------------------------------------------
+
+_FastLoadAnim
+
+	link	a5,#fla_FRAMESIZE
+	movem.l	d1-d7/a0-a6,-(sp)
+
+	move.l	a4,fla_reg_a4(a5)
+
+	moveq.l	#al_SIZE,d0
+	move.l	#MEMF_PUBLIC+MEMF_CLEAR,d1
+	LINKLIB	_LVOAllocMem,_SysBase
+	tst.l	d0
+	bne.b	.newlst
+	movea.l	d0,a2
+	bra.w	.exit
+
+.newlst	movea.l	d0,a2
+	NEWLIST	a2
+
+	clr.w	al_LoadSuccess(a2)
+
+	pea.l	al_IFFFrame(a2)
+	bsr.w	_FastInitIFFFrame
+	lea.l	4(sp),sp
+
+	move.l	#MODE_OLDFILE,-(sp)
+	move.l	_1stParam(a5),-(sp)
+	jsr	_BOpen
+	lea	8(sp),sp
+	move.l	d0,al_BufFileInfo(a2)
+	beq.w	.exit
+
+	movea.l	d0,a0
+	bsr.w	ReadLongWord
+	cmpi.l	#FORM,d0
+	bne.w	.exit
+	bsr.w	ReadLongWord
+	move.l	d0,fla_FORMSize(a5)
+	beq.w	.exit
+	bsr.w	ReadLongWord
+	cmpi.l	#ANIM,d0
+	bne.w	.exit
+
+
+; When we've reached this point, we know it's a FORM ANIM.
+; Now we must extract the ILBM data, place the information about it in the
+; IFF Frame and place the ILBM data into RAM. If there's an ANHD present
+; then we must create and initialize the ANHD structure. An ANIMFRAME must
+; be created too (and for every frame).
+
+.skch02	bsr.w	ReadLongWord
+	cmpi.l	#FORM,d0
+	beq.b	.skch01
+	bsr.w	ReadLongWord
+	bsr.w	SkipBytes
+	bra.b	.skch02
+.skch01	bsr.w	ReadLongWord
+	btst.l	#0,d0
+	beq.b	.crrct0
+	addq.l	#1,d0
+.crrct0	subq.l	#4,d0
+	move.l	d0,fla_ILBMSize(a5)
+	bsr.w	ReadLongWord
+	cmpi.l	#ILBM,d0
+	beq.b	.ILBMfound
+	move.l	fla_ILBMSize(a5),d0
+	subq.l	#4,d0
+	bmi.w	.exit
+	bsr.w	SkipBytes
+	bra.b	.skch02
+
+.ILBMfound
+	move.l	fla_ILBMSize(a5),d0
+
+	add.l	#af_SIZE,d0
+	move.l	#MEMF_PUBLIC+MEMF_CLEAR,d1
+	LINKLIB	_LVOAllocMem,_SysBase
+	move.l	d0,d4
+	beq.w	.exit
+
+	move.l	fla_ILBMSize(a5),-(sp)
+	move.l	d0,d2			; buffer address
+	add.l	#af_SIZE,d2		; 1st ANIMFRAME, 2nd ILBM chunks
+	move.l	d2,-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)	; filehandle
+	jsr	_BRead
+	lea	12(sp),sp
+	cmp.l	fla_ILBMSize(a5),d0
+	bne.w	.exit
+	move.l	d4,d0
+	move.l	d4,a3
+	add.l	#af_SIZE,d0
+	move.l	d0,af_Offset(a3)
+	move.l	fla_ILBMSize(a5),af_SizeOfData(a3)
+	bsr.w	LinkFrame
+	move.b	#NT_ILBMFRAME,LN_TYPE(a3)
+
+; We've reached the point where we must scan the rest of the file for ILBM
+; chunks and extract the data from those chunks (for DLTA chunks only if
+; there is memory available for the DLTA chunks). We'll first scan the file
+; allocating memory for different ANHD chunks. (that is, we will only
+; allocate for ANHD chunks that are different from the others.) For every
+; frame will be allocated an ANIMFRAME which will be initialized with the
+; relative file positions / absolute size of DLTA chunks. For any colormap
+; found we will allocate memory and convert the colormap to an amiga map.
+; A pointer to this map will be supplied in the ANIMFRAME. A second pass
+; through the file will allocate (if possible and desired) memory for the
+; separate delta chunks and place them into RAM until impossible.
+
+.FindILBM
+	bsr.w	CurrentPos
+	bsr.w	ReadLongWord
+
+	cmpi.l	#FORM,d0
+	beq.b	.Find01
+	bsr.w	ReadLongWord		; skip if not a FORM chunk
+	bsr.w	SkipBytes
+	bra.b	.FindILBM
+.Find01	bsr.w	ReadLongWord
+	move.l	d0,fla_ILBMSize(a5)
+	bsr.w	ReadLongWord
+	cmpi.l	#ILBM,d0
+	beq.b	.ILBMfound2
+	move.l	fla_ILBMSize(a5),d0	; d0 was thrashed
+	subq.l	#4,d0			; we've read 4 bytes too many
+	bmi.w	.exit			; zero or negative - error !
+	bsr.w	SkipBytes
+	bra.b	.FindILBM
+
+.ILBMfound2
+	move.l	#af_SIZE,d0
+	move.l	#MEMF_PUBLIC+MEMF_CLEAR,d1
+	LINKLIB	_LVOAllocMem,_SysBase
+	tst.l	d0
+	beq.w	.exit
+	movea.l	d0,a3
+	move.b	#NT_DISKFRAME,LN_TYPE(a3)
+
+.CheckChunk
+	bsr.w	ReadLongWord
+
+.CheckANHD
+	cmpi.l	#ANHD,d0
+	bne.w	.CheckCMAP
+	bsr.w	ReadLongWord
+	btst.l	#0,d0
+	beq.w	.crrct1
+	addq.l	#1,d0
+.crrct1	move.l	d0,d3
+	move.l	d3,-(sp)
+	pea.l	fla_StackBuffer(a5)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BRead
+	lea	12(sp),sp
+	cmp.l	d0,d3
+	bne.w	.link_before_exit
+	movea.l	al_FrameList+MLH_HEAD(a2),a6
+.cmplp	TSTNODE	a6,a6
+	beq.b	.cmploopdone
+	tst.l	af_Header(a6)
+	beq.b	.cmplp
+	move.l	af_Header(a6),a0
+	lea.l	fla_StackBuffer(a5),a1
+	moveq.l	#ah_SIZE-1,d0
+.comp01	cmpm.b	(a0)+,(a1)+
+	bne.b	.comp02
+	dbra	d0,.comp01	
+.comp02	cmpi.w	#-1,d0
+	bne.b	.cmplp
+	move.l	af_Header(a6),af_Header(a3)
+	bra.b	.CheckChunk
+.cmploopdone
+	move.l	#ah_SIZE,d0
+	move.l	#MEMF_PUBLIC+MEMF_CLEAR,d1
+	LINKLIB	_LVOAllocMem,_SysBase
+	move.l	d0,af_Header(a3)
+	beq.w	.link_before_exit
+	lea.l	fla_StackBuffer(a5),a0
+	movea.l	d0,a1
+	moveq.l	#ah_SIZE-1,d0
+.copy01	move.b	(a0)+,(a1)+
+	dbra	d0,.copy01	
+	bra.w	.CheckChunk
+
+.CheckCMAP
+	cmpi.l	#CMAP,d0
+	bne.w	.CheckDLTA
+	bsr.w	ReadLongWord
+
+	move.l	d0,d3
+	move.l	d0,d6
+
+	btst.l	#0,d3
+	beq.b	.crrct2
+	addq.l	#1,d3
+.crrct2	ext.l	d3			; cmap no greater than 32768
+	neg.w	d3
+.link	movem.l	a5,-(sp)
+	lea	(sp,d3.w),a5		; get pointer to stack space
+	lea	(sp,d3.w),sp		; allocate stack space
+	neg.w	d3
+	move.l	d3,-(sp)		; and store the positive size
+
+	move.l	d3,-(sp)		; push read size
+	move.l	a5,-(sp)		; push pointer to stackbuffer
+	move.l	al_BufFileInfo(a2),-(sp); push filehandle
+	jsr	_BRead			; read to stackbuffer
+	lea	12(sp),sp		; and correct stack
+
+	movea.l	_GfxBase,a6
+
+	divu.w	#3,d6			; now contains # of color registers
+	move.l	d6,d0			; amount of entries
+	CALLLIB	_LVOGetColorMap		; get colormap
+	move.l	d0,af_ColorMap(a3)
+	beq.w	.link_before_exit
+	movea.l	d0,a0
+
+	clrf.l	d0
+	cmp.w	#38,LIB_VERSION(a6)
+	bhi.b	.V39
+
+.V34	movem.l	d0/d1/a0,-(sp)
+	move.b	(a5)+,d1
+	move.b	(a5)+,d2
+	move.b	(a5)+,d3
+	lsr.b	#4,d1
+	lsr.b	#4,d2
+	lsr.b	#4,d3
+	CALLLIB	_LVOSetRGB4CM
+	movem.l	(sp)+,d0/d1/a0
+	inc.w	d0
+	cmp.w	d0,d6
+	bne.b	.V34
+	bra.b	.unlink
+
+.V39	clrf.l	d1
+	move.b	(A5)+,d1
+	move.b	d1,d4
+	lsl.w	#8,d4
+	or.w	d1,d4
+	move.w	d4,d1
+	swap.w	d1
+	move.w	d4,d1
+
+	clrf.l	d2
+	move.b	(A5)+,d2
+	move.b	d2,d4
+	lsl.w	#8,d4
+	or.w	d2,d4
+	move.w	d4,d2
+	swap.w	d2
+	move.w	d4,d2
+
+	clrf.l	d3
+	move.b	(A5)+,d3
+	move.b	d3,d4
+	lsl.w	#8,d4
+	or.w	d3,d4
+	move.w	d4,d3
+	swap.w	d3
+	move.w	d4,d3
+
+	movem.l	d0/a0,-(sp)
+	CALLLIB	_LVOSetRGB32CM
+	movem.l	(sp)+,d0/a0
+	inc.w	d0
+	cmp.w	d0,d6
+	bne.b	.V39
+
+.unlink	move.l	(sp)+,d3
+	lea	(sp,d3.w),sp
+	move.l	(sp)+,a5
+
+	bra.w	.CheckChunk
+
+.CheckDLTA
+	cmpi.l	#DLTA,d0
+	bne.b	.CheckFORM
+	bsr.w	ReadLongWord
+	move.l	d0,d2
+	bsr.w	CurrentPos
+	move.l	d0,af_Offset(a3)
+	btst.l	#0,d2
+	beq.w	.crrct5
+	addq.l	#1,d2
+.crrct5	move.l	d2,af_SizeOfData(a3)
+	move.l	#OFFSET_CURRENT,-(sp)
+	move.l	d2,-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BSeek
+	lea	12(sp),sp
+	bra.w	.CheckChunk
+.CheckFORM
+	cmpi.l	#FORM,d0
+	bne.b	.CheckOther
+	bsr.w	LinkFrame
+	bra.w	.Find01
+.CheckOther
+	tst.l	d0
+	beq.b	.SecondPass
+	bsr.w	ReadLongWord
+	subq.l	#4,d0
+	bsr.w	SkipBytes		; skip unknown chunk
+	bra.w	.CheckChunk
+
+.SecondPass
+	bsr.w	LinkFrame		; add last frame to the list
+
+	move.l	al_FrameList+MLH_HEAD(a2),a3
+.secpassloop
+	TSTNODE	a3,a3			; get next node, test if last
+	beq.w	.secpassloopend
+
+	PRED	a3,a6			; get previous node
+	cmp.b	#NT_ILBMFRAME,af_Node+LN_TYPE(a6)
+	bne.w	.unknownseek
+
+.absoluteseek
+	move.l	#OFFSET_BEGINNING,-(sp)
+	move.l	af_Offset(a3),-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BSeek
+	lea	12(sp),sp
+	cmp.l	#PLT_DISK,_2ndParam(a5)
+	beq.w	.fromdisk1
+	move.l	#MEMF_CHIP+MEMF_LARGEST,d1
+	LINKLIB	_LVOAvailMem,_SysBase
+	cmp.l	#MINIMUM_LARGEST_CHIP,d0
+	bls.b	.fromdisk1
+	move.l	af_SizeOfData(a3),d0
+	move.l	#MEMF_PUBLIC,d1
+	LINKLIB	_LVOAllocMem,_SysBase
+	tst.l	d0
+	beq.b	.fromdisk1
+	move.b	#NT_RAMFRAME,af_Node+LN_TYPE(a3)
+	move.l	d0,af_Offset(a3)
+	move.l	af_SizeOfData(a3),-(sp)
+	move.l	af_Offset(a3),-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BRead
+	lea	12(sp),sp
+	cmp.l	af_SizeOfData(a3),d0
+	bne.w	.exit
+	bsr	CurrentPos
+	clr.l	fla_FilePos(a5)
+	bra.w	.secpassloop
+.fromdisk1
+	move.b	#NT_DISKFRAME,af_Node+LN_TYPE(a3)
+	move.l	#OFFSET_CURRENT,-(sp)
+	move.l	af_SizeOfData(a3),-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BSeek
+	lea	12(sp),sp
+	move.l	d0,af_Offset(a3)
+	bsr	CurrentPos
+	move.l	d0,fla_FilePos(a5)
+	bra.w	.secpassloop
+
+.unknownseek
+	tst.l	fla_FilePos(a5)
+	beq.b	.sk_abs
+.sk_rel	move.l	#OFFSET_CURRENT,-(sp)
+	move.l	af_Offset(a3),d2
+	sub.l	fla_FilePos(a5),d2
+	move.l	d2,-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BSeek
+	lea	12(sp),sp
+	bra.b	.alloc_dlta
+.sk_abs	move.l	#OFFSET_BEGINNING,-(sp)
+	move.l	af_Offset(a3),-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BSeek
+	lea	12(sp),sp
+.alloc_dlta
+	cmp.l	#PLT_DISK,_2ndParam(a5)
+	beq.b	.fromdisk2
+	move.l	#MEMF_CHIP+MEMF_LARGEST,d1
+	LINKLIB	_LVOAvailMem,_SysBase
+	cmp.l	#MINIMUM_LARGEST_CHIP,d0
+	bls.b	.fromdisk2
+	move.l	af_SizeOfData(a3),d0
+	move.l	#MEMF_PUBLIC,d1
+	LINKLIB	_LVOAllocMem,_SysBase
+	tst.l	d0
+	beq.b	.fromdisk2
+	move.b	#NT_RAMFRAME,af_Node+LN_TYPE(a3)
+	move.l	d0,af_Offset(a3)
+	move.l	af_SizeOfData(a3),-(sp)
+	move.l	af_Offset(a3),-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BRead
+	lea	12(sp),sp
+	cmp.l	af_SizeOfData(a3),d0
+	bne.w	.exit
+	clr.l	fla_FilePos(a5)
+	bra.w	.secpassloop
+.fromdisk2
+	move.b	#NT_DISKFRAME,af_Node+LN_TYPE(a3)
+	move.l	#OFFSET_CURRENT,-(sp)
+	move.l	af_SizeOfData(a3),-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BSeek
+	lea	12(sp),sp
+	tst.l	fla_FilePos(a5)
+	beq.b	.prev_ram
+.prev_disk
+	move.l	af_Offset(a3),d1
+	sub.l	fla_FilePos(a5),d1
+	move.l	d1,af_Offset(a3)
+	bsr.w	CurrentPos
+	move.l	d0,fla_FilePos(a5)
+	bra.w	.secpassloop
+.prev_ram
+	move.l	d0,af_Offset(a3)
+	bsr.w	CurrentPos
+	move.l	d0,fla_FilePos(a5)
+.secpassloopend	
+
+.InitIFFFrame
+	move.l	al_FrameList+MLH_HEAD(a2),a3
+	move.l	af_Offset(a3),al_IFFFrame+frame_iffMemory(a2)
+	move.l	af_SizeOfData(a3),al_IFFFrame+frame_fileSize(a2)
+	move.l	al_IFFFrame+frame_iffMemory,a0
+	move.l	al_IFFFrame+frame_fileSize,d0
+	move.l	#ANHD,d1
+	bsr.w	iffScanForID
+	move.l	a0,af_Header(a3)
+	move.l	#BMHD,-(sp)
+	pea.l	al_IFFFrame(a2)
+	bsr.w	_FastParseChunk
+	lea.l	8(sp),sp
+	move.l	#CAMG,-(sp)
+	pea.l	al_IFFFrame(a2)
+	bsr.w	_FastParseChunk
+	lea.l	8(sp),sp
+	move.l	#CMAP,-(sp)
+	pea.l	al_IFFFrame(a2)
+	bsr.w	_FastParseChunk
+	lea.l	8(sp),sp
+
+	move.w	#-1,al_LoadSuccess(a2)		; indicate loading OK.
+
+.exit	move.l	a2,d0
+	movem.l	(sp)+,d1-d7/a0-a6
+	unlk	a5
+	rts
+
+.link_before_exit
+	bsr.w	LinkFrame
+	bra.b	.exit
+
+LinkFrame
+	movem.l	d0/a0-a1,-(sp)
+	lea.l	al_FrameList(a2),a0	; list
+	lea.l	af_Node(a3),a1		; node
+	ADDTAIL				; Add Node to List
+	movem.l	(sp)+,d0/a0-a1
+	rts
+
+CurrentPos
+	movem.l	d1/a0-a1,-(sp)
+	move.l	#OFFSET_CURRENT,-(sp)
+	clr.l	-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BSeek
+	lea	12(sp),sp
+	movem.l	(sp)+,d1/a0-a1
+	rts
+
+ReadLongWord
+	movem.l	d1/a0-a1,-(sp)
+	move.l	#4,-(sp)
+	pea.l	fla_IDbuffer(a5)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BRead
+	lea	12(sp),sp
+	cmp.l	#4,d0
+	bne.b	.error
+	lea.l	fla_IDbuffer(a5),a1
+	move.l	(a1),d0
+.xit	movem.l	(sp)+,d1/a0-a1
+	rts
+.error	clrf.l	d0
+	bra.b	.xit
+
+SkipBytes
+	movem.l	d1-d3/a0-a1,-(sp)
+	move.l	#OFFSET_CURRENT,-(sp)
+	move.l	d0,-(sp)
+	move.l	al_BufFileInfo(a2),-(sp)
+	jsr	_BSeek
+	lea	12(sp),sp
+	tst.l	d0
+	bpl.b	.exit
+	clrf.l	d0
+.exit	movem.l	(sp)+,d1-d3/a0-a1
+	rts
+
+;-------------------------------------------------------------------------
+; function : _FastUnLoadAnim( ANIMLIST * )
+;-------------------------------------------------------------------------
+; Remove animation from memory, free all resources.
+;-------------------------------------------------------------------------
+
+; stack frame definitions for _FastUnLoadAnim
+
+fula_reg_a4			equ	-4
+fula_FRAMESIZE			equ	-4
+
+_FastUnLoadAnim
+	link	a5,#fula_FRAMESIZE
+	movem.l	d0-d7/a0-a6,-(sp)
+
+	move.l	a4,fula_reg_a4(a5)
+
+	movea.l	_1stParam(a5),a2
+	cmp.l	#0,a2
+	beq.w	.xit
+
+	IFEMPTY	a2,.close
+
+	movea.l	MLH_HEAD(a2),a3		; get first node in list (ILBM frame)
+.FreeLoop
+	TSTNODE	a3,a3			; get next node, test for last one
+	beq.w	.FreeLoopDone		; if the last one, then exit loop
+.checkanhd
+	tst.l	af_Header(a3)		; is there an ANHD present ?
+	beq.b	.checkcmap		; if not, then continue scan
+	move.l	af_Header(a3),d2
+	movea.l	d2,a1
+	moveq.l	#ah_SIZE,d0		; we know the size
+	LINKLIB	_LVOFreeMem,_SysBase	; release memory
+	clr.l	af_Header(a3)
+	movea.l	MLH_HEAD(a2),a6
+.loop01	TSTNODE	a6,a6			; get next node, test for last one
+	beq.b	.checkcmap
+	cmp.l	af_Header(a6),d2	; duplicate pointer ?
+	bne.b	.loop01			; if not, get next node
+	clr.l	af_Header(a6)		; otherwise, clear pointer
+	bra.b	.loop01			; and get next node
+.checkcmap
+	tst.l	af_ColorMap(a3)			; is there a colormap present ?
+	beq.b	.checkdlta			; if not, proceed
+	move.l	af_ColorMap(a3),a0		; get allocremembered address
+	LINKLIB	_LVOFreeColorMap,_GfxBase	; release memory
+	clr.l	af_ColorMap(a3)
+.checkdlta
+	cmp.b	#NT_RAMFRAME,af_Node+LN_TYPE(a3)
+	bne.b	.checkend
+	movea.l	af_Offset(a3),a1	; get address
+	move.l	af_SizeOfData(a3),d0	; get alloc'ed size
+	LINKLIB	_LVOFreeMem,_SysBase	; release memory
+.checkend
+	bra.b	.FreeLoop
+.FreeLoopDone
+
+	movea.l	MLH_HEAD(a2),a3		; get first node in list (ILBM frame)
+	SUCC	a3,a3			; skip first node
+.FreeAnimFrame
+	SUCC	a3,a4			; get ptr to next node
+	movea.l	a3,a1			; get address
+	move.l	#af_SIZE,d0		; we know the size
+	LINKLIB	_LVOFreeMem,_SysBase	; release memory
+	tst.l	(a4)
+	beq.b	.AnimFrameDone		; then we've done the last one
+	movea.l	a4,a3			; get next node address
+	bra.b	.FreeAnimFrame
+.AnimFrameDone
+
+ 	movea.l	MLH_HEAD(a2),a3
+	cmpi.l	#0,a3
+	beq.b	.close
+	movea.l	af_Offset(a3),a1
+	suba.w	#af_SIZE,a1
+	move.l	af_SizeOfData(a3),d0
+	add.l	#af_SIZE,d0
+	LINKLIB	_LVOFreeMem,_SysBase
+
+.close	move.l	al_BufFileInfo(a2),d1
+	beq.b	.fre_al
+	move.l	fula_reg_a4(a5),a4
+	move.l	d1,-(sp)
+	jsr	_BClose
+	lea	4(sp),sp
+
+.fre_al	movea.l	a2,a1
+	moveq.l	#al_SIZE,d0
+	LINKLIB	_LVOFreeMem,_SysBase
+
+.xit	movem.l	(sp)+,d0-d7/a0-a6
+	unlk	a5
+	rts
+
+
+
+
+
+;-------------------------------------------------------------------------
+; local function : a0 = iffScanForID( addr, maxrange, ID ) ( a0, d0, d1 )
+;-------------------------------------------------------------------------
+; The memory buffer at addr is searched for the word-aligned occurance of
+; identifier ID. A maximum amount of 'maxrange' bytes is scanned. Returned
+; is the address of the ID or 0 if the ID wasn't found at all.
+; BE WARNED - GIVING AN ODD ADDRESS WILL CRASH THE MACHINE FOR SURE !!!!
+;-------------------------------------------------------------------------
+
+iffScanForID
+
+	movem.l	d0/d2,-(sp)
+
+	move.l	d1,d2			; d2.w now contains last two ID bytes
+	swap.w	d1			; d1.w now contains first two ID bytes
+
+	asr.l	#1,d0			; get amount of words instead of bytes
+	dec.l	d0
+.loop01	cmp.w	(a0)+,d1		; are these the two bytes of the ID ?
+	beq.s	.skip01			; if so, scan the other two bytes
+	dbra	d0,.loop01
+	bra.s	.notfnd			; we scanned the whole file. No ID.
+
+.skip01	cmp.w	(a0),d2			; the last two bytes equal ???
+	bne.s	.loop01			; if not, cont searching
+	subq.l	#2,a0			; restore ptr to begin of ID
+
+.exit	swap.w	d1			; restore register d1
+	movem.l	(sp)+,d0/d2
+	rts
+
+.notfnd	movea.l	#0,a0
+	bra.s	.exit
+
+
+;---------------------------------------------------------------------------
+	AUTO	u\
+	AUTO	wl anim.o\y
+;---------------------------------------------------------------------------
+
+
+;---- END OF FILE ----------------------------------------------------------
+

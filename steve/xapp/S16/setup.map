@@ -1,0 +1,75 @@
+setup                   01-Mar-94 17:26:24  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         316c lib:cres.o       c        code            0    0      2b4
+                       setup.o          setup.c  code          2b4    0      8d4
+                       doit.o           doit.c   code          b88    0      204
+                       studioplay.o     studiopl code          d8c    0       94
+                       studiostub.o     <noname> code          e20    0       40
+                       worker.o         worker.c code          e60    0      2e8
+                       lib:/source/_mai _main.c  code         1148    0      12c
+                       gen:geninit.o    geninit. code         1274    0       28
+                       gen:support.o    support. code         129c    0      30c
+                       lib:sc.lib       _fpinit. code         15a8    0       30
+                       lib:sc.lib       writes.c code         15d8    0       38
+                       lib:sc.lib       _MemClea code         1610    0       80
+                       lib:sc.lib       _stcul_d code         1690    0       30
+                       lib:sc.lib       _stcl_o  code         16c0    0       30
+                       lib:sc.lib       _stcl_h  code         16f0    0       3c
+                       lib:sc.lib       _stcd_i  code         172c    0       54
+                       lib:sc.lib       stccpy.c code         1780    0       44
+                       lib:sc.lib       stcarg.c code         17c4    0       70
+                       lib:sc.lib       _getbuff code         1834    0       48
+                       lib:sc.lib       _strupr. code         187c    0       3c
+                       lib:sc.lib       _write.c code         18b8    0      100
+                       lib:sc.lib       _lseek.c code         19b8    0       94
+                       lib:sc.lib       _cxd33   code         1a4c    0       c4
+                       lib:sc.lib       _exit.c  code         1b10    0       5c
+                       lib:sc.lib       _cxbrk.c code         1b6c    0      14c
+                       lib:sc.lib       _chkufb. code         1cb8    0       4c
+                       lib:sc.lib       _chkabor code         1d04    0       50
+                       lib:sc.lib       strchr   code         1d54    0       18
+                       lib:sc.lib       memchr   code         1d6c    0       24
+                       lib:sc.lib       memmove  code         1d90    0       2c
+                       lib:sc.lib       free     code         1dbc    0      16c
+                       lib:sc.lib       malloc   code         1f28    0      174
+                       lib:sc.lib       sscanf.c code         209c    0       5c
+                       lib:sc.lib       sprintf. code         20f8    0       44
+                       lib:sc.lib       fputc.c  code         213c    0      174
+                       lib:sc.lib       fflush.c code         22b0    0       d4
+                       lib:sc.lib       _sfmt.c  code         2384    0      618
+                       lib:sc.lib       _pfmt.c  code         299c    0      438
+                       lib:sc.lib       _sf.c    code         2dd4    0      168
+                       lib:sc.lib       _pf.c    code         2f3c    0       7c
+                       lib:sc.lib       DelPort. code         2fb8    0       44
+                       lib:sc.lib       CrtPort. code         2ffc    0       90
+                       lib:sc.lib       io2errno code         308c    0       60
+                       LIB:DEBUG.LIB    <noname> code         30ec    0       80
+   1 __MERGED      61c setup.o          setup.c  data            0    0      320
+                       doit.o           doit.c   data          320    0       30
+                       studioplay.o     studiopl data          350    0       78
+                       worker.o         worker.c data          3c8    0        c
+                       gen:support.o    support. data          3d4    0       14
+                       lib:sc.lib       mstep.c  data          3e8    0        4
+                       lib:sc.lib       sigfunc. data          3ec    0       24
+                       lib:sc.lib       ctype.c  data          410    0      104
+                       lib:sc.lib       stack.c  data          514    0        4
+setup                   01-Mar-94 17:26:24  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       _iob.c   data          518    0       68
+                       lib:sc.lib       _buffsiz data          580    0        4
+                       lib:sc.lib       _ufb.c   data          584    0        8
+                       lib:sc.lib       _cxbrk.c data          58c    0       50
+                       lib:sc.lib       io2errno data          5dc    0       40
+                       lib:cres.o       c        bss           61c    0       50
+                       setup.o          setup.c  bss           66c    0        c
+                       lib:/source/_mai _main.c  bss           678    0       8c
+                       gen:support.o    support. bss           704    0      218
+                       lib:sc.lib       errno.c  bss           91c    0        4
+                       lib:sc.lib       memheap. bss           920    0        4
+                       lib:sc.lib       memtype. bss           924    0        4
+                       lib:sc.lib       dosbase  bss           928    0        4
+                       lib:sc.lib       _top.c   bss           92c    0        4
+                       lib:sc.lib       _exit.c  bss           930    0        4
+                       lib:sc.lib       sscanf.c bss           934    0        8

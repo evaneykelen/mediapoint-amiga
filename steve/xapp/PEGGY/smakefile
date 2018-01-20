@@ -1,0 +1,35 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+AS = asm
+
+XAPPNAME = Peggy
+
+# these are my applications
+APP1 = WorkPeggy
+
+# the modules needed by each application
+APP10 = $(APP1).o mpeg_init.o setup.o inthandler.o workpageasm.o preview.o lib:/source/_main.o gen:support.o gen:general.o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib
+# lib:amiga.lib lib:debug.lib
+TO $(XAPPNAME) $(LFLAGS)
+MAP $(XAPPNAME).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

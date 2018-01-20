@@ -1,0 +1,29 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK IDIR=nb:
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+XAPPNAME = Music
+APP1 = WorkMusic 
+
+APP10 = $(APP1).o demo:gen/general.o mlp.o lib:/source/_main.o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib
+# lib:amiga.lib lib:debug.lib
+TO $(XAPPNAME) $(LFLAGS)
+MAP $(APP1).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $*.a

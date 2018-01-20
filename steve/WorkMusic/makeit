@@ -1,0 +1,2 @@
+sc playmusic.c
+slink FROM LIB:c.o playmusic.o mlp.o TO playmusic LIB LIB:sc.lib LIB:amiga.lib LIB:debug.lib

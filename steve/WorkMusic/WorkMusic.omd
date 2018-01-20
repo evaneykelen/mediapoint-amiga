@@ -1,0 +1,1233 @@
+SAS AMIGA 680x0OBJ Module Disassembler V6.01
+Copyright © 1992 SAS Institute, Inc.
+
+
+Amiga Object File Loader V1.00
+68000 Instruction Set
+
+EXTERNAL DEFINITIONS
+
+_main 0000-00
+
+SECTION 00 "text" 000008E4 BYTES
+;   1: //	File		:	workmusic.c
+;   2: //	Uses		:	external.h mlmmu.h
+;   3: //	Date		:	-92 ( 01-05-93 )
+;   4: //	Author	:	S. Vanderhorst
+;   5: //	Desc.		:	Play a music module
+;   6: //
+;   7: #include <stdio.h>
+;   8: #include <string.h>
+;   9: #include <workbench/startup.h>
+;  10: #include <exec/types.h>
+;  11: #include <exec/memory.h>
+;  12: #include <libraries/dosextens.h>
+;  13: #include <proto/exec.h>
+;  14: 
+;  15: #include <clib/dos_protos.h>
+;  16: #include <clib/exec_protos.h>
+;  17: #include <pragmas/dos_pragmas.h>
+;  18: #include <pragmas/exec_pragmas.h>
+;  19: 
+;  20: #include "minc:types.h"
+;  21: #include "minc:Errors.h"
+;  22: #include "minc:process.h"
+;  23: #include "external.h"
+;  24: #include	"gen:general.h"
+;  25: #include "mlmmu:mlmmu.h"
+;  26: #include "mlmmu:mlmmu_pragma.h"
+;  27: #include "mlmmu:mlmmu_proto.h"
+;  28: 
+;  29: #include <stdlib.h>
+;  30: #include <stdio.h>
+;  31: 
+;  32: #define VERSI0N "\0$VER: MediaPoint Music xapp 1.1"
+;  33: static UBYTE *vers = VERSI0N;
+;  34: 
+;  35: #define _PRINTF FALSE
+;  36: 
+;  37: #define XAPPPORTNAME "Port_MLMusic"
+;  38: 
+;  39: #define MAKE_ID(a,b,c,d) ((a)<<24|(b)<<16|(c)<<8|(d))
+;  40: 
+;  41: #define MRK2 MAKE_ID('M', 'R', 'K', '2')
+;  42: #define DSS  MAKE_ID('D', 'S', 'S', '!')
+;  43: #define ST15 MAKE_ID('S', 'T', '1', '5')
+;  44: #define TRAK MAKE_ID('T', 'R', 'A', 'K')
+;  45: #define FC13 MAKE_ID('F', 'C', '1', '3')
+;  46: #define FC14 MAKE_ID('F', 'C', '1', '4')
+;  47: #define JAMC MAKE_ID('J', 'A', 'M', 'C')
+;  48: #define SM20 MAKE_ID('S', 'M', '2', '0')
+;  49: 
+;  50: /*************************************************
+;  51: *Func : 
+;  52: *in   : Argv -> Ptr to PROCESSINFO.pi_Startup
+;  53: *       More info in geninit.c
+;  54: *out  : -
+;  55: */
+;  56: void main( int argc, char *argv[] )
+;  57: {
+       | 0000  9EFC 0188                      SUBA.W      #0188,A7
+       | 0004  48E7 2716                      MOVEM.L     D2/D5-D7/A3/A5-A6,-(A7)
+       | 0008  2E2F 01A8                      MOVE.L      01A8(A7),D7
+       | 000C  2A6F 01AC                      MOVEA.L     01AC(A7),A5
+;  58: 	MEMTAG			*memtag;
+;  59: 	MLSYSTEM			*MLSystem;	
+;  60: 	PROCDIALOGUE	*Msg_XappDial,		// Dialogue to be send to an already active Xapp
+;  61: 						*Msg_RXappDial,	// Dialogue received by another Xapp
+;  62: 						*Msg_MusicDial,	// Our dialogue 
+;  63: 						*Msg_RMusicDial;	// Dialogue when our guide replies
+;  64: 												// This is actually a copy of the ptr we sent.  
+;  65: 												// Also: dialogue from our parent
+;  66: 	PROCESSINFO		*ThisPI;				// ptr to this processinfo blk 
+;  67: 												// (as used in our parent's list)
+;  68: 	struct MsgPort	*Port_Xapp,			// Inter-Xapp communication receive port
+;  69: 						*Port_OtherXapp,	// Port of older Xapp
+;  70: 						*RepP_Xapp,			// Inter-Xapp communication reply port
+;  71: 						*RepP_WorkMusic;	// Reply port for our parent when 
+;  72: 												// replying to our messages
+;  73: 
+;  74: 	ULONG				Sig_PtoC,			// A parent to child signal
+;  75: 						SigR_CtoP,			// A reply to a msg we send to our parent
+;  76: 
+;  77: 					/* Following two Signals are used to get and reply to messages
+;  78: 						send by this Xapp when started twice. */
+;  79: 
+;  80: 						Sig_XtoX,			// A signal from an equal Xapp
+;  81: 						SigR_XtoX,			// Reply from an equal Xapp
+;  82: 						SigRecvd;			// Signals received
+;  83: 	int 				i;
+;  84: 	BOOL 				B_ReInit,			// if TRUE, re-initialise data
+;  85: 						B_Term,				// If TRUE, we are free to terminate
+;  86: 						B_Run,			
+;  87: 						B_Remove,			// If True, our guide wants us to clean up
+;  88: 						B_Setup,				// if True, SetupPlayer succeeded
+;  89: 						B_Stop,				// if True, another xapp wants us to stop
+;  90: 						B_Playing,			// If True, PlayTune Succeeded
+;  91: 						B_Stopper;
+;  92: 	char 				FilePath[300];
+;  93: 	APTR				MusicModule;
+;  94: 	ULONG 			type;
+;  95: 	BYTE				modType=-1;
+       | 0010  1F7C 00FF 001F                 MOVE.B      #FF,001F(A7)
+;  96: 	UBYTE 			*mod;
+;  97: 	struct Library	*MLMMULibBase = NULL;
+       | 0016  42AF 0030                      CLR.L       0030(A7)
+;  98: 
+;  99: 	MusicModule = NULL;
+       | 001A  42AF 003C                      CLR.L       003C(A7)
+; 100: 
+; 101: 	// Get our PROCESSINFO base ptr
+; 102: 	if( (ThisPI = (PROCESSINFO *)ml_FindBaseAddr(argc, argv)) == NULL)
+       | 001E  2F0D                           MOVE.L      A5,-(A7)
+       | 0020  2F07                           MOVE.L      D7,-(A7)
+       | 0022  4EBA  0000-XX.1                JSR         _ml_FindBaseAddr(PC)
+       | 0026  504F                           ADDQ.W      #8,A7
+       | 0028  2F40 018C                      MOVE.L      D0,018C(A7)
+       | 002C  4A80                           TST.L       D0
+       | 002E  6700 08AA                      BEQ.W       08DA
+; 103: 		return;
+; 104: 
+; 105: 	/******************************************************************/
+; 106: 	if(ThisPI->pi_Arguments.ar_Worker.aw_Origin == ORG_SCRIPTEDITOR)
+       | 0032  7202                           MOVEQ       #02,D1
+       | 0034  2040                           MOVEA.L     D0,A0
+       | 0036  B2A8 0088                      CMP.L       0088(A0),D1
+       | 003A  6600 0124                      BNE.W       0160
+; 107: 	{
+; 108: 		B_Setup = SetupPlayer();
+       | 003E  4EBA  0000-XX.1                JSR         _SetupPlayer(PC)
+       | 0042  3F40 0026                      MOVE.W      D0,0026(A7)
+; 109: 		if (B_Setup)
+       | 0046  6600 0892                      BNE.W       08DA
+; 110: 			return;
+; 111: 
+; 112: 		MakeFullPath(ThisPI->pi_Arguments.ar_Worker.aw_Path,ThisPI->pi_Arguments.ar_Worker.aw_Name, FilePath);
+       | 004A  486F 0040                      PEA         0040(A7)
+       | 004E  206F 0190                      MOVEA.L     0190(A7),A0
+       | 0052  2F28 0078                      MOVE.L      0078(A0),-(A7)
+       | 0056  2F28 0074                      MOVE.L      0074(A0),-(A7)
+       | 005A  4EBA  0000-XX.1                JSR         _MakeFullPath(PC)
+; 113: 
+; 114: //KPrintF("ReadModule [%s]\n",FilePath);
+; 115: 
+; 116: 		mod = (BYTE *)ReadModule(FilePath);
+       | 005E  486F 004C                      PEA         004C(A7)
+       | 0062  4EBA  0000-XX.1                JSR         _ReadModule(PC)
+       | 0066  4FEF 0010                      LEA         0010(A7),A7
+; 117: 		if (mod==NULL)
+       | 006A  2F40 0034                      MOVE.L      D0,0034(A7)
+       | 006E  6608                           BNE.B       0078
+; 118: 		{
+; 119: //KPrintF("ReadModules failed\n");
+; 120: 			KillPlayer();	// ReadModule() failed --> unable to find/alloc/recognize file
+       | 0070  4EBA  0000-XX.1                JSR         _KillPlayer(PC)
+; 121: 			return;
+       | 0074  6000 0864                      BRA.W       08DA
+; 122: 		}
+; 123: 
+; 124: 		type = *(mod+4)<<24;
+       | 0078  7000                           MOVEQ       #00,D0
+       | 007A  206F 0034                      MOVEA.L     0034(A7),A0
+       | 007E  1028 0004                      MOVE.B      0004(A0),D0
+       | 0082  4840                           SWAP        D0
+       | 0084  4240                           CLR.W       D0
+       | 0086  E180                           ASL.L       #8,D0
+; 125: 		type |= *(mod+5)<<16;
+       | 0088  7200                           MOVEQ       #00,D1
+       | 008A  1228 0005                      MOVE.B      0005(A0),D1
+       | 008E  4841                           SWAP        D1
+       | 0090  4241                           CLR.W       D1
+       | 0092  2F40 0038                      MOVE.L      D0,0038(A7)
+       | 0096  8081                           OR.L        D1,D0
+; 126: 		type |= *(mod+6)<<8;
+       | 0098  7200                           MOVEQ       #00,D1
+       | 009A  1228 0006                      MOVE.B      0006(A0),D1
+       | 009E  E181                           ASL.L       #8,D1
+       | 00A0  2F40 0038                      MOVE.L      D0,0038(A7)
+       | 00A4  8081                           OR.L        D1,D0
+; 127: 		type |= *(mod+7);
+       | 00A6  7200                           MOVEQ       #00,D1
+       | 00A8  1228 0007                      MOVE.B      0007(A0),D1
+       | 00AC  2F40 0038                      MOVE.L      D0,0038(A7)
+       | 00B0  8081                           OR.L        D1,D0
+       | 00B2  2F40 0038                      MOVE.L      D0,0038(A7)
+; 128: 		switch(type)
+       | 00B6  0480 4453 5321                 SUBI.L      #44535321,D0
+       | 00BC  673E                           BEQ.B       00FC
+       | 00BE  0480 01EF DE12                 SUBI.L      #01EFDE12,D0
+       | 00C4  674E                           BEQ.B       0114
+       | 00C6  5380                           SUBQ.L      #1,D0
+       | 00C8  6752                           BEQ.B       011C
+       | 00CA  0480 03FE 1C0F                 SUBI.L      #03FE1C0F,D0
+       | 00D0  6752                           BEQ.B       0124
+       | 00D2  0480 0310 FDEF                 SUBI.L      #0310FDEF,D0
+       | 00D8  671A                           BEQ.B       00F4
+       | 00DA  0480 05FA E6FE                 SUBI.L      #05FAE6FE,D0
+       | 00E0  674A                           BEQ.B       012C
+       | 00E2  0480 0006 FF05                 SUBI.L      #0006FF05,D0
+       | 00E8  671A                           BEQ.B       0104
+       | 00EA  0480 00FE 1016                 SUBI.L      #00FE1016,D0
+       | 00F0  671A                           BEQ.B       010C
+       | 00F2  6040                           BRA.B       0134
+; 129: 		{
+; 130: 			case MRK2: modType=1; break;
+       | 00F4  1F7C 0001 001F                 MOVE.B      #01,001F(A7)
+       | 00FA  603E                           BRA.B       013A
+; 131: 			case DSS : modType=2; break;
+       | 00FC  1F7C 0002 001F                 MOVE.B      #02,001F(A7)
+       | 0102  6036                           BRA.B       013A
+; 132: 			case ST15: modType=3; break;
+       | 0104  1F7C 0003 001F                 MOVE.B      #03,001F(A7)
+       | 010A  602E                           BRA.B       013A
+; 133: 			case TRAK: modType=4; break;
+       | 010C  1F7C 0004 001F                 MOVE.B      #04,001F(A7)
+       | 0112  6026                           BRA.B       013A
+; 134: 			case FC13: modType=5; break;
+       | 0114  1F7C 0005 001F                 MOVE.B      #05,001F(A7)
+       | 011A  601E                           BRA.B       013A
+; 135: 			case FC14: modType=6; break;
+       | 011C  1F7C 0006 001F                 MOVE.B      #06,001F(A7)
+       | 0122  6016                           BRA.B       013A
+; 136: 			case JAMC: modType=7; break;
+       | 0124  1F7C 0007 001F                 MOVE.B      #07,001F(A7)
+       | 012A  600E                           BRA.B       013A
+; 137: 			case SM20: modType=8; break;
+       | 012C  1F7C 0008 001F                 MOVE.B      #08,001F(A7)
+       | 0132  6006                           BRA.B       013A
+; 138: 			default:   modType=-1; break;
+       | 0134  1F7C 00FF 001F                 MOVE.B      #FF,001F(A7)
+; 139: 		}
+; 140: 		ThisPI->pi_Arguments.ar_Worker.aw_NumArgs[5] = modType;
+       | 013A  226F 018C                      MOVEA.L     018C(A7),A1
+       | 013E  2069 0070                      MOVEA.L     0070(A1),A0
+       | 0142  D0FC 000A                      ADDA.W      #000A,A0
+       | 0146  102F 001F                      MOVE.B      001F(A7),D0
+       | 014A  4880                           EXT.W       D0
+       | 014C  3080                           MOVE.W      D0,(A0)
+; 141: 
+; 142: //KPrintF("modtype = %d\n", modType);
+; 143: 
+; 144: 		KillModule(mod);
+       | 014E  2F2F 0034                      MOVE.L      0034(A7),-(A7)
+       | 0152  4EBA  0000-XX.1                JSR         _KillModule(PC)
+; 145: 		KillPlayer();
+       | 0156  4EBA  0000-XX.1                JSR         _KillPlayer(PC)
+; 146: 		return; // return file type in [5]
+       | 015A  584F                           ADDQ.W      #4,A7
+       | 015C  6000 077C                      BRA.W       08DA
+; 147: 	}
+; 148: 
+; 149: 	/******************************************************/
+; 150: 
+; 151: 	if( ThisPI->pi_Arguments.ar_Worker.aw_NumArgs[1] == 1 )
+       | 0160  226F 018C                      MOVEA.L     018C(A7),A1
+       | 0164  2069 0070                      MOVEA.L     0070(A1),A0
+       | 0168  5488                           ADDQ.L      #2,A0
+       | 016A  7001                           MOVEQ       #01,D0
+       | 016C  B050                           CMP.W       (A0),D0
+       | 016E  6606                           BNE.B       0176
+; 152: 		B_Stopper = TRUE;
+       | 0170  3F40 0020                      MOVE.W      D0,0020(A7)
+       | 0174  6004                           BRA.B       017A
+; 153: 	else
+; 154: 		B_Stopper = FALSE;
+       | 0176  426F 0020                      CLR.W       0020(A7)
+; 155: 
+; 156: 	MLSystem = ThisPI->pi_Arguments.ar_Worker.aw_MLSystem;
+       | 017A  2F69 0084 019C                 MOVE.L      0084(A1),019C(A7)
+; 157: 
+; 158: 	ThisPI->pi_Arguments.ar_RetErr = ERR_WORKER;
+       | 0180  237C 0000 012C 0070            MOVE.L      #0000012C,0070(A1)
+; 159: 
+; 160: 	if( ( MLMMULibBase = (struct Library *)OpenLibrary("mpmmu.library",0)) == NULL)
+       | 0188  43EC  0026-01.2                LEA         01.00000026(A4),A1
+       | 018C  7000                           MOVEQ       #00,D0
+       | 018E  2C78 0004                      MOVEA.L     0004,A6
+       | 0192  4EAE FDD8                      JSR         FDD8(A6)
+       | 0196  2F40 0030                      MOVE.L      D0,0030(A7)
+       | 019A  4A80                           TST.L       D0
+       | 019C  6700 073C                      BEQ.W       08DA
+; 161: 		return;
+; 162: 
+; 163: 	// Create a reply port for your guide, needs not to be public cause its base
+; 164: 	// ptr is passed on to the guide when sending a message.
+; 165: 
+; 166: 	if( (RepP_WorkMusic = (struct MsgPort *)CreatePort(0,0)) == NULL)
+       | 01A0  42A7                           CLR.L       -(A7)
+       | 01A2  42A7                           CLR.L       -(A7)
+       | 01A4  4EBA  0000-XX.1                JSR         _CreatePort(PC)
+       | 01A8  504F                           ADDQ.W      #8,A7
+       | 01AA  2F40 017C                      MOVE.L      D0,017C(A7)
+       | 01AE  4A80                           TST.L       D0
+       | 01B0  660C                           BNE.B       01BE
+; 167: 	{
+; 168: 		CloseLibrary(MLMMULibBase);
+       | 01B2  226F 0030                      MOVEA.L     0030(A7),A1
+       | 01B6  4EAE FE62                      JSR         FE62(A6)
+; 169: 		return;
+       | 01BA  6000 071E                      BRA.W       08DA
+; 170: 	}
+; 171: 	// Make a Dialogue 
+; 172: 	if((Msg_MusicDial = (PROCDIALOGUE *)MLMMU_AllocMem(sizeof(PROCDIALOGUE), 
+; 173: 								MEMF_PUBLIC|MEMF_CLEAR,NULL ) ) == NULL)
+       | 01BE  2C6F 0030                      MOVEA.L     0030(A7),A6
+       | 01C2  7026                           MOVEQ       #26,D0
+       | 01C4  223C 0001 0001                 MOVE.L      #00010001,D1
+       | 01CA  93C9                           SUBA.L      A1,A1
+       | 01CC  4EAE FFE2                      JSR         FFE2(A6)
+       | 01D0  2F40 0194                      MOVE.L      D0,0194(A7)
+       | 01D4  4A80                           TST.L       D0
+       | 01D6  6618                           BNE.B       01F0
+; 174: 	{
+; 175: 		CloseLibrary(MLMMULibBase);
+       | 01D8  224E                           MOVEA.L     A6,A1
+       | 01DA  2C78 0004                      MOVEA.L     0004,A6
+       | 01DE  4EAE FE62                      JSR         FE62(A6)
+; 176: 		DeletePort(RepP_WorkMusic);
+       | 01E2  2F2F 017C                      MOVE.L      017C(A7),-(A7)
+       | 01E6  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+; 177: 		return;
+       | 01EA  584F                           ADDQ.W      #4,A7
+       | 01EC  6000 06EC                      BRA.W       08DA
+; 178: 	}
+; 179: 
+; 180: 	// Set up the Dialogue message
+; 181: 	Msg_MusicDial->pd_Msg.mn_Node.ln_Type = NT_MESSAGE;
+       | 01F0  206F 0194                      MOVEA.L     0194(A7),A0
+       | 01F4  117C 0005 0008                 MOVE.B      #05,0008(A0)
+; 182: 	Msg_MusicDial->pd_Msg.mn_Length = sizeof(PROCDIALOGUE);
+       | 01FA  317C 0026 0012                 MOVE.W      #0026,0012(A0)
+; 183: 	Msg_MusicDial->pd_Msg.mn_ReplyPort = RepP_WorkMusic;
+       | 0200  216F 017C 000E                 MOVE.L      017C(A7),000E(A0)
+; 184: 	Msg_MusicDial->pd_ChildPI = ThisPI;
+       | 0206  216F 018C 0016                 MOVE.L      018C(A7),0016(A0)
+; 185: 	Msg_MusicDial->pd_InUse = TRUE;
+       | 020C  317C 0001 0014                 MOVE.W      #0001,0014(A0)
+; 186: 	Msg_MusicDial->pd_Cmd = DCI_CHILDREADY;
+       | 0212  7002                           MOVEQ       #02,D0
+       | 0214  2140 001A                      MOVE.L      D0,001A(A0)
+; 187: 
+; 188: 	SigR_CtoP  		=   1 << RepP_WorkMusic->mp_SigBit;
+       | 0218  7000                           MOVEQ       #00,D0
+       | 021A  206F 017C                      MOVEA.L     017C(A7),A0
+       | 021E  1028 000F                      MOVE.B      000F(A0),D0
+       | 0222  7201                           MOVEQ       #01,D1
+       | 0224  2401                           MOVE.L      D1,D2
+       | 0226  E1A2                           ASL.L       D0,D2
+       | 0228  2A02                           MOVE.L      D2,D5
+; 189: 	Sig_PtoC     	=   1 << ThisPI->pi_Port_PtoC->mp_SigBit;
+       | 022A  226F 018C                      MOVEA.L     018C(A7),A1
+       | 022E  2069 0040                      MOVEA.L     0040(A1),A0
+       | 0232  7000                           MOVEQ       #00,D0
+       | 0234  1028 000F                      MOVE.B      000F(A0),D0
+       | 0238  E1A1                           ASL.L       D0,D1
+       | 023A  2C01                           MOVE.L      D1,D6
+; 190: 	PutMsg(ThisPI->pi_Port_CtoP,(struct Message *)Msg_MusicDial);
+       | 023C  2069 0044                      MOVEA.L     0044(A1),A0
+       | 0240  226F 0194                      MOVEA.L     0194(A7),A1
+       | 0244  2C78 0004                      MOVEA.L     0004,A6
+       | 0248  4EAE FE92                      JSR         FE92(A6)
+; 191: 
+; 192: 	// Make A dialogue to send to other Xapps  
+; 193: 	if( (Msg_XappDial = (PROCDIALOGUE *)MLMMU_AllocMem( sizeof(PROCDIALOGUE), 
+; 194: 								MEMF_PUBLIC|MEMF_CLEAR,NULL )) == NULL  )
+       | 024C  2C6F 0030                      MOVEA.L     0030(A7),A6
+       | 0250  7026                           MOVEQ       #26,D0
+       | 0252  223C 0001 0001                 MOVE.L      #00010001,D1
+       | 0258  93C9                           SUBA.L      A1,A1
+       | 025A  4EAE FFE2                      JSR         FFE2(A6)
+       | 025E  2640                           MOVEA.L     D0,A3
+       | 0260  200B                           MOVE.L      A3,D0
+       | 0262  6620                           BNE.B       0284
+; 195: 	{
+; 196: 		MLMMU_FreeMem( Msg_MusicDial );
+       | 0264  226F 0194                      MOVEA.L     0194(A7),A1
+       | 0268  4EAE FFDC                      JSR         FFDC(A6)
+; 197: 		CloseLibrary(MLMMULibBase);
+       | 026C  224E                           MOVEA.L     A6,A1
+       | 026E  2C78 0004                      MOVEA.L     0004,A6
+       | 0272  4EAE FE62                      JSR         FE62(A6)
+; 198: 		DeletePort(RepP_WorkMusic);
+       | 0276  2F2F 017C                      MOVE.L      017C(A7),-(A7)
+       | 027A  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+; 199: 		return;
+       | 027E  584F                           ADDQ.W      #4,A7
+       | 0280  6000 0658                      BRA.W       08DA
+; 200: 	}
+; 201: 
+; 202: 	Port_Xapp = NULL;
+       | 0284  42AF 0188                      CLR.L       0188(A7)
+; 203: 	Sig_XtoX = 0;
+       | 0288  42AF 0178                      CLR.L       0178(A7)
+; 204: 
+; 205: 	Port_OtherXapp = NULL;
+       | 028C  42AF 0184                      CLR.L       0184(A7)
+; 206: 
+; 207: 	// Set up a reply port in case we need a reply from an older Xapp
+; 208: 	RepP_Xapp = (struct MsgPort *)CreatePort(0,0);
+       | 0290  42A7                           CLR.L       -(A7)
+       | 0292  42A7                           CLR.L       -(A7)
+       | 0294  4EBA  0000-XX.1                JSR         _CreatePort(PC)
+; 209: 	SigR_XtoX  = 1 << RepP_Xapp->mp_SigBit;
+       | 0298  7200                           MOVEQ       #00,D1
+       | 029A  2040                           MOVEA.L     D0,A0
+       | 029C  1228 000F                      MOVE.B      000F(A0),D1
+       | 02A0  7401                           MOVEQ       #01,D2
+       | 02A2  E3A2                           ASL.L       D1,D2
+; 210: 
+; 211: 	Msg_XappDial->pd_Msg.mn_Node.ln_Type = NT_MESSAGE;
+       | 02A4  177C 0005 0008                 MOVE.B      #05,0008(A3)
+; 212: 	Msg_XappDial->pd_Msg.mn_Length = sizeof(PROCDIALOGUE);
+       | 02AA  377C 0026 0012                 MOVE.W      #0026,0012(A3)
+; 213: 	Msg_XappDial->pd_Msg.mn_ReplyPort = RepP_Xapp;
+       | 02B0  2740 000E                      MOVE.L      D0,000E(A3)
+; 214: 	Msg_XappDial->pd_ChildPI = ThisPI;
+       | 02B4  276F 0194 0016                 MOVE.L      0194(A7),0016(A3)
+; 215: 
+; 216: 	// Load the module file
+; 217: 
+; 218: 	MakeFullPath(ThisPI->pi_Arguments.ar_Worker.aw_Path,ThisPI->pi_Arguments.ar_Worker.aw_Name, FilePath);
+       | 02BA  486F 0048                      PEA         0048(A7)
+       | 02BE  226F 0198                      MOVEA.L     0198(A7),A1
+       | 02C2  2F29 0078                      MOVE.L      0078(A1),-(A7)
+       | 02C6  2F29 0074                      MOVE.L      0074(A1),-(A7)
+       | 02CA  2F40 0194                      MOVE.L      D0,0194(A7)
+       | 02CE  2F42 0188                      MOVE.L      D2,0188(A7)
+       | 02D2  4EBA  0000-XX.1                JSR         _MakeFullPath(PC)
+       | 02D6  4FEF 0014                      LEA         0014(A7),A7
+; 219: 	MusicModule = NULL;
+       | 02DA  42AF 003C                      CLR.L       003C(A7)
+; 220: 
+; 221: // Added KC 
+; 222: //	ObtainSemaphore(&MLSystem->ms_Sema_Music);
+; 223: //	FakeRun();
+; 224: //	ReleaseSemaphore(&MLSystem->ms_Sema_Music);
+; 225: // End added
+; 226: 
+; 227: 	if( !B_Stopper )
+       | 02DE  4A6F 0020                      TST.W       0020(A7)
+       | 02E2  662A                           BNE.B       030E
+; 228: 	{
+; 229: 		//KPrintF("Reading module 1\n");
+; 230: 		ObtainSemaphore(&MLSystem->ms_Sema_Music);
+       | 02E4  206F 019C                      MOVEA.L     019C(A7),A0
+       | 02E8  D0FC 02F8                      ADDA.W      #02F8,A0
+       | 02EC  2C78 0004                      MOVEA.L     0004,A6
+       | 02F0  4EAE FDCC                      JSR         FDCC(A6)
+; 231: 		MusicModule = ReadModule(FilePath);
+       | 02F4  486F 0040                      PEA         0040(A7)
+       | 02F8  4EBA  0000-XX.1                JSR         _ReadModule(PC)
+       | 02FC  584F                           ADDQ.W      #4,A7
+; 232: 		ReleaseSemaphore(&MLSystem->ms_Sema_Music);
+       | 02FE  206F 019C                      MOVEA.L     019C(A7),A0
+       | 0302  D0FC 02F8                      ADDA.W      #02F8,A0
+       | 0306  2F40 003C                      MOVE.L      D0,003C(A7)
+       | 030A  4EAE FDC6                      JSR         FDC6(A6)
+; 233: 	}
+; 234: 
+; 235: 	B_Stop = FALSE;
+       | 030E  426F 0024                      CLR.W       0024(A7)
+; 236: 	B_Setup = FALSE;
+       | 0312  426F 0026                      CLR.W       0026(A7)
+; 237: 	B_Playing = FALSE;
+       | 0316  426F 0022                      CLR.W       0022(A7)
+; 238: 	B_ReInit = FALSE;
+       | 031A  426F 002E                      CLR.W       002E(A7)
+; 239: 	B_Run = FALSE;
+       | 031E  426F 002A                      CLR.W       002A(A7)
+; 240: 	B_Term = FALSE;
+       | 0322  426F 002C                      CLR.W       002C(A7)
+; 241: 	B_Remove = FALSE;
+       | 0326  426F 0028                      CLR.W       0028(A7)
+; 242: 	while(!B_Term)
+       | 032A  4A6F 002C                      TST.W       002C(A7)
+       | 032E  6600 0556                      BNE.W       0886
+; 243: 	{
+; 244: 		SigRecvd = Wait(Sig_XtoX | SigR_XtoX | Sig_PtoC | SigR_CtoP | SIGF_ABORT);
+       | 0332  202F 0178                      MOVE.L      0178(A7),D0
+       | 0336  80AF 0174                      OR.L        0174(A7),D0
+       | 033A  8086                           OR.L        D6,D0
+       | 033C  8085                           OR.L        D5,D0
+       | 033E  0040 0001                      ORI.W       #0001,D0
+       | 0342  2C78 0004                      MOVEA.L     0004,A6
+       | 0346  4EAE FEC2                      JSR         FEC2(A6)
+; 245: 
+; 246: 		if(SigRecvd & SIGF_ABORT)
+       | 034A  2F40 0170                      MOVE.L      D0,0170(A7)
+       | 034E  0800 0000                      BTST        #0000,D0
+       | 0352  6600 0532                      BNE.W       0886
+; 247: 			break;
+; 248:         
+; 249: 		if(SigRecvd & Sig_PtoC)
+       | 0356  C086                           AND.L       D6,D0
+       | 0358  6700 0180                      BEQ.W       04DA
+; 250: 		{
+; 251: 			// Our parent has something to say to us
+; 252: 			while( (Msg_RMusicDial = (PROCDIALOGUE *)GetMsg(ThisPI->pi_Port_PtoC)) != NULL)
+       | 035C  206F 018C                      MOVEA.L     018C(A7),A0
+       | 0360  2068 0040                      MOVEA.L     0040(A0),A0
+       | 0364  2C78 0004                      MOVEA.L     0004,A6
+       | 0368  4EAE FE8C                      JSR         FE8C(A6)
+       | 036C  2F40 0190                      MOVE.L      D0,0190(A7)
+       | 0370  4A80                           TST.L       D0
+       | 0372  6700 0166                      BEQ.W       04DA
+; 253: 			{
+; 254: 				Msg_RMusicDial->pd_ChildPI = ThisPI;	
+       | 0376  2040                           MOVEA.L     D0,A0
+       | 0378  216F 018C 0016                 MOVE.L      018C(A7),0016(A0)
+; 255: 				switch(Msg_RMusicDial->pd_Cmd)
+       | 037E  2028 001A                      MOVE.L      001A(A0),D0
+       | 0382  720D                           MOVEQ       #0D,D1
+       | 0384  9081                           SUB.L       D1,D0
+       | 0386  673A                           BEQ.B       03C2
+       | 0388  5580                           SUBQ.L      #2,D0
+       | 038A  6700 00B8                      BEQ.W       0444
+       | 038E  5580                           SUBQ.L      #2,D0
+       | 0390  6700 00BE                      BEQ.W       0450
+       | 0394  5580                           SUBQ.L      #2,D0
+       | 0396  6700 00F4                      BEQ.W       048C
+       | 039A  5380                           SUBQ.L      #1,D0
+       | 039C  6710                           BEQ.B       03AE
+       | 039E  5B80                           SUBQ.L      #5,D0
+       | 03A0  6700 00CC                      BEQ.W       046E
+       | 03A4  5580                           SUBQ.L      #2,D0
+       | 03A6  6700 00FE                      BEQ.W       04A6
+       | 03AA  6000 0114                      BRA.W       04C0
+; 256: 				{
+; 257: 					case DCC_DOPREPARE:
+; 258: 						Msg_RMusicDial->pd_Cmd = DCI_CHILDPREPARES;                 
+       | 03AE  7015                           MOVEQ       #15,D0
+       | 03B0  206F 0190                      MOVEA.L     0190(A7),A0
+       | 03B4  2140 001A                      MOVE.L      D0,001A(A0)
+; 259: 						B_ReInit = TRUE;
+       | 03B8  3F7C 0001 002E                 MOVE.W      #0001,002E(A7)
+; 260: 						break;                          
+       | 03BE  6000 010A                      BRA.W       04CA
+; 261: 					case DCC_DORUN:
+; 262: 						// Either start or re-run from pause
+; 263: 						Forbid();
+       | 03C2  2C78 0004                      MOVEA.L     0004,A6
+       | 03C6  4EAE FF7C                      JSR         FF7C(A6)
+; 264: 						if( (Port_OtherXapp = (struct MsgPort *)FindPort(XAPPPORTNAME)) != NULL)
+       | 03CA  43EC  0034-01.2                LEA         01.00000034(A4),A1
+       | 03CE  4EAE FE7A                      JSR         FE7A(A6)
+       | 03D2  2F40 0184                      MOVE.L      D0,0184(A7)
+       | 03D6  4A80                           TST.L       D0
+       | 03D8  6726                           BEQ.B       0400
+; 265: 						{
+; 266: 							if(Port_OtherXapp != Port_Xapp)
+       | 03DA  206F 0188                      MOVEA.L     0188(A7),A0
+       | 03DE  B1C0                           CMPA.L      D0,A0
+       | 03E0  6710                           BEQ.B       03F2
+; 267: 							{
+; 268: 								Msg_XappDial->pd_Cmd = DCC_DOTERM;
+       | 03E2  7211                           MOVEQ       #11,D1
+       | 03E4  2741 001A                      MOVE.L      D1,001A(A3)
+; 269: 								PutMsg(Port_OtherXapp,(struct Message *)Msg_XappDial);
+       | 03E8  2040                           MOVEA.L     D0,A0
+       | 03EA  224B                           MOVEA.L     A3,A1
+       | 03EC  4EAE FE92                      JSR         FE92(A6)
+       | 03F0  6040                           BRA.B       0432
+; 270: 							}
+; 271: 							else
+; 272: 							if( !B_Stopper )
+       | 03F2  302F 0020                      MOVE.W      0020(A7),D0
+       | 03F6  663A                           BNE.B       0432
+; 273: 								B_Run = TRUE;
+       | 03F8  3F7C 0001 002A                 MOVE.W      #0001,002A(A7)
+       | 03FE  6032                           BRA.B       0432
+; 274: 						}
+; 275: 						else
+; 276: 						{
+; 277: 							if( !B_Stopper )
+       | 0400  4A6F 0020                      TST.W       0020(A7)
+       | 0404  6628                           BNE.B       042E
+; 278: 							{
+; 279: 								Port_Xapp = (struct MsgPort *)CreatePort(XAPPPORTNAME,0);
+       | 0406  42A7                           CLR.L       -(A7)
+       | 0408  486C  0042-01.2                PEA         01.00000042(A4)
+       | 040C  4EBA  0000-XX.1                JSR         _CreatePort(PC)
+       | 0410  504F                           ADDQ.W      #8,A7
+; 280: 								Sig_XtoX = 1 << Port_Xapp->mp_SigBit;
+       | 0412  7200                           MOVEQ       #00,D1
+       | 0414  2040                           MOVEA.L     D0,A0
+       | 0416  1228 000F                      MOVE.B      000F(A0),D1
+       | 041A  7401                           MOVEQ       #01,D2
+       | 041C  E3A2                           ASL.L       D1,D2
+; 281: 								B_Run = TRUE;
+       | 041E  3F7C 0001 002A                 MOVE.W      #0001,002A(A7)
+       | 0424  2F40 0188                      MOVE.L      D0,0188(A7)
+       | 0428  2F42 0178                      MOVE.L      D2,0178(A7)
+       | 042C  6004                           BRA.B       0432
+; 282: 							}
+; 283: 							else
+; 284: 								B_Run = FALSE;
+       | 042E  426F 002A                      CLR.W       002A(A7)
+; 285: 						}
+; 286: 						Permit();
+       | 0432  4EAE FF76                      JSR         FF76(A6)
+; 287: 						Msg_RMusicDial->pd_Cmd = DCI_CHILDRUNS;                 
+       | 0436  700E                           MOVEQ       #0E,D0
+       | 0438  206F 0190                      MOVEA.L     0190(A7),A0
+       | 043C  2140 001A                      MOVE.L      D0,001A(A0)
+; 288: 						break;                          
+       | 0440  6000 0088                      BRA.W       04CA
+; 289: 					case DCC_DOHOLD:
+; 290: 						Msg_RMusicDial->pd_Cmd = DCI_CHILDHOLDS;                 
+       | 0444  7010                           MOVEQ       #10,D0
+       | 0446  206F 0190                      MOVEA.L     0190(A7),A0
+       | 044A  2140 001A                      MOVE.L      D0,001A(A0)
+; 291: 						break;
+       | 044E  607A                           BRA.B       04CA
+; 292: 					case DCC_DOTERM:
+; 293: 						Msg_RMusicDial->pd_Cmd = DCI_CHILDTERM;
+       | 0450  7012                           MOVEQ       #12,D0
+       | 0452  206F 0190                      MOVEA.L     0190(A7),A0
+       | 0456  2140 001A                      MOVE.L      D0,001A(A0)
+; 294: 						B_Remove = TRUE;
+       | 045A  7001                           MOVEQ       #01,D0
+; 295: 						B_Stop = TRUE;
+; 296: 						B_Run = FALSE;
+       | 045C  426F 002A                      CLR.W       002A(A7)
+; 297: 						B_ReInit = FALSE;
+       | 0460  426F 002E                      CLR.W       002E(A7)
+       | 0464  3F40 0024                      MOVE.W      D0,0024(A7)
+       | 0468  3F40 0028                      MOVE.W      D0,0028(A7)
+; 298: 						break;
+       | 046C  605C                           BRA.B       04CA
+; 299: 					case DCC_DOEASYTERM:
+; 300: 						Msg_RMusicDial->pd_Cmd = DCI_CHILDEASYTERM;
+       | 046E  701A                           MOVEQ       #1A,D0
+       | 0470  206F 0190                      MOVEA.L     0190(A7),A0
+       | 0474  2140 001A                      MOVE.L      D0,001A(A0)
+; 301: 						B_Remove = TRUE;
+       | 0478  7001                           MOVEQ       #01,D0
+; 302: 						B_Stop = TRUE;
+; 303: 						B_Run = FALSE;
+       | 047A  426F 002A                      CLR.W       002A(A7)
+; 304: 						B_ReInit = FALSE;
+       | 047E  426F 002E                      CLR.W       002E(A7)
+       | 0482  3F40 0024                      MOVE.W      D0,0024(A7)
+       | 0486  3F40 0028                      MOVE.W      D0,0028(A7)
+; 305: 						break;
+       | 048A  603E                           BRA.B       04CA
+; 306: 					case DCC_DOSTOP:
+; 307: 						Msg_RMusicDial->pd_Cmd = DCI_CHILDREADY;
+       | 048C  7002                           MOVEQ       #02,D0
+       | 048E  206F 0190                      MOVEA.L     0190(A7),A0
+       | 0492  2140 001A                      MOVE.L      D0,001A(A0)
+; 308: 						B_Stop = TRUE;
+       | 0496  3F7C 0001 0024                 MOVE.W      #0001,0024(A7)
+; 309: 						B_Run = FALSE;
+       | 049C  426F 002A                      CLR.W       002A(A7)
+; 310: 						B_ReInit = FALSE;
+       | 04A0  426F 002E                      CLR.W       002E(A7)
+; 311: 						break;
+       | 04A4  6024                           BRA.B       04CA
+; 312: 					case DCC_DOEASYSTOP:
+; 313: 						Msg_RMusicDial->pd_Cmd = DCI_CHILDEASYSTOP;
+       | 04A6  701C                           MOVEQ       #1C,D0
+       | 04A8  206F 0190                      MOVEA.L     0190(A7),A0
+       | 04AC  2140 001A                      MOVE.L      D0,001A(A0)
+; 314: 						B_Stop = TRUE;
+       | 04B0  3F7C 0001 0024                 MOVE.W      #0001,0024(A7)
+; 315: 						B_Run = FALSE;
+       | 04B6  426F 002A                      CLR.W       002A(A7)
+; 316: 						B_ReInit = FALSE;
+       | 04BA  426F 002E                      CLR.W       002E(A7)
+; 317: 						break;
+       | 04BE  600A                           BRA.B       04CA
+; 318: 					default:
+; 319: 						// simply ignore what we don't understand
+; 320: 						Msg_RMusicDial->pd_Cmd = DCI_IGNORE;
+       | 04C0  7001                           MOVEQ       #01,D0
+       | 04C2  206F 0190                      MOVEA.L     0190(A7),A0
+       | 04C6  2140 001A                      MOVE.L      D0,001A(A0)
+; 321: 						break;
+; 322: 				}
+; 323: 				ReplyMsg((struct Message *)Msg_RMusicDial);
+       | 04CA  226F 0190                      MOVEA.L     0190(A7),A1
+       | 04CE  2C78 0004                      MOVEA.L     0004,A6
+       | 04D2  4EAE FE86                      JSR         FE86(A6)
+; 324: 			}
+       | 04D6  6000 FE84                      BRA.W       035C
+; 325: 		}
+; 326: 
+; 327: 		if(SigRecvd & SigR_CtoP)		// get a reply from our guide
+       | 04DA  202F 0170                      MOVE.L      0170(A7),D0
+       | 04DE  C085                           AND.L       D5,D0
+       | 04E0  672A                           BEQ.B       050C
+; 328: 			while( (Msg_RMusicDial = (PROCDIALOGUE *)GetMsg(RepP_WorkMusic)) != NULL)
+       | 04E2  206F 017C                      MOVEA.L     017C(A7),A0
+       | 04E6  2C78 0004                      MOVEA.L     0004,A6
+       | 04EA  4EAE FE8C                      JSR         FE8C(A6)
+       | 04EE  2F40 0190                      MOVE.L      D0,0190(A7)
+       | 04F2  4A80                           TST.L       D0
+       | 04F4  6716                           BEQ.B       050C
+; 329: 			{
+; 330: 				Msg_RMusicDial->pd_InUse = FALSE;
+       | 04F6  2040                           MOVEA.L     D0,A0
+       | 04F8  4268 0014                      CLR.W       0014(A0)
+; 331: 				if(Msg_RMusicDial->pd_Cmd == DCC_DOTERM)
+       | 04FC  7011                           MOVEQ       #11,D0
+       | 04FE  B0A8 001A                      CMP.L       001A(A0),D0
+       | 0502  66DE                           BNE.B       04E2
+; 332: 					B_Remove = TRUE;
+       | 0504  3F7C 0001 0028                 MOVE.W      #0001,0028(A7)
+; 333: 			}
+       | 050A  60D6                           BRA.B       04E2
+; 334: 
+; 335: 		// see if there is a reply to a message we sent to a Xapp
+; 336: 		if(SigRecvd & SigR_XtoX)
+       | 050C  202F 0170                      MOVE.L      0170(A7),D0
+       | 0510  C0AF 0174                      AND.L       0174(A7),D0
+       | 0514  674C                           BEQ.B       0562
+; 337: 		{
+; 338: 			// Get all messages for this port
+; 339: 			while( (Msg_RMusicDial = (PROCDIALOGUE *)GetMsg(RepP_Xapp)) != NULL);
+       | 0516  206F 0180                      MOVEA.L     0180(A7),A0
+       | 051A  2C78 0004                      MOVEA.L     0004,A6
+       | 051E  4EAE FE8C                      JSR         FE8C(A6)
+       | 0522  2F40 0190                      MOVE.L      D0,0190(A7)
+       | 0526  4A80                           TST.L       D0
+       | 0528  66EC                           BNE.B       0516
+; 340: 			if( !B_Stopper )
+       | 052A  4A6F 0020                      TST.W       0020(A7)
+       | 052E  662E                           BNE.B       055E
+; 341: 			{
+; 342: 				if( (Port_Xapp = (struct MsgPort *)CreatePort(XAPPPORTNAME,0)) != NULL)
+       | 0530  42A7                           CLR.L       -(A7)
+       | 0532  486C  0050-01.2                PEA         01.00000050(A4)
+       | 0536  4EBA  0000-XX.1                JSR         _CreatePort(PC)
+       | 053A  504F                           ADDQ.W      #8,A7
+       | 053C  2F40 0188                      MOVE.L      D0,0188(A7)
+       | 0540  4A80                           TST.L       D0
+       | 0542  671E                           BEQ.B       0562
+; 343: 				{
+; 344: 					Sig_XtoX = 1 << Port_Xapp->mp_SigBit;
+       | 0544  7000                           MOVEQ       #00,D0
+       | 0546  206F 0188                      MOVEA.L     0188(A7),A0
+       | 054A  1028 000F                      MOVE.B      000F(A0),D0
+       | 054E  7201                           MOVEQ       #01,D1
+       | 0550  E1A1                           ASL.L       D0,D1
+; 345: 					B_Run = TRUE;
+       | 0552  3F7C 0001 002A                 MOVE.W      #0001,002A(A7)
+       | 0558  2F41 0178                      MOVE.L      D1,0178(A7)
+       | 055C  6004                           BRA.B       0562
+; 346: 				}
+; 347: 			}
+; 348: 			else
+; 349: 			{
+; 350: 				//KPrintF("Other is told to stop playing\n");
+; 351: 				B_Run = FALSE;
+       | 055E  426F 002A                      CLR.W       002A(A7)
+; 352: 			}
+; 353: 		}
+; 354: 
+; 355: 		if(B_Stop)								// Our guide wants us to stop playing
+       | 0562  4A6F 0024                      TST.W       0024(A7)
+       | 0566  674E                           BEQ.B       05B6
+; 356: 		{	
+; 357: 			if(B_Playing)
+       | 0568  4A6F 0022                      TST.W       0022(A7)
+       | 056C  672C                           BEQ.B       059A
+; 358: 			{
+; 359: 				if(MusicModule != NULL)
+       | 056E  202F 003C                      MOVE.L      003C(A7),D0
+       | 0572  6708                           BEQ.B       057C
+; 360: 					StopTune(MusicModule);				// stop playing the tune
+       | 0574  2F00                           MOVE.L      D0,-(A7)
+       | 0576  4EBA  0000-XX.1                JSR         _StopTune(PC)
+       | 057A  584F                           ADDQ.W      #4,A7
+; 361: 				B_Playing = FALSE;
+       | 057C  426F 0022                      CLR.W       0022(A7)
+; 362: 				KillPlayer();								// Remove interrupts etc.
+       | 0580  4EBA  0000-XX.1                JSR         _KillPlayer(PC)
+; 363: 				if(MusicModule != NULL)
+       | 0584  202F 003C                      MOVE.L      003C(A7),D0
+       | 0588  6708                           BEQ.B       0592
+; 364: 					KillModule(MusicModule);
+       | 058A  2F00                           MOVE.L      D0,-(A7)
+       | 058C  4EBA  0000-XX.1                JSR         _KillModule(PC)
+       | 0590  584F                           ADDQ.W      #4,A7
+; 365: 				MusicModule = NULL;
+       | 0592  42AF 003C                      CLR.L       003C(A7)
+; 366: 				B_Setup = FALSE;
+       | 0596  426F 0026                      CLR.W       0026(A7)
+; 367: 			}
+; 368: 			if(Port_Xapp != NULL)		
+       | 059A  202F 0188                      MOVE.L      0188(A7),D0
+       | 059E  6712                           BEQ.B       05B2
+; 369: 			{
+; 370: 				DeletePort(Port_Xapp);
+       | 05A0  2F00                           MOVE.L      D0,-(A7)
+       | 05A2  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 05A6  584F                           ADDQ.W      #4,A7
+; 371: 				Port_Xapp = NULL;
+       | 05A8  42AF 0188                      CLR.L       0188(A7)
+; 372: 				Sig_XtoX = 0;	
+       | 05AC  7000                           MOVEQ       #00,D0
+       | 05AE  2F40 0178                      MOVE.L      D0,0178(A7)
+; 373: 			}
+; 374: 			B_Stop = FALSE;
+       | 05B2  426F 0024                      CLR.W       0024(A7)
+; 375: 		}
+; 376: 
+; 377: 		if(SigRecvd & Sig_XtoX)		// see if there is a message from another Xapp
+       | 05B6  202F 0170                      MOVE.L      0170(A7),D0
+       | 05BA  C0AF 0178                      AND.L       0178(A7),D0
+       | 05BE  6700 00BE                      BEQ.W       067E
+; 378: 		{
+; 379: 			B_Stop = FALSE;
+       | 05C2  426F 0024                      CLR.W       0024(A7)
+; 380: 			// Get all messages for this port
+; 381: 			while( (Port_Xapp != NULL )&&( Msg_RXappDial = (PROCDIALOGUE *)GetMsg(Port_Xapp)) != NULL )
+       | 05C6  202F 0188                      MOVE.L      0188(A7),D0
+       | 05CA  6700 00B2                      BEQ.W       067E
+       | 05CE  2040                           MOVEA.L     D0,A0
+       | 05D0  2C78 0004                      MOVEA.L     0004,A6
+       | 05D4  4EAE FE8C                      JSR         FE8C(A6)
+       | 05D8  2F40 0198                      MOVE.L      D0,0198(A7)
+       | 05DC  4A80                           TST.L       D0
+       | 05DE  6700 009E                      BEQ.W       067E
+; 382: 			{
+; 383: 				Msg_RXappDial->pd_ChildPI = ThisPI;	
+       | 05E2  2040                           MOVEA.L     D0,A0
+       | 05E4  216F 018C 0016                 MOVE.L      018C(A7),0016(A0)
+; 384: 				if(Msg_RXappDial->pd_Cmd == DCC_DOTERM)	// Lets see what we've got
+       | 05EA  7211                           MOVEQ       #11,D1
+       | 05EC  B2A8 001A                      CMP.L       001A(A0),D1
+       | 05F0  6600 0080                      BNE.W       0672
+; 385: 				{
+; 386: 					Msg_RXappDial->pd_Cmd = DCI_CHILDTERM;       
+       | 05F4  7012                           MOVEQ       #12,D0
+       | 05F6  2140 001A                      MOVE.L      D0,001A(A0)
+; 387: 
+; 388: 					if(B_Playing)		// Another musicxapp wants up to stop playing
+       | 05FA  4A6F 0022                      TST.W       0022(A7)
+       | 05FE  6746                           BEQ.B       0646
+; 389: 					{
+; 390: 						if(MusicModule != NULL)				// stop playing the tune
+       | 0600  202F 003C                      MOVE.L      003C(A7),D0
+       | 0604  6708                           BEQ.B       060E
+; 391: 							StopTune(MusicModule);
+       | 0606  2F00                           MOVE.L      D0,-(A7)
+       | 0608  4EBA  0000-XX.1                JSR         _StopTune(PC)
+       | 060C  584F                           ADDQ.W      #4,A7
+; 392: 						B_Playing = FALSE;
+       | 060E  426F 0022                      CLR.W       0022(A7)
+; 393: 						KillPlayer();							// Remove interrupts etc.
+       | 0612  4EBA  0000-XX.1                JSR         _KillPlayer(PC)
+; 394: 						B_Setup = FALSE;
+       | 0616  426F 0026                      CLR.W       0026(A7)
+; 395: 						if(!ThisPI->pi_Preload)
+       | 061A  206F 018C                      MOVEA.L     018C(A7),A0
+       | 061E  4A68 006C                      TST.W       006C(A0)
+       | 0622  6622                           BNE.B       0646
+; 396: 						{
+; 397: 							if(!Msg_MusicDial->pd_InUse)
+       | 0624  226F 0194                      MOVEA.L     0194(A7),A1
+       | 0628  4A69 0014                      TST.W       0014(A1)
+       | 062C  6618                           BNE.B       0646
+; 398: 							{
+; 399: 								Msg_MusicDial->pd_ChildPI = ThisPI;
+       | 062E  2348 0016                      MOVE.L      A0,0016(A1)
+; 400: 								Msg_MusicDial->pd_InUse = TRUE;
+       | 0632  337C 0001 0014                 MOVE.W      #0001,0014(A1)
+; 401: 								Msg_MusicDial->pd_Cmd = DCI_CHILDTERM;
+       | 0638  7012                           MOVEQ       #12,D0
+       | 063A  2340 001A                      MOVE.L      D0,001A(A1)
+; 402: 								PutMsg(ThisPI->pi_Port_CtoP,(struct Message *)Msg_MusicDial);
+       | 063E  2068 0044                      MOVEA.L     0044(A0),A0
+       | 0642  4EAE FE92                      JSR         FE92(A6)
+; 403: 							}
+; 404: 						}
+; 405: 					}
+; 406: 
+; 407: 					if(MusicModule != NULL)
+       | 0646  202F 003C                      MOVE.L      003C(A7),D0
+       | 064A  6708                           BEQ.B       0654
+; 408: 						KillModule(MusicModule);
+       | 064C  2F00                           MOVE.L      D0,-(A7)
+       | 064E  4EBA  0000-XX.1                JSR         _KillModule(PC)
+       | 0652  584F                           ADDQ.W      #4,A7
+; 409: 					MusicModule = NULL;
+       | 0654  42AF 003C                      CLR.L       003C(A7)
+; 410: 					B_Stop = FALSE;
+       | 0658  426F 0024                      CLR.W       0024(A7)
+; 411: 
+; 412: 					if(Port_Xapp != NULL)		
+       | 065C  202F 0188                      MOVE.L      0188(A7),D0
+       | 0660  6710                           BEQ.B       0672
+; 413: 					{
+; 414: 						DeletePort(Port_Xapp);
+       | 0662  2F00                           MOVE.L      D0,-(A7)
+       | 0664  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 0668  584F                           ADDQ.W      #4,A7
+; 415: 						Port_Xapp = NULL;
+       | 066A  42AF 0188                      CLR.L       0188(A7)
+; 416: 						Sig_XtoX = 0;	
+       | 066E  42AF 0178                      CLR.L       0178(A7)
+; 417: 					}
+; 418: 				}
+; 419: 				ReplyMsg((struct Message *)Msg_RXappDial);
+       | 0672  226F 0198                      MOVEA.L     0198(A7),A1
+       | 0676  4EAE FE86                      JSR         FE86(A6)
+; 420: 			}
+       | 067A  6000 FF4A                      BRA.W       05C6
+; 421: 		}
+; 422: 
+; 423: 		if(B_Remove)
+       | 067E  4A6F 0028                      TST.W       0028(A7)
+       | 0682  6700 0098                      BEQ.W       071C
+; 424: 		{
+; 425: 			if(Port_Xapp)
+       | 0686  4AAF 0188                      TST.L       0188(A7)
+       | 068A  674C                           BEQ.B       06D8
+; 426: 			{
+; 427: 				Forbid();
+       | 068C  2C78 0004                      MOVEA.L     0004,A6
+       | 0690  4EAE FF7C                      JSR         FF7C(A6)
+; 428: 				// reply to outstanding requests from another Xapp
+; 429: 				while( (Msg_RXappDial = (PROCDIALOGUE *)GetMsg(Port_Xapp)) != NULL)
+       | 0694  206F 0188                      MOVEA.L     0188(A7),A0
+       | 0698  2C78 0004                      MOVEA.L     0004,A6
+       | 069C  4EAE FE8C                      JSR         FE8C(A6)
+       | 06A0  2F40 0198                      MOVE.L      D0,0198(A7)
+       | 06A4  4A80                           TST.L       D0
+       | 06A6  6716                           BEQ.B       06BE
+; 430: 				{
+; 431: 					Msg_RXappDial->pd_Cmd = DCI_CHILDTERM;       
+       | 06A8  7212                           MOVEQ       #12,D1
+       | 06AA  2040                           MOVEA.L     D0,A0
+       | 06AC  2141 001A                      MOVE.L      D1,001A(A0)
+; 432: 					Msg_RXappDial->pd_ChildPI = ThisPI;	
+       | 06B0  216F 018C 0016                 MOVE.L      018C(A7),0016(A0)
+; 433: 					ReplyMsg((struct Message *)Msg_RXappDial);
+       | 06B6  2240                           MOVEA.L     D0,A1
+       | 06B8  4EAE FE86                      JSR         FE86(A6)
+; 434: 				}	
+       | 06BC  60D6                           BRA.B       0694
+; 435: 				DeletePort(Port_Xapp);
+       | 06BE  2F2F 0188                      MOVE.L      0188(A7),-(A7)
+       | 06C2  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 06C6  584F                           ADDQ.W      #4,A7
+; 436: 				Port_Xapp = NULL;
+       | 06C8  42AF 0188                      CLR.L       0188(A7)
+; 437: 				Sig_XtoX = 0;	
+       | 06CC  42AF 0178                      CLR.L       0178(A7)
+; 438: 				Permit();
+       | 06D0  2C78 0004                      MOVEA.L     0004,A6
+       | 06D4  4EAE FF76                      JSR         FF76(A6)
+; 439: 			}
+; 440: 
+; 441: 			// Wait till our guide has processed all our replies
+; 442: 			B_Term = TRUE;
+       | 06D8  3F7C 0001 002C                 MOVE.W      #0001,002C(A7)
+; 443: 			for(i = 0; i < DIAL_MAXPTOC; i++)
+       | 06DE  42AF 016C                      CLR.L       016C(A7)
+       | 06E2  202F 016C                      MOVE.L      016C(A7),D0
+       | 06E6  7204                           MOVEQ       #04,D1
+       | 06E8  B081                           CMP.L       D1,D0
+       | 06EA  6C1C                           BGE.B       0708
+; 444: 				if(((PROCDIALOGUE *)ThisPI->pi_PtoCDial[i])->pd_InUse)
+       | 06EC  2400                           MOVE.L      D0,D2
+       | 06EE  E582                           ASL.L       #2,D2
+       | 06F0  206F 018C                      MOVEA.L     018C(A7),A0
+       | 06F4  2070 285C                      MOVEA.L     5C(A0,D2.L),A0
+       | 06F8  4A68 0014                      TST.W       0014(A0)
+       | 06FC  6704                           BEQ.B       0702
+; 445: 					B_Term = FALSE;
+       | 06FE  426F 002C                      CLR.W       002C(A7)
+       | 0702  52AF 016C                      ADDQ.L      #1,016C(A7)
+       | 0706  60DA                           BRA.B       06E2
+; 446: 			if(Msg_MusicDial->pd_InUse)
+       | 0708  206F 0194                      MOVEA.L     0194(A7),A0
+       | 070C  4A68 0014                      TST.W       0014(A0)
+       | 0710  6700 FC18                      BEQ.W       032A
+; 447: 				B_Term = FALSE;
+       | 0714  426F 002C                      CLR.W       002C(A7)
+       | 0718  6000 FC10                      BRA.W       032A
+; 448: 		}
+; 449: 		else
+; 450: 		{
+; 451: 			if(B_Run)
+       | 071C  4A6F 002A                      TST.W       002A(A7)
+       | 0720  6700 00EE                      BEQ.W       0810
+; 452: 			{
+; 453: 				// last attempt to read the file, if not possible then don't play
+; 454: 				if(MusicModule == NULL)
+       | 0724  4AAF 003C                      TST.L       003C(A7)
+       | 0728  662A                           BNE.B       0754
+; 455: 				{
+; 456: 					ObtainSemaphore(&MLSystem->ms_Sema_Music);
+       | 072A  206F 019C                      MOVEA.L     019C(A7),A0
+       | 072E  D0FC 02F8                      ADDA.W      #02F8,A0
+       | 0732  2C78 0004                      MOVEA.L     0004,A6
+       | 0736  4EAE FDCC                      JSR         FDCC(A6)
+; 457: 					//KPrintF("Reading module 2\n");
+; 458: 					MusicModule = ReadModule(FilePath);
+       | 073A  486F 0040                      PEA         0040(A7)
+       | 073E  4EBA  0000-XX.1                JSR         _ReadModule(PC)
+       | 0742  584F                           ADDQ.W      #4,A7
+; 459: 					ReleaseSemaphore(&MLSystem->ms_Sema_Music);
+       | 0744  206F 019C                      MOVEA.L     019C(A7),A0
+       | 0748  D0FC 02F8                      ADDA.W      #02F8,A0
+       | 074C  2F40 003C                      MOVE.L      D0,003C(A7)
+       | 0750  4EAE FDC6                      JSR         FDC6(A6)
+; 460: 				}
+; 461: 
+; 462: 				if(MusicModule != NULL)
+       | 0754  222F 003C                      MOVE.L      003C(A7),D1
+       | 0758  56C0                           SNE         D0
+       | 075A  4400                           NEG.B       D0
+       | 075C  4880                           EXT.W       D0
+       | 075E  48C0                           EXT.L       D0
+       | 0760  4A80                           TST.L       D0
+       | 0762  6700 00A8                      BEQ.W       080C
+; 463: 				{
+; 464: 					if(B_Playing)
+       | 0766  4A6F 0022                      TST.W       0022(A7)
+       | 076A  6744                           BEQ.B       07B0
+; 465: 					{	// We're already playing a tune, let's start again
+; 466: 
+; 467: 						if(MusicModule != NULL)
+       | 076C  4A80                           TST.L       D0
+       | 076E  6708                           BEQ.B       0778
+; 468: 							StopTune(MusicModule);
+       | 0770  2F01                           MOVE.L      D1,-(A7)
+       | 0772  4EBA  0000-XX.1                JSR         _StopTune(PC)
+       | 0776  584F                           ADDQ.W      #4,A7
+; 469: 						B_Playing = FALSE;
+       | 0778  426F 0022                      CLR.W       0022(A7)
+; 470: 						if(!(B_Playing = !PlayTune(MusicModule)))
+       | 077C  2F2F 003C                      MOVE.L      003C(A7),-(A7)
+       | 0780  4EBA  0000-XX.1                JSR         _PlayTune(PC)
+       | 0784  584F                           ADDQ.W      #4,A7
+       | 0786  4A80                           TST.L       D0
+       | 0788  57C1                           SEQ         D1
+       | 078A  4401                           NEG.B       D1
+       | 078C  4881                           EXT.W       D1
+       | 078E  48C1                           EXT.L       D1
+       | 0790  3F41 0022                      MOVE.W      D1,0022(A7)
+       | 0794  4A41                           TST.W       D1
+       | 0796  6674                           BNE.B       080C
+; 471: 						{	// couldn't play tune, remove player and module from memory
+; 472: 							KillModule(MusicModule);
+       | 0798  2F2F 003C                      MOVE.L      003C(A7),-(A7)
+       | 079C  4EBA  0000-XX.1                JSR         _KillModule(PC)
+; 473: 							KillPlayer();
+       | 07A0  4EBA  0000-XX.1                JSR         _KillPlayer(PC)
+       | 07A4  584F                           ADDQ.W      #4,A7
+; 474: 							MusicModule = NULL;
+       | 07A6  42AF 003C                      CLR.L       003C(A7)
+; 475: 							B_Setup = FALSE;
+       | 07AA  426F 0026                      CLR.W       0026(A7)
+       | 07AE  605C                           BRA.B       080C
+; 476: 						}
+; 477: 					}
+; 478: 					else
+; 479: 					{
+; 480: 						if((B_Setup = !SetupPlayer()))
+       | 07B0  4EBA  0000-XX.1                JSR         _SetupPlayer(PC)
+       | 07B4  4A80                           TST.L       D0
+       | 07B6  57C1                           SEQ         D1
+       | 07B8  4401                           NEG.B       D1
+       | 07BA  4881                           EXT.W       D1
+       | 07BC  48C1                           EXT.L       D1
+       | 07BE  3F41 0026                      MOVE.W      D1,0026(A7)
+       | 07C2  4A41                           TST.W       D1
+       | 07C4  6736                           BEQ.B       07FC
+; 481: 						{
+; 482: 							if(!(B_Playing = !PlayTune(MusicModule)))
+       | 07C6  2F2F 003C                      MOVE.L      003C(A7),-(A7)
+       | 07CA  4EBA  0000-XX.1                JSR         _PlayTune(PC)
+       | 07CE  584F                           ADDQ.W      #4,A7
+       | 07D0  4A80                           TST.L       D0
+       | 07D2  57C1                           SEQ         D1
+       | 07D4  4401                           NEG.B       D1
+       | 07D6  4881                           EXT.W       D1
+       | 07D8  48C1                           EXT.L       D1
+       | 07DA  3F41 0022                      MOVE.W      D1,0022(A7)
+       | 07DE  4A41                           TST.W       D1
+       | 07E0  662A                           BNE.B       080C
+; 483: 							{	// couldn't play tune, remove player and module from memory
+; 484: 								KillModule(MusicModule);
+       | 07E2  2F2F 003C                      MOVE.L      003C(A7),-(A7)
+       | 07E6  4EBA  0000-XX.1                JSR         _KillModule(PC)
+; 485: 								KillPlayer();
+       | 07EA  4EBA  0000-XX.1                JSR         _KillPlayer(PC)
+       | 07EE  584F                           ADDQ.W      #4,A7
+; 486: 								MusicModule = NULL;
+       | 07F0  91C8                           SUBA.L      A0,A0
+; 487: 								B_Setup = FALSE;
+       | 07F2  426F 0026                      CLR.W       0026(A7)
+       | 07F6  2F48 003C                      MOVE.L      A0,003C(A7)
+       | 07FA  6010                           BRA.B       080C
+; 488: 							}
+; 489: 						}
+; 490: 						else
+; 491: 						{	// couldn't setup the player, remove all
+; 492: 							KillModule(MusicModule);
+       | 07FC  2F2F 003C                      MOVE.L      003C(A7),-(A7)
+       | 0800  4EBA  0000-XX.1                JSR         _KillModule(PC)
+       | 0804  584F                           ADDQ.W      #4,A7
+; 493: 							MusicModule = NULL;
+       | 0806  91C8                           SUBA.L      A0,A0
+       | 0808  2F48 003C                      MOVE.L      A0,003C(A7)
+; 494: 						}
+; 495: 					}
+; 496: 				}	
+; 497: 				B_Run = FALSE;
+       | 080C  426F 002A                      CLR.W       002A(A7)
+; 498: 			}
+; 499: 
+; 500: 			if(B_ReInit)
+       | 0810  4A6F 002E                      TST.W       002E(A7)
+       | 0814  6700 FB14                      BEQ.W       032A
+; 501: 			{
+; 502: 				if(MusicModule == NULL)
+       | 0818  4AAF 003C                      TST.L       003C(A7)
+       | 081C  6630                           BNE.B       084E
+; 503: 				{
+; 504: 					if( !B_Stopper )
+       | 081E  4A6F 0020                      TST.W       0020(A7)
+       | 0822  662A                           BNE.B       084E
+; 505: 					{
+; 506: 						//KPrintF("Reading module 3\n");
+; 507: 						ObtainSemaphore(&MLSystem->ms_Sema_Music);
+       | 0824  206F 019C                      MOVEA.L     019C(A7),A0
+       | 0828  D0FC 02F8                      ADDA.W      #02F8,A0
+       | 082C  2C78 0004                      MOVEA.L     0004,A6
+       | 0830  4EAE FDCC                      JSR         FDCC(A6)
+; 508: 						MusicModule = ReadModule(FilePath);
+       | 0834  486F 0040                      PEA         0040(A7)
+       | 0838  4EBA  0000-XX.1                JSR         _ReadModule(PC)
+       | 083C  584F                           ADDQ.W      #4,A7
+; 509: 						ReleaseSemaphore(&MLSystem->ms_Sema_Music);
+       | 083E  206F 019C                      MOVEA.L     019C(A7),A0
+       | 0842  D0FC 02F8                      ADDA.W      #02F8,A0
+       | 0846  2F40 003C                      MOVE.L      D0,003C(A7)
+       | 084A  4EAE FDC6                      JSR         FDC6(A6)
+; 510: 					}
+; 511: 				}	
+; 512: 
+; 513: 				if(!Msg_MusicDial->pd_InUse)
+       | 084E  206F 0194                      MOVEA.L     0194(A7),A0
+       | 0852  4A68 0014                      TST.W       0014(A0)
+       | 0856  6600 FAD2                      BNE.W       032A
+; 514: 				{
+; 515: 					B_ReInit = FALSE;
+       | 085A  426F 002E                      CLR.W       002E(A7)
+; 516: 					Msg_MusicDial->pd_ChildPI = ThisPI;
+       | 085E  216F 018C 0016                 MOVE.L      018C(A7),0016(A0)
+; 517: 					Msg_MusicDial->pd_InUse = TRUE;
+       | 0864  317C 0001 0014                 MOVE.W      #0001,0014(A0)
+; 518: 					Msg_MusicDial->pd_Cmd = DCI_CHILDREADY;
+       | 086A  7002                           MOVEQ       #02,D0
+       | 086C  2140 001A                      MOVE.L      D0,001A(A0)
+; 519: 					PutMsg(ThisPI->pi_Port_CtoP,(struct Message *)Msg_MusicDial);
+       | 0870  2248                           MOVEA.L     A0,A1
+       | 0872  206F 018C                      MOVEA.L     018C(A7),A0
+       | 0876  2068 0044                      MOVEA.L     0044(A0),A0
+       | 087A  2C78 0004                      MOVEA.L     0004,A6
+       | 087E  4EAE FE92                      JSR         FE92(A6)
+; 520: 				}
+; 521: 			}
+; 522: 		}
+; 523: 	}
+       | 0882  6000 FAA6                      BRA.W       032A
+; 524: 
+; 525: 	if(MusicModule != NULL)
+       | 0886  202F 003C                      MOVE.L      003C(A7),D0
+       | 088A  6708                           BEQ.B       0894
+; 526: 		KillModule(MusicModule);
+       | 088C  2F00                           MOVE.L      D0,-(A7)
+       | 088E  4EBA  0000-XX.1                JSR         _KillModule(PC)
+       | 0892  584F                           ADDQ.W      #4,A7
+; 527: 
+; 528: 	MLMMU_FreeMem( Msg_XappDial );
+       | 0894  224B                           MOVEA.L     A3,A1
+       | 0896  2C6F 0030                      MOVEA.L     0030(A7),A6
+       | 089A  4EAE FFDC                      JSR         FFDC(A6)
+; 529: 	MLMMU_FreeMem( Msg_MusicDial );
+       | 089E  226F 0194                      MOVEA.L     0194(A7),A1
+       | 08A2  4EAE FFDC                      JSR         FFDC(A6)
+; 530: 	CloseLibrary(MLMMULibBase);
+       | 08A6  224E                           MOVEA.L     A6,A1
+       | 08A8  2C78 0004                      MOVEA.L     0004,A6
+       | 08AC  4EAE FE62                      JSR         FE62(A6)
+; 531: 	DeletePort(RepP_WorkMusic);
+       | 08B0  2F2F 017C                      MOVE.L      017C(A7),-(A7)
+       | 08B4  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 08B8  584F                           ADDQ.W      #4,A7
+; 532: 	if(Port_Xapp != NULL)
+       | 08BA  202F 0188                      MOVE.L      0188(A7),D0
+       | 08BE  6708                           BEQ.B       08C8
+; 533: 		DeletePort(Port_Xapp);
+       | 08C0  2F00                           MOVE.L      D0,-(A7)
+       | 08C2  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+       | 08C6  584F                           ADDQ.W      #4,A7
+; 534: 	DeletePort(RepP_Xapp);
+       | 08C8  2F2F 0180                      MOVE.L      0180(A7),-(A7)
+       | 08CC  4EBA  0000-XX.1                JSR         _DeletePort(PC)
+; 535: 	ThisPI->pi_Arguments.ar_RetErr = NO_ERROR;
+       | 08D0  206F 0190                      MOVEA.L     0190(A7),A0
+       | 08D4  42A8 0070                      CLR.L       0070(A0)
+; 536: 	return;
+       | 08D8  584F                           ADDQ.W      #4,A7
+; 537: }
+       | 08DA  4CDF 68E4                      MOVEM.L     (A7)+,D2/D5-D7/A3/A5-A6
+       | 08DE  DEFC 0188                      ADDA.W      #0188,A7
+       | 08E2  4E75                           RTS
+
+SECTION 01 "__MERGED" 00000060 BYTES
+0000 00 24 56 45 52 3A 20 4D 65 64 69 61 50 6F 69 6E .$VER: MediaPoin
+0010 74 20 4D 75 73 69 63 20 78 61 70 70 20 31 2E 31 t Music xapp 1.1
+OFFSETS 0020 THROUGH 0021 CONTAIN ZERO
+0022 00000000-01 01.00000000
+0026 6D 70 6D 6D 75 2E 6C 69 62 72 mpmmu.libr
+0030 61 72 79 00 50 6F 72 74 5F 4D 4C 4D 75 73 69 63 ary.Port_MLMusic
+0040 00 00 50 6F 72 74 5F 4D 4C 4D 75 73 69 63 00 00 ..Port_MLMusic..
+0050 50 6F 72 74 5F 4D 4C 4D 75 73 69 63 00 00 00 00 Port_MLMusic....

@@ -1,0 +1,35 @@
+SAS/C Amiga Format Librarian  Version 6.2
+Copyright © 1992  SAS Institute, Inc.
+
+                 L i b r a r y   L i s t i n g
+-Module-   ------------- Symbol Definitions ------------
+
+allocbitmap24.a         _FreeBitMap24           _AllocBitMap24 
+allocmem.a              @FreeRememberMP         _FreeRememberMP         @AllocRememberMP        _AllocRememberMP 
+allocplanes24.a         _FreePlanes24           _AllocPlanes24 
+ChunkyToPlanar.a        _ChunkyToPlanar 
+getbitmapattr24.a       @GetBitMapAttr24        _GetBitMapAttr24 
+GetRGB.a    @GetRGB     _GetRGB 
+initbitmap24.a          _InitBitMap24 
+LoadRGB.a               @LoadRGB    _LoadRGB 
+math32bit.a             Divs32      Mulu32 
+palettesize.a           @GetPaletteSize         _GetPaletteSize 
+PlanarToChunky.a        _PlanarToChunky         _PlanarToChunky24 
+SetRGB.a    _SetRGB 
+SetRGBCM.a              _SetRGBCM 
+textfuncs.a             @TECharWidth            _TECharWidth            @TEExtraSpace           _TEExtraSpace           @TECalcFitChars         _TECalcFitChars         @TECalcLineWidth        @TECalcTopOffset        _TECalcLineWidth 
+            _TECalcTopOffset        @TECalcLineHeight       @TECalcLineOffset       _TECalcLineHeight       _TECalcLineOffset 
+
+          C r o s s   R e f e r e n c e  L i s t i n g
+-Symbol-  ------- Modules That Reference Symbol --------
+
+_AllocPlanes24          allocbitmap24.a 
+_FreePlanes24           allocbitmap24.a 
+_GfxBase    allocbitmap24.a         allocplanes24.a         GetRGB.a    SetRGB.a    SetRGBCM.a  LoadRGB.a 
+_IntuitionBase          LoadRGB.a 
+_LVOGetRGB32            GetRGB.a 
+_LVOLoadRGB32           LoadRGB.a 
+_LVORethinkDisplay      LoadRGB.a 
+_LVOSetRGB32            SetRGB.a 
+_LVOSetRGB32CM          SetRGBCM.a 
+_SysBase    allocbitmap24.a         allocmem.a  allocplanes24.a 

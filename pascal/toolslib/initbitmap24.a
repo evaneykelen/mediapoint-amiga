@@ -1,0 +1,204 @@
+
+;--- initbitmap24.a -----------------------------------------------------+
+; MediaPoint Fast Assembly Tools. Code written by B.O.M.B. AudioVisual   |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/toolslib/initbitmap.a 01.003 (07.03.94)
+
+
+	TTL	initbitmap24.a
+	IDNT	initbitmap24.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"graphics/gfx.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"toolslib.i"
+
+
+	XDEF	_InitBitMap24
+
+
+
+	SECTION	InitBitMap24,CODE
+
+
+;-------------------------------------------------------------------------
+; VOID InitBitMap24( struct BitMap24 *bitmap, UBYTE depth, UWORD width,
+;	UWORD height, ULONG memtype, ULONG flags );
+;-------------------------------------------------------------------------
+
+_InitBitMap24
+	link	a5,#0
+	movem.l	d2-d3/a2/a3/a6,-(sp)
+
+	movea.l	_1stParam(a5),a2
+	cmpa.w	#0,a2
+	beq	.exit
+
+	clr.b	bm_Flags(a2)
+	clr.b	bm_Pad(a2)
+
+	cmpi.l	#MAGIC_COOKIE_BM24,bm24_MagicCookie(a2)
+	bne	.bm8
+
+;-------------------------------------------------------
+.bm24	moveq.l	#23,d0
+	lea.l	bm24_Planes(a2),a0
+.lp1_24	clr.l	(a0)+
+	dbra	d0,.lp1_24
+;-------------------------------------------------------
+	clr.w	bm24_Flags24(a2)
+
+	btst.b	#BM24B_FASTMEM,_6thParam+3(a5)
+	beq.b	.nFast24
+	ori.w	#BM24B_FASTMEM,bm24_Flags24(a2)
+	andi.l	#~MEMF_CHIP,_5thParam(a5)
+.nFast24
+	btst.b	#BM24B_CHUNKY,_6thParam+3(a5)
+	bne	.chunky24
+	btst.b	#BM24B_TRUE_RGB,_6thParam+3(a5)
+	beq.b	.tstInt
+	move.l	#24,_2ndParam(a5)
+	ori.w	#BM24F_TRUE_RGB,bm24_Flags24(a2)
+.tstInt	btst.b	#BM24B_INTERLEAVED,_6thParam+3(a5)	; flags
+	beq.b	.nInt24
+;-------------------------------------------------------
+.Int24	ori.w	#BM24F_INTERLEAVED,bm24_Flags24(a2)
+	move.w	_3rdParam+2(a5),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addi.w	#15,d0
+	lsr.w	#4,d0
+	lsl.w	#1,d0
+	moveq.l	#0,d1
+	move.b	_2ndParam+3(a5),d1			; depth
+	move.b	d1,bm24_Depth(a2)
+	mulu.w	d1,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm24_Rows(a2)
+
+	move.w	_6thParam+2(a5),d2
+	btst.l	#BM24B_SET_RASSIZE,d2
+	beq	.clr_ras1
+
+	mulu.w	d0,d1
+	move.l	d1,bm24_rasSize(a2)
+	bra	.exit
+
+.clr_ras1	clr.l	bm24_rasSize(a2)
+	bra	.exit
+;-------------------------------------------------------
+.nInt24	andi.w	#~BM24F_INTERLEAVED,bm24_Flags24(a2)
+	move.b	_2ndParam+3(a5),bm24_Depth(a2)		; depth
+	move.w	_3rdParam+2(a5),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addi.w	#15,d0
+	lsr.w	#4,d0
+	lsl.w	#1,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm24_Rows(a2)
+
+	move.w	_6thParam+2(a5),d2
+	btst.l	#BM24B_SET_RASSIZE,d2
+	beq	.clr_ras2
+
+	mulu.w	d0,d1
+	move.l	d1,bm24_rasSize(a2)
+	bra	.exit
+
+.clr_ras2	clr.l	bm24_rasSize(a2)
+	bra	.exit
+;-------------------------------------------------------
+.chunky24	move.b	_2ndParam+3(a5),bm24_Depth(a2)		; depth
+	ori.w	#BM24F_CHUNKY,bm24_Flags24(a2)
+
+	move.w	_3rdParam+2(a5),d0			; width
+	move.w	d0,bm24_PixelWidth(a2)
+	addq.w	#7,d0
+	andi.w	#$FFF8,d0
+	move.w	d0,bm24_Modulo(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm24_Rows(a2)
+
+	move.w	_6thParam+2(a5),d2
+	btst.l	#BM24B_SET_RASSIZE,d2
+	beq	.clr_ras3
+
+	mulu.w	d0,d1
+	move.l	d1,bm24_rasSize(a2)
+	bra	.ras_set3
+
+.clr_ras3	clr.l	bm24_rasSize(a2)
+
+.ras_set3	btst.b	#BM24B_TRUE_RGB,_6thParam+3(a5)
+	beq	.exit
+
+.24bit	ori.w	#BM24F_TRUE_RGB,bm24_Flags24(a2)
+	move.b	#24,bm24_Depth(a2)
+	bra	.exit
+;-------------------------------------------------------
+
+
+;-------------------------------------------------------
+.bm8	moveq.l	#7,d0
+	lea.l	bm_Planes(a2),a0
+.lp1_8	clr.l	(a0)+
+	dbra	d0,.lp1_8
+;-------------------------------------------------------
+	btst.b	#BM24B_CHUNKY,_6thParam+3(a5)
+	bne	.exit
+	cmpi.b	#8,_2ndParam+3(a5)
+	bhi	.exit
+
+	btst.b	#BM24B_INTERLEAVED,_6thParam+3(a5)	; flags
+	beq.b	.nInt8
+;-------------------------------------------------------
+.Int8	moveq.l	#0,d0
+	move.w	_3rdParam+2(a5),d0			; width
+	addi.l	#15,d0
+	lsr.l	#4,d0
+	lsl.l	#1,d0
+	moveq.l	#0,d1
+	move.b	_2ndParam+3(a5),d1			; depth
+	move.b	d1,bm_Depth(a2)
+	mulu.w	d1,d0
+	move.w	d0,bm_BytesPerRow(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm_Rows(a2)
+	bra	.exit
+;-------------------------------------------------------
+.nInt8	moveq.l	#0,d0
+	move.w	_3rdParam+2(a5),d0			; width
+	addi.l	#15,d0
+	lsr.l	#3,d0
+	bclr.l	#0,d0
+	move.w	d0,bm_BytesPerRow(a2)
+	move.w	_4thParam+2(a5),d1			; height
+	move.w	d1,bm_Rows(a2)
+	mulu.w	d1,d0
+	move.b	_2ndParam+3(a5),d2
+	move.b	d2,bm_Depth(a2)
+;-------------------------------------------------------
+
+.exit	movem.l	(sp)+,d2-d3/a2/a3/a6
+	unlk	a5
+	rts
+
+
+;-- END OF FILE ----------------------------------------------------------

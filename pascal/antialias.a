@@ -1,0 +1,887 @@
+
+;--- antialias.a --------------------------------------------------------+
+; MediaPoint AntiAliasing Routine. Code written by B.O.M.B. AudioVisual  |
+; Entertainment in order of 1001 Software Development.                   |
+;------------------------------------------------------------------------+
+; DISCLAIMER: At the moment there is no guarantee that this code is 100% |
+; correct and doesn't corrupt the system. Though much effort has been    |
+; made to get it right, it's almost impossible to test for all possible  |
+; situations. In fact, I may be totally out of my little mind !!         |
+;------------------------------------------------------------------------+
+; All programming by:                                                    |
+;    Pascal Eeftinck, Bits On My Byte AudioVisual Entertainment          |
+;------------------------------------------------------------------------+
+
+; $VER: mediapoint/pascal/antialias.a 02.000 (29.03.94)
+
+
+	TTL	antialias.a
+	IDNT	antialias.a
+
+
+	INCDIR	"include:"
+
+	INCLUDE	"exec/types.i"
+	INCLUDE	"exec/funcdef.i"
+	INCLUDE	"exec/memory.i"
+	INCLUDE	"exec/exec_lib.i"
+	INCLUDE	"exec/libraries.i"
+	INCLUDE	"graphics/gfx.i"
+	INCLUDE	"graphics/view.i"
+	INCLUDE	"graphics/graphics_lib.i"
+
+	INCDIR	"pascal:include/"
+
+	INCLUDE	"macros.i"
+	INCLUDE	"stackvars.i"
+	INCLUDE	"antialias.i"
+	INCLUDE	"toolslib.i"
+
+
+*	XREF	KPrintF
+
+
+	XREF	@GetRGB
+
+	XDEF	_AntiAlias
+	XDEF	GetTrueRGB
+	XDEF	GetBestPen
+	XDEF	GetTrueRGBTable
+	XDEF	GetBestPenTable
+
+
+	SECTION	TEXT,CODE
+
+;-------------------------------------------------------------------------
+; VOID _AntiAlias( struct AntiAliasInfo * )
+;-------------------------------------------------------------------------
+
+  STACKSTRUCT AntiAliasStack,1		; 1 parameter on stack
+	_APTR	aA_AntiAliasInfo
+	_APTR	aA__ReturnAddress
+	_APTR	aA__OldAnAddress
+	_LABEL	aA_SIZEOF
+
+
+_AntiAlias
+
+	link	a5,#aA_SIZEOF
+	movem.l	d0-d7/a0-a6,-(sp)
+
+	move.l	aA_AntiAliasInfo(a5),a4
+	movea.l	aa_SrcBitMap(a4),a0
+	movea.l	aa_MskBitMap(a4),a2
+	movea.l	bm24_Planes(a0),a1
+	movea.l	bm24_Planes(a2),a3
+
+	moveq.l	#8,d2
+	move.w	d2,d3
+	add.w	bm24_Modulo(a0),d3
+	move.w	d3,d4
+	add.w	bm24_Modulo(a0),d4
+
+
+	cmp.b	#1,aa_Level(a4)
+	beq	.LEVEL1
+	cmp.b	#2,aa_Level(a4)
+	beq	.LEVEL2
+	cmp.b	#3,aa_Level(a4)
+	beq	.LEVEL3
+	bra	.LEVEL_BLUR
+
+
+
+**** ANTIALIAS LEVEL 1 ****
+*
+*
+*
+*      o######o
+*    o##########o
+*    ############
+*    ####o  o####
+*    ###o    o###
+*    ###      ###
+*    ###o    o###
+*    ####o  o####
+*    ############
+*    o##########o
+*      o######o
+*
+*
+* Plaats G2 (o) in alle hoeken
+
+.LEVEL1	movea.l	aa_ColorConversion(a4),a6
+
+.loopCol1	move.b	(a6),d5
+	bne	.cont_L1
+	tst.b	1(a6)
+	beq	.exit
+
+.cont_L1	move.w	aa_Height(a4),d1
+	subq.w	#1,d1
+	movem.l	a1/a3,-(sp)
+
+.loopY_L1	move.w	aa_Width(a4),d0
+	subq.w	#1,d0
+	movem.l	a1/a3,-(sp)
+
+.loopX_L1	tst.b	(a3,d3.w)
+	bpl	.noPix_L1			; if it's a color, do modify pixels
+	cmp.b	(a1,d3.w),d5			; test for the right color too.
+	bne	.noPix_L1
+
+;---------------------------------------------------
+
+.tst_L_L1	tst.b	-1(a3,d3.w)
+	bmi	.tst_R_L1
+
+	tst.b	-1(a3,d2.w)
+	bpl	.tstL_L1a
+	cmp.b	-1(a1,d2.w),d5
+	beq	.lft_L1
+
+.tstL_L1a	tst.b	-1(a3,d4.w)
+	bpl	.tst_R_L1
+	cmp.b	-1(a1,d4.w),d5
+	bne	.tst_R_L1
+
+.lft_L1	move.b	2(a6),-1(a1,d3.w)
+	move.b	#-1,-1(a3,d3.w)
+
+;---------------------------------------------------
+
+.tst_R_L1	tst.b	01(a3,d3.w)
+	bmi	.noPix_L1
+
+	tst.b	01(a3,d2.w)
+	bpl	.tstR_L1a
+	cmp.b	01(a1,d2.w),d5
+	beq	.rgt_L1
+
+.tstR_L1a	tst.b	01(a3,d4.w)
+	bpl	.noPix_L1
+	cmp.b	01(a1,d4.w),d5
+	bne	.noPix_L1
+
+.rgt_L1	move.b	2(a6),01(a1,d3.w)
+	move.b	#-1,01(a3,d3.w)
+
+;---------------------------------------------------
+
+.noPix_L1	addq.w	#1,a1
+	addq.w	#1,a3
+	dbra	d0,.loopX_L1
+
+	movem.l	(sp)+,a1/a3
+	adda.w	bm24_Modulo(a0),a1
+	adda.w	bm24_Modulo(a0),a3
+	dbra	d1,.loopY_L1
+
+	movem.l	(sp)+,a1/a3
+	addq.w	#4,a6
+	bra	.loopCol1
+
+
+
+
+
+**** ANTIALIAS LEVEL 2 ****
+*
+*
+*       ······
+*     ·O######O·
+*    O##########O
+*   ·############·
+*   ·####O··O####·
+*   ·###O    O###·
+*   ·###·    ·###·
+*   ·###O    O###·
+*   ·####O··O####·
+*   ·############·
+*    O##########O
+*     ·O######O·
+*       ······
+*
+* Plaats G1 (O) in alle hoeken
+* (= level 1 met G1)
+* Daarna op elke B/W (' '/'#') overgang G3 (·)
+* Alle pixels zijn omsloten, W is niet aangepast
+
+
+.LEVEL2	movea.l	aa_ColorConversion(a4),a6
+
+
+
+.loopCol2	move.b	(a6),d5
+	bne	.cont_L2
+	tst.b	1(a6)
+	beq	.exit
+
+.cont_L2	move.w	aa_Height(a4),d1
+	subq.w	#1,d1
+	movem.l	a1/a3,-(sp)
+
+.loopY_L2	move.w	aa_Width(a4),d0
+	subq.w	#1,d0
+	movem.l	a1/a3,-(sp)
+
+.loopX_L2	tst.b	(a3,d3.w)
+	bpl	.noPix_L2			; if it's a color, do modify pixels
+	cmp.b	(a1,d3.w),d5			; test for the right color too.
+	bne	.noPix_L2
+
+
+.tst_L_L2	tst.b	-1(a3,d3.w)
+	bmi	.tst_R_L2
+
+	tst.b	-1(a3,d2.w)
+	bpl	.tstL_L2a
+	cmp.b	-1(a1,d2.w),d5
+	beq	.lft_L2
+
+.tstL_L2a	tst.b	-1(a3,d4.w)
+	bpl	.tst_R_L2
+	cmp.b	-1(a1,d4.w),d5
+	bne	.tst_R_L2
+
+.lft_L2	move.b	3(a6),-1(a1,d3.w)
+	move.b	#-1,-1(a3,d3.w)
+
+
+
+.tst_R_L2	tst.b	01(a3,d3.w)
+	bmi	.noPix_L2
+
+	tst.b	01(a3,d2.w)
+	bpl	.tstR_L2a
+	cmp.b	01(a1,d2.w),d5
+	beq	.rgt_L2
+
+.tstR_L2a	tst.b	01(a3,d4.w)
+	bpl	.noPix_L2
+	cmp.b	01(a1,d4.w),d5
+	bne	.noPix_L2
+
+.rgt_L2	move.b	3(a6),01(a1,d3.w)
+	move.b	#-1,01(a3,d3.w)
+
+
+
+.noPix_L2	addq.w	#1,a1
+	addq.w	#1,a3
+	dbra	d0,.loopX_L2
+
+	movem.l	(sp)+,a1/a3
+	adda.w	bm24_Modulo(a0),a1
+	adda.w	bm24_Modulo(a0),a3
+	dbra	d1,.loopY_L2
+
+	movem.l	(sp)+,a1/a3
+
+
+
+
+	move.w	aa_Height(a4),d1
+	subq.w	#1,d1
+	movem.l	a1/a3,-(sp)
+
+.loopYL2b	move.w	aa_Width(a4),d0
+	subq.w	#1,d0
+	movem.l	a1/a3,-(sp)
+
+.loopXL2b	tst.b	(a3,d3.w)
+	bne	.noPixL2b
+
+.tst_A_L2	cmp.b	-1(a1,d3.w),d5
+	bne	.tst_B_L2
+	tst.b	-1(a3,d3.w)		; test previous pixel
+	bmi	.setGray
+
+.tst_B_L2	cmp.b	01(a1,d3.w),d5
+	bne	.tst_C_L2
+	tst.b	01(a3,d3.w)
+	bmi	.setGray
+
+.tst_C_L2	cmp.b	(a1,d2.w),d5
+	bne	.tst_D_L2
+	tst.b	(a3,d2.w)
+	bmi	.setGray
+
+.tst_D_L2	cmp.b	(a1,d4.w),d5
+	bne	.noPixL2b
+	tst.b	(a3,d4.w)
+	bpl	.noPixL2b
+
+.setGray	move.b	1(a6),(a1,d3.w)
+	move.b	#-001,(a3,d3.w)
+
+.noPixL2b	addq.w	#1,a1
+	addq.w	#1,a3
+	dbra	d0,.loopXL2b
+
+	movem.l	(sp)+,a1/a3
+	adda.w	bm24_Modulo(a0),a1
+	adda.w	bm24_Modulo(a0),a3
+	dbra	d1,.loopYL2b
+
+	movem.l	(sp)+,a1/a3
+
+
+
+	addq.w	#4,a6
+	bra	.loopCol2
+
+
+
+**** ANTIALIAS LEVEL 3 ****
+*
+*
+*       ······
+*     ·oO####Oo·
+*    oO########Oo
+*   ·O##########O·
+*   ·O##Oo··oO##O·
+*   ·O#Oo    oO#O·
+*   ·O#O·    ·O#O·
+*   ·O#Oo    oO#O·
+*   ·O##Oo··oO##O·
+*   ·O##########O·
+*    oO########Oo
+*     ·oO####Oo·
+*       ······
+*
+* Plaats G2 (o) in alle hoeken
+* (= level 1 met G2)
+* Daarna op elke B/W (' '/'#') overgang G3 (·)
+* Daarna horizontaal scannen, als 3 of meer wit op een rij eerst en laatste aanpassen als G1 (O)
+* Alle pixels zijn omsloten, W is naar binnen toe aangepast
+
+
+.LEVEL3	movea.l	aa_ColorConversion(a4),a6
+
+.loopCol3	move.b	(a6),d5
+	bne	.cont_L3
+	tst.b	1(a6)
+	beq	.exit
+
+.cont_L3	move.w	aa_Height(a4),d1
+	subq.w	#1,d1
+	movem.l	a1/a3,-(sp)
+
+.loopY_L3	move.w	aa_Width(a4),d0
+	subq.w	#1,d0
+	movem.l	a1/a3,-(sp)
+
+.loopX_L3	tst.b	(a3,d3.w)
+	bpl	.noPix_L3			; if it's a color, do modify pixels
+	cmp.b	(a1,d3.w),d5			; test for the right color too.
+	bne	.noPix_L3
+
+
+.tst_L_L3	tst.b	-1(a3,d3.w)
+	bmi	.tst_R_L3
+
+	tst.b	-1(a3,d2.w)
+	bpl	.tstL_L3a
+	cmp.b	-1(a1,d2.w),d5
+	beq	.lft_L3
+
+.tstL_L3a	tst.b	-1(a3,d4.w)
+	bpl	.tst_R_L3
+	cmp.b	-1(a1,d4.w),d5
+	bne	.tst_R_L3
+
+.lft_L3	move.b	2(a6),-1(a1,d3.w)
+	move.b	#-1,-1(a3,d3.w)
+
+
+
+.tst_R_L3	tst.b	01(a3,d3.w)
+	bmi	.noPix_L3
+
+	tst.b	01(a3,d2.w)
+	bpl	.tstR_L3a
+	cmp.b	01(a1,d2.w),d5
+	beq	.rgt_L3
+
+.tstR_L3a	tst.b	01(a3,d4.w)
+	bpl	.noPix_L3
+	cmp.b	01(a1,d4.w),d5
+	bne	.noPix_L3
+
+.rgt_L3	move.b	2(a6),01(a1,d3.w)
+	move.b	#-001,01(a3,d3.w)
+
+
+
+.noPix_L3	addq.w	#1,a1
+	addq.w	#1,a3
+	dbra	d0,.loopX_L3
+
+	movem.l	(sp)+,a1/a3
+	adda.w	bm24_Modulo(a0),a1
+	adda.w	bm24_Modulo(a0),a3
+	dbra	d1,.loopY_L3
+
+	movem.l	(sp)+,a1/a3
+
+
+
+
+	move.w	aa_Height(a4),d1
+	subq.w	#1,d1
+	movem.l	a1/a3,-(sp)
+
+.loopYL3b	move.w	aa_Width(a4),d0
+	subq.w	#1,d0
+	movem.l	a1/a3,-(sp)
+
+.loopXL3b	tst.b	(a3,d3.w)
+	bne	.noPixL3b
+
+.tst_A_L3	cmp.b	-1(a1,d3.w),d5
+	bne	.tst_B_L3
+	tst.b	-1(a3,d3.w)		; test previous pixel
+	bmi	.setGray3
+
+.tst_B_L3	cmp.b	01(a1,d3.w),d5
+	bne	.tst_C_L3
+	tst.b	01(a3,d3.w)
+	bmi	.setGray3
+
+.tst_C_L3	cmp.b	(a1,d2.w),d5
+	bne	.tst_D_L3
+	tst.b	(a3,d2.w)
+	bmi	.setGray3
+
+.tst_D_L3	cmp.b	(a1,d4.w),d5
+	bne	.noPixL3b
+	tst.b	(a3,d4.w)
+	bpl	.noPixL3b
+
+.setGray3	move.b	1(a6),(a1,d3.w)
+	move.b	#-001,(a3,d3.w)
+
+.noPixL3b	addq.w	#1,a1
+	addq.w	#1,a3
+	dbra	d0,.loopXL3b
+
+	movem.l	(sp)+,a1/a3
+	adda.w	bm24_Modulo(a0),a1
+	adda.w	bm24_Modulo(a0),a3
+	dbra	d1,.loopYL3b
+
+	movem.l	(sp)+,a1/a3
+
+
+
+
+	move.w	aa_Height(a4),d1
+	subq.w	#1,d1
+	movem.l	a1/a3,-(sp)
+
+.loopYL3c	move.w	aa_Width(a4),d0
+	subq.w	#1,d0
+	movem.l	a1/a3,-(sp)
+	moveq.l	#0,d6			; 'white' counter
+
+.loopXL3c	tst.b	(a3,d3.w)
+	bpl	.noWhite
+	cmp.b	(a1,d3.w),d5
+	bne	.noWhite
+
+.White	tst.w	d6			; if it's not the first, no change for the pixel
+	bne	.inc
+
+	tst.b	1(a3,d3.w)
+	bpl	.inc
+	cmp.b	1(a1,d3.w),d5
+	bne	.inc
+	tst.b	2(a3,d3.w)
+	bpl	.inc
+	cmp.b	2(a1,d3.w),d5
+	bne	.inc
+	move.b	3(a6),(a1,d3.w)
+
+.inc	addq.w	#1,d6
+	bra	.nextX_L3
+
+
+.noWhite	cmp.w	#2,d6
+	bls	.reset
+	move.b	3(a6),-1(a1,d3.w)
+.reset	moveq.l	#0,d6
+
+
+.nextX_L3	addq.w	#1,a1
+	addq.w	#1,a3
+	dbra	d0,.loopXL3c
+
+	movem.l	(sp)+,a1/a3
+	adda.w	bm24_Modulo(a0),a1
+	adda.w	bm24_Modulo(a0),a3
+	dbra	d1,.loopYL3c
+
+	movem.l	(sp)+,a1/a3
+
+	addq.w	#4,a6
+	bra	.loopCol3
+
+
+*
+*
+* Special form of Antialiasing. Applies a blur filter to the text data
+*
+*
+*
+*
+
+.LEVEL_BLUR
+
+	movea.l	aa_ColorConversion(a4),a6
+
+.loopCol4	move.b	0(a6),d5
+	bne	.cont_L4
+	tst.b	1(a6)
+	beq	.exit
+
+.cont_L4	move.w	aa_Height(a4),d1
+	subq.w	#1,d1
+	movem.l	a1/a3,-(sp)
+
+.loopY_L4	move.w	aa_Width(a4),d0
+	subq.w	#1,d0
+	movem.l	a1/a3,-(sp)
+
+.loopX_L4	tst.b	(a3,d3.w)
+	bne	.noPix_L4			; if it's a color, do not modify pixel
+
+	moveq.l	#0,d6
+	tst.b	1(a3,d4.w)		; bit 7
+	bpl.b	.skip01
+	cmp.b	1(a1,d4.w),d5
+	seq.b	d6
+.skip01	lsl.w	#1,d6
+	clr.b	d6
+	tst.b	(a3,d4.w)		; bit 6
+	bpl.b	.skip02
+	cmp.b	(a1,d4.w),d5
+	seq.b	d6
+.skip02	lsl.w	#1,d6
+	clr.b	d6
+	tst.b	-1(a3,d4.w)		; bit 5
+	bpl.b	.skip03
+	cmp.b	-1(a1,d4.w),d5
+	seq.b	d6
+.skip03	lsl.w	#1,d6
+
+	clr.b	d6
+	tst.b	1(a3,d3.w)		; bit 4
+	bpl.b	.skip04
+	cmp.b	1(a1,d3.w),d5
+	seq.b	d6
+.skip04	lsl.w	#1,d6
+	clr.b	d6
+	tst.b	-1(a3,d3.w)		; bit 3
+	bpl.b	.skip05
+	cmp.b	-1(a1,d3.w),d5
+	seq.b	d6
+.skip05	lsl.w	#1,d6
+
+	clr.b	d6
+	tst.b	1(a3,d2.w)		; bit 2
+	bpl.b	.skip06
+	cmp.b	1(a1,d2.w),d5
+	seq.b	d6
+.skip06	lsl.w	#1,d6
+	clr.b	d6
+	tst.b	(a3,d2.w)		; bit 1
+	bpl.b	.skip07
+	cmp.b	(a1,d2.w),d5
+	seq.b	d6
+.skip07	lsl.w	#1,d6
+	clr.b	d6
+	tst.b	-1(a3,d2.w)		; bit 0
+	bpl.b	.skip08
+	cmp.b	-1(a1,d2.w),d5
+	seq.b	d6
+.skip08	lsr.w	#7,d6
+
+	move.b	.gTable(pc,d6.w),d6
+	beq.b	.noPix_L4
+	move.b	(a6,d6.w),(a1,d3.w)
+	move.b	#-1,(a3,d3.w)
+
+.noPix_L4	addq.w	#1,a1
+	addq.w	#1,a3
+	dbra	d0,.loopX_L4
+
+	movem.l	(sp)+,a1/a3
+	adda.w	bm24_Modulo(a0),a1
+	adda.w	bm24_Modulo(a0),a3
+	dbra	d1,.loopY_L4
+
+	movem.l	(sp)+,a1/a3
+	addq.w	#4,a6
+	bra	.loopCol4
+
+
+
+
+
+.exit	movem.l	(sp)+,d0-d7/a0-a6
+	unlk	a5
+	rts
+
+;-------------------------------------------------------------------------
+.gTable	dc.b	0,0,0,1,0,0,1,2		; $00
+	dc.b	0,1,2,2,1,2,2,3
+	dc.b	0,1,2,2,1,2,2,3		; $10
+	dc.b	2,2,3,3,2,3,3,3
+	dc.b	0,0,1,2,0,1,2,2		; $20
+	dc.b	1,2,2,3,2,2,3,3
+	dc.b	1,2,2,3,2,2,3,3		; $30
+	dc.b	2,3,3,3,3,3,3,3
+	dc.b	0,1,2,2,1,2,2,3		; $40
+	dc.b	2,2,3,3,2,3,3,3
+	dc.b	2,2,3,3,2,3,3,3		; $50
+	dc.b	3,3,3,3,3,3,3,3
+	dc.b	1,2,2,3,2,2,3,3		; $60
+	dc.b	2,3,3,3,3,3,3,3
+	dc.b	2,3,3,3,3,3,3,3		; $70
+	dc.b	3,3,3,3,3,3,3,3
+	dc.b	0,0,1,2,0,1,2,2		; $80
+	dc.b	1,2,2,3,2,2,3,3
+	dc.b	1,2,2,3,2,2,3,3		; $90
+	dc.b	2,3,3,3,3,3,3,3
+	dc.b	0,1,2,2,1,2,2,3		; $A0
+	dc.b	2,2,3,3,2,3,3,3
+	dc.b	2,2,3,3,2,3,3,3		; $B0
+	dc.b	3,3,3,3,3,3,3,3
+	dc.b	1,2,2,3,2,2,3,3		; $C0
+	dc.b	2,3,3,3,3,3,3,3
+	dc.b	2,3,3,3,3,3,3,3		; $D0
+	dc.b	3,3,3,3,3,3,3,3
+	dc.b	2,2,3,3,2,3,3,3		; $E0
+	dc.b	3,3,3,3,3,3,3,3
+	dc.b	3,3,3,3,3,3,3,3		; $F0
+	dc.b	3,3,3,3,3,3,3,3
+;-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+;-------------------------------------------------------------------------
+; Local function - GetTrueRGB( ColorMap (a0), pen (d0), table (a1),
+;	ViewModes (d1)
+;-------------------------------------------------------------------------
+
+GetTrueRGB
+	movem.l	d0-d1/a0-a1,-(sp)
+	andi.l	#V_EXTRA_HALFBRITE,d1
+	beq	.cont
+	cmpi.l	#31,d0
+	bls	.cont
+	andi.l	#31,d0
+.cont	moveq.l	#1,d1
+	jsr	@GetRGB
+	movem.l	(sp)+,d0-d1/a0-a1
+	andi.l	#V_EXTRA_HALFBRITE,d1
+	beq	.exit
+	cmpi.l	#31,d0
+	bls	.exit
+	move.l	0(a1),d0
+	lsr.l	#1,d0
+	move.l	d0,0(a1)
+	move.l	4(a1),d0
+	lsr.l	#1,d0
+	move.l	d0,4(a1)
+	move.l	8(a1),d0
+	lsr.l	#1,d0
+	move.l	d0,8(a1)
+.exit	rts
+
+
+
+;-------------------------------------------------------------------------
+; Local function - GetTrueRGBTable( ColorTable (a0), pen (d0), table (a1),
+;	ViewModes (d1)
+;-------------------------------------------------------------------------
+
+GetTrueRGBTable
+	movem.l	d0-d1/a0-a1,-(sp)
+	andi.l	#V_EXTRA_HALFBRITE,d1
+	beq	.cont
+	cmpi.l	#31,d0
+	bls	.cont
+	andi.l	#31,d0
+.cont	mulu.w	#3,d0
+	move.b	0(a0,d0.w),d1
+	move.b	d1,(a1)+
+	move.b	d1,(a1)+
+	move.b	d1,(a1)+
+	move.b	d1,(a1)+
+	move.b	1(a0,d0.w),d1
+	move.b	d1,(a1)+
+	move.b	d1,(a1)+
+	move.b	d1,(a1)+
+	move.b	d1,(a1)+
+	move.b	2(a0,d0.w),d1
+	move.b	d1,(a1)+
+	move.b	d1,(a1)+
+	move.b	d1,(a1)+
+	move.b	d1,(a1)+
+	movem.l	(sp)+,d0-d1/a0-a1
+	andi.l	#V_EXTRA_HALFBRITE,d1
+	beq	.exit
+	cmpi.l	#31,d0
+	bls	.exit
+	move.l	0(a1),d0
+	lsr.l	#1,d0
+	move.l	d0,0(a1)
+	move.l	4(a1),d0
+	lsr.l	#1,d0
+	move.l	d0,4(a1)
+	move.l	8(a1),d0
+	lsr.l	#1,d0
+	move.l	d0,8(a1)
+.exit	rts
+
+
+
+;-------------------------------------------------------------------------
+; Local function - ULONG pen = GetBestPen( ColorMap (a0),
+;	RGB32 (a1), exclude (d0), max (d1), ViewModes (d2) );
+;-------------------------------------------------------------------------
+; Finds the pen that best suits the specified RGB32 values.
+;-------------------------------------------------------------------------
+
+GetBestPen
+	link	a5,#-12
+	movem.l	d1-d7/a0-a1,-(sp)
+
+	moveq.l	#0,d3			; current color
+	move.l	#256+256+256,d4		;
+	moveq.l	#-1,d5			; best color
+
+.loop00	cmp.w	d3,d0
+	beq.b	.worse
+	cmp.w	d3,d1
+	bls.b	.exit
+
+	movem.l	d1-d2,-(sp)
+	movem.l	d0/a0-a1,-(sp)
+	move.l	d3,d0
+	move.l	d2,d1
+	lea.l	-12(a5),a1
+	bsr	GetTrueRGB
+	movem.l	(sp)+,d0/a0-a1
+
+ 	moveq.l	#0,d7
+ 	moveq.l	#0,d1
+ 	moveq.l	#0,d2
+	moveq.l	#0,d6
+	move.b	-12(a5),d7
+	move.b	-08(a5),d1
+	move.b	-04(a5),d2
+
+	move.b	00(a1),d6
+	sub.w	d6,d7
+	bpl.b	.pos_r
+	neg.w	d7
+.pos_r	move.b	04(a1),d6
+	sub.w	d6,d1
+	bpl.b	.pos_g
+	neg.w	d1
+.pos_g	move.b	08(a1),d6
+	sub.w	d6,d2
+	bpl.b	.pos_b
+	neg.w	d2
+.pos_b	add.w	d1,d7
+	add.w	d2,d7
+	movem.l	(sp)+,d1-d2
+	cmp.w	d7,d4
+	bls.b	.worse
+	move.l	d3,d5		; set best color to current color
+	move.w	d7,d4		; set best match to current match
+
+.worse	addq.l	#1,d3
+	bra.b	.loop00
+
+.exit	move.l	d5,d0
+	movem.l	(sp)+,d1-d7/a0-a1
+	unlk	a5
+	rts
+
+
+;-------------------------------------------------------------------------
+; Local function - ULONG pen = GetBestPenTable( ColorTable (a0),
+;	RGB32 (a1), exclude (d0), max (d1), ViewModes (d2) );
+;-------------------------------------------------------------------------
+; Finds the pen that best suits the specified RGB32 values.
+;-------------------------------------------------------------------------
+
+GetBestPenTable
+	link	a5,#-12
+	movem.l	d1-d7/a0-a1,-(sp)
+
+	moveq.l	#0,d3			; current color
+	move.l	#256+256+256,d4		;
+	moveq.l	#-1,d5			; best color
+
+.loop00	cmp.w	d3,d0
+	beq.b	.worse
+	cmp.w	d3,d1
+	bls.b	.exit
+
+	movem.l	d1-d2,-(sp)
+	movem.l	d0/a0-a1,-(sp)
+	move.l	d3,d0
+	move.l	d2,d1
+	lea.l	-12(a5),a1
+	bsr	GetTrueRGBTable
+	movem.l	(sp)+,d0/a0-a1
+
+ 	moveq.l	#0,d7
+ 	moveq.l	#0,d1
+ 	moveq.l	#0,d2
+	moveq.l	#0,d6
+	move.b	-12(a5),d7
+	move.b	-08(a5),d1
+	move.b	-04(a5),d2
+
+	move.b	00(a1),d6
+	sub.w	d6,d7
+	bpl.b	.pos_r
+	neg.w	d7
+.pos_r	move.b	04(a1),d6
+	sub.w	d6,d1
+	bpl.b	.pos_g
+	neg.w	d1
+.pos_g	move.b	08(a1),d6
+	sub.w	d6,d2
+	bpl.b	.pos_b
+	neg.w	d2
+.pos_b	add.w	d1,d7
+	add.w	d2,d7
+	movem.l	(sp)+,d1-d2
+	cmp.w	d7,d4
+	bls.b	.worse
+	move.l	d3,d5		; set best color to current color
+	move.w	d7,d4		; set best match to current match
+
+.worse	addq.l	#1,d3
+	bra.b	.loop00
+
+.exit	move.l	d5,d0
+	movem.l	(sp)+,d1-d7/a0-a1
+	unlk	a5
+	rts
+
+
+;-- END OF FILE ----------------------------------------------------------

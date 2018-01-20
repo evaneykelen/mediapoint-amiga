@@ -1,0 +1,30 @@
+
+                    Note to the translators of MediaPoint
+                    =====================================
+
+Enclosed in this readme you'll find a few lines taken from the 'alltexts'
+file. Copy these lines and paste them in your 'alltexts' at the bottom.
+The change has to do with update ß 118 in which a language can be chosen
+in the MediaPoint preferences window.
+
+Important: to be fully 'localized' in MediaPoint you need of course a text
+file in your own language (that's what the translators are doing right
+now!) but you also have to set the Workbench locale to your own country 
+and language else you end up with a MediaPoint in your own language but
+with, for instance, an English date and time formatting.
+
+These lines should be added to the bottom of your 'alltexts' file:
+
+/* misc stuff */
+
+1 "The language %s is not available. Switching back to %s."
+2 "De taal %s is niet aanwezig. De taal %s zal gebruikt worden."
+1 "Changing the language will only take effect next time you start %s."
+2 "Herstart %s om de taalverandering te gebruiken."
+
+By the way: if you didn't start on the translation yet and if you're
+wondering how to alter the 'alltexts' file, the Commodore 'ed' program
+will do, or any other text editor or word-processor as long as it
+saves in plain ASCII.
+
+

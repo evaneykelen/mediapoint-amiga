@@ -1,0 +1,4 @@
+delete copyscripts.o
+delete simplerexx.o
+delete endrexx.o
+delete nethost.o

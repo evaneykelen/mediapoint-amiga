@@ -1,0 +1,92 @@
+winport                 28-Aug-94 01:46:28  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         2078 lib:c.o          c        code            0    0      260
+                       windowport.o     windowpo code          260    7      360
+                       text.o           text.c   code          5ec    8      378
+                       lib:sc.lib       newlist  code          994    0       14
+                       lib:sc.lib       createpo code          9a8    0       b8
+                       lib:sc.lib       _constru code          a60    0       34
+                       lib:sc.lib       _fpinit. code          a94    0       3c
+                       lib:sc.lib       writes.c code          ad0    0       30
+                       lib:sc.lib       _memclea code          b00    0       2c
+                       lib:sc.lib       _stpcpy. code          b2c    0       14
+                       lib:sc.lib       _stcul_d code          b40    0       30
+                       lib:sc.lib       _stcl_o. code          b70    0       30
+                       lib:sc.lib       _stcl_h. code          ba0    0       3c
+                       lib:sc.lib       _stcd_i. code          bdc    0       54
+                       lib:sc.lib       _iob.c   code          c30    0      224
+                       lib:sc.lib       _getbuff code          e54    0       48
+                       lib:sc.lib       _strupr. code          e9c    0       38
+                       lib:sc.lib       _ufb.c   code          ed4    0       7c
+                       lib:sc.lib       _write.c code          f50    0      108
+                       lib:sc.lib       _lseek.c code         1058    0       98
+                       lib:sc.lib       _CXD33.o code         10f0    0       c4
+                       lib:sc.lib       _exit.c  code         11b4    0       10
+                       lib:sc.lib       _main.c  code         11c4    0      188
+                       lib:sc.lib       _cxbrk.c code         134c    0      14c
+                       lib:sc.lib       _chkufb. code         1498    0       48
+                       lib:sc.lib       _chkabor code         14e0    0       44
+                       lib:sc.lib       memchr.o code         1524    0       24
+                       lib:sc.lib       memmove. code         1548    0       2c
+                       lib:sc.lib       free.o   code         1574    0      16c
+                       lib:sc.lib       malloc.o code         16e0    0      174
+                       lib:sc.lib       exit.c   code         1854    0       28
+                       lib:sc.lib       sprintf. code         187c    0       44
+                       lib:sc.lib       fputc.c  code         18c0    0      184
+                       lib:sc.lib       fflush.c code         1a44    0       d8
+                       lib:sc.lib       _pfmt.c  code         1b1c    0      47c
+                       lib:sc.lib       _pf.c    code         1f98    0       70
+                       lib:sc.lib       io2errno code         2008    0       60
+                       lib:sc.lib       UNKNOWN  code         2068    0       10
+   1 __MERGED      288 T:DEWH4.0000     _ctdt.o  data            0    0       1c
+                       lib:sc.lib       mstep.c  data           1c    0        4
+                       lib:sc.lib       sigfunc. data           20    0       24
+                       lib:sc.lib       ctype.c  data           44    0      104
+                       lib:sc.lib       _constru data          148    0        4
+                       lib:sc.lib       stack.c  data          14c    0        4
+                       lib:sc.lib       _iob.c   data          150    0       68
+                       lib:sc.lib       _buffsiz data          1b8    0        4
+                       lib:sc.lib       _ufb.c   data          1bc    0        8
+                       lib:sc.lib       _fmode.c data          1c4    0        8
+                       lib:sc.lib       _cxbrk.c data          1cc    0       50
+                       lib:sc.lib       exitfunc data          21c    0        4
+                       lib:sc.lib       _stdv36. data          220    0       14
+                       lib:sc.lib       _stdwin. data          234    0       14
+                       lib:sc.lib       io2errno data          248    0       40
+winport                 28-Aug-94 01:46:28  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:c.o          c        bss           288    0       28
+                       windowport.o     windowpo bss           2b0    0        c
+                       text.o           text.c   bss           2bc    0       58
+                       lib:sc.lib       base.c   bss           314    0        4
+                       lib:sc.lib       stkptr.c bss           318    0        4
+                       lib:sc.lib       prgname. bss           31c    0        4
+                       lib:sc.lib       _onexit. bss           320    0        4
+                       lib:sc.lib       oserr.c  bss           324    0        4
+                       lib:sc.lib       curdir.c bss           328    0        4
+                       lib:sc.lib       wbmsg.c  bss           32c    0        4
+                       lib:sc.lib       errno.c  bss           330    0        4
+                       lib:sc.lib       memtype. bss           334    0        4
+                       lib:sc.lib       _constru bss           338    0        4
+                       lib:sc.lib       _memclea bss           33c    0        4
+                       lib:sc.lib       _iob.c   bss           340    0       30
+                       lib:sc.lib       _ufb.c   bss           370    0        8
+                       lib:sc.lib       _main.c  bss           378    0        c
+                       lib:sc.lib       stdioptr bss           384    0        8
+   2 exec           68 lib:amiga.lib    <noname> code            0    0       14
+                       lib:amiga.lib    <noname> code           14    0       14
+                       lib:amiga.lib    <noname> code           28    0       18
+                       lib:amiga.lib    <noname> code           40    0       14
+                       lib:amiga.lib    <noname> code           54    0       14
+   3 graphics       38 lib:amiga.lib    <noname> code            0    0       20
+                       lib:amiga.lib    <noname> code           20    0       18
+   4 intuitio       bc lib:amiga.lib    <noname> code            0    0       14
+                       lib:amiga.lib    <noname> code           14    0       1c
+                       lib:amiga.lib    <noname> code           30    0       18
+                       lib:amiga.lib    <noname> code           48    0       14
+                       lib:amiga.lib    <noname> code           5c    0       14
+                       lib:amiga.lib    <noname> code           70    0       18
+                       lib:amiga.lib    <noname> code           88    0       1c
+                       lib:amiga.lib    <noname> code           a4    0       18

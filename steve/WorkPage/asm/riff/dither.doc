@@ -1,0 +1,29 @@
+
+Date		:	25 - oct 1993
+Author	:	C. Lieshout
+Desc.		:	Dithering using error diffusion ( source Bit-Mapped graphics )
+
+Deze methode kan gebruikt worden voor verschillende filters, zoals :
+	Floyd Steinberg,
+	Stucki,
+	Burkes,
+	Sierra,
+	Jarvis, Judice, and ninke,
+	Stevenson and Arce.
+
+Bij elk van deze filters hoort een 'error diffusion' diagram welk zegt
+hoeveel van de fout in de huidige pixel wordt doorberekend in de omliggende.
+Voor Floyd is dit 
+
+		X	7
+	3	5	1
+
+De fout in pixel X wordt met 7 vermenigvuldigt en gedeeld door 16 en daarna
+opgeteld bij X + 1, 3/16 * de fout bij pixel X-1 Y-1 enz.
+
+De fout in X is het verschil tussen de echte waarde en de geplaatste waarde.
+Praktisch dus het verschil tussen echte en geremapte waarde.
+
+Om te voorkomen dat er een symetrisch patroon ontstaat is het beter om de
+pixel 'serpentine' te scannen, van links naar rechts en de volgende regel
+van rechts naar links. Vam rechts gebruikt een gespiegelde diagram.

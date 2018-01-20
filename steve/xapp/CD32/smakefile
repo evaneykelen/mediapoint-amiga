@@ -1,0 +1,34 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK
+AFLAGS = -iINCLUDE
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+# these are my applications
+APP2 = MediaPoint_Host
+
+# the modules needed by each application
+APP20 =		mp_cdtv.o gui.o hostser.o serial.o\
+					cd_init.o cdtv_init.o mpeg_init.o\
+					display.o coproutine.o\
+					demo:gen/general.o demo:gen/wait50hz.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP2)
+
+$(APP2): $(APP20)
+	slink <WITH <
+FROM lib:c.o $(APP20)
+LIBRARY lib:sc.lib lib:amiga.lib 
+TO $(APP2) $(LFLAGS)
+MAP $(APP2).map H
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

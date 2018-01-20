@@ -1,0 +1,5 @@
+del serial.o      
+del init.o        
+del support.o     
+del worker.o      
+del general.o

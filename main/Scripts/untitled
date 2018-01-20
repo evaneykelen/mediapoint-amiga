@@ -1,0 +1,27 @@
+SCRIPTTALK 3, 0
+
+STARTSER
+
+	STARTSER "Main"
+
+		START
+			SOUND "Work:MediaPoint/Sounds/Modules/dirt", LOOP
+			DURATION 00:00:00:0
+		END
+
+		START
+			LABEL "test"
+		END
+
+		START
+			PAGE "Ram Disk:test", OFF, 0, 20, 0, 0, 1
+			DURATION 00:00:10:0
+		END
+
+		START
+			GOTO "test"
+		END
+
+	ENDSER
+
+ENDSER

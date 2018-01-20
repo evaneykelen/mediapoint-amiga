@@ -1,0 +1,5 @@
+FROM LIB:cback.o "setf.o"+"back.o"
+TO "setf"
+LIB lib:debug.lib LIB:sc.lib LIB:amiga.lib
+define ___main=___tinymain
+

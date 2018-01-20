@@ -1,0 +1,48 @@
+CC = sc
+
+CFLAGS = DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK
+AFLAGS = -iINCLUDE
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+# these are my applications
+APP1 = CDTV
+APP2 = host
+
+# the modules needed by each application
+APP10 =		setup.o gen:support.o worker.o gen:general.o doit.o serial.o\
+					lib:/source/_main.o control.o lowlevel.o gen:asm/wait50hz.o
+APP20 =		host.o gen:support.o serial.o lowlevel.o hostser.o\
+					gen:asm/wait50hz.o gen:general.o
+
+#lib:/source/_main.o
+
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1) $(APP2)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib
+# lib:amiga.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map H
+<
+	cop
+
+$(APP2): $(APP20)
+	slink <WITH <
+FROM lib:c.o $(APP20)
+LIBRARY lib:sc.lib
+# lib:amiga.lib lib:debug.lib
+TO $(APP2) $(LFLAGS)
+MAP $(APP2).map H
+<
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

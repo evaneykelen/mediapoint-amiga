@@ -1,0 +1,2 @@
+CONNECTIONCLASS "5"
+DESTINATIONPATH "amiga2-work:mp_ra"

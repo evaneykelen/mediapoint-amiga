@@ -1,0 +1,38 @@
+SynchroZENTC            14-Mar-94 13:57:09  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         24c4 lib:c.o          c        code            0    0      260
+                       SynchroZENTC.o   synchroz code          260    0      a5c
+                       lib:/source/_mai _main.c  code          cbc    0      12c
+                       tempoeditor.o    tempoedi code          de8    1      d8c
+                       gen:GenInit.o    geninit. code         1b7c    0       28
+                       ph:functions.o   function code         1ba4    0      104
+                       itc.o            itc.c    code         1ca8    0      370
+                       etc.o            etc.c    code         2018    4      238
+                       lib:sc.lib       _fpinit. code         2268    0       30
+                       lib:sc.lib       _MemClea code         2298    0       80
+                       lib:sc.lib       _exit.c  code         2318    0       5c
+                       lib:sc.lib       newlist  code         2374    0       14
+                       lib:sc.lib       DelStdIO code         2388    0       28
+                       lib:sc.lib       DelPort. code         23b0    0       44
+                       lib:sc.lib       CrtStdIO code         23f4    0       40
+                       lib:sc.lib       CrtPort. code         2434    0       90
+   1 data            4 SynchroZENTC.o   synchroz data            0    0        4
+   2 code           10 inputevent.o     inputeve code            0    0       10
+   3 udata         198 SynchroZENTC.o   synchroz bss             0    0       90
+                       tempoeditor.o    tempoedi bss            90    0       70
+                       itc.o            itc.c    bss           100    0       54
+                       etc.o            etc.c    bss           154    0       44
+   4 __MERGED       30 lib:sc.lib       sigfunc. data            0    0       24
+                       lib:sc.lib       stack.c  data           24    0        4
+                       lib:sc.lib       _ufb.c   data           28    0        8
+                       lib:c.o          c        bss            30    0       54
+                       lib:/source/_mai _main.c  bss            84    0       8c
+                       lib:sc.lib       memheap. bss           110    0        4
+                       lib:sc.lib       dosbase  bss           114    0        4
+                       lib:sc.lib       _top.c   bss           118    0        4
+                       lib:sc.lib       _exit.c  bss           11c    0        4
+   5 exec           58 lib:amiga.lib    <noname> code            0    0       14
+                       lib:amiga.lib    <noname> code           14    0       14
+                       lib:amiga.lib    <noname> code           28    0       18
+                       lib:amiga.lib    <noname> code           40    0       18

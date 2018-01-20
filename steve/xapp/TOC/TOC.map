@@ -1,0 +1,54 @@
+TOC                     26-Oct-94 14:47:53  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         4574 lib:cres.o       c        code            0    0      2b4
+                       WorkerTOC.o      workerTO code          2b4    0      2cc
+                       lib:/source/_mai _main.c  code          580    0      12c
+                       demo:gen/general general. code          6ac    0       e4
+                       setup.o          setup.c  code          790    0     25c8
+                       doit.o           doit.c   code         2d58    0       4c
+                       demo:gen/support support. code         2da4    0      30c
+                       lib:sc.lib       _fpinit. code         30b0    0       30
+                       lib:sc.lib       _MemClea code         30e0    0       80
+                       lib:sc.lib       _stcul_d code         3160    0       30
+                       lib:sc.lib       _stcl_o  code         3190    0       30
+                       lib:sc.lib       _stcl_h  code         31c0    0       3c
+                       lib:sc.lib       _stcd_i  code         31fc    0       54
+                       lib:sc.lib       stccpy.c code         3250    0       44
+                       lib:sc.lib       stcarg.c code         3294    0       70
+                       lib:sc.lib       _strupr. code         3304    0       3c
+                       lib:sc.lib       _cxd33   code         3340    0       c4
+                       lib:sc.lib       _cxm22   code         3404    0       30
+                       lib:sc.lib       _exit.c  code         3434    0       5c
+                       lib:sc.lib       strchr   code         3490    0       18
+                       lib:sc.lib       strcat   code         34a8    0       18
+                       lib:sc.lib       memmove  code         34c0    0       2c
+                       lib:sc.lib       free     code         34ec    0      16c
+                       lib:sc.lib       malloc   code         3658    0      174
+                       lib:sc.lib       sscanf.c code         37cc    0       5c
+                       lib:sc.lib       sprintf. code         3828    0       44
+                       lib:sc.lib       _sfmt.c  code         386c    0      618
+                       lib:sc.lib       _pfmt.c  code         3e84    0      438
+                       lib:sc.lib       _sf.c    code         42bc    0      168
+                       lib:sc.lib       _pf.c    code         4424    0       7c
+                       lib:sc.lib       DelPort. code         44a0    0       44
+                       lib:sc.lib       CrtPort. code         44e4    0       90
+   1 __MERGED      950 demo:gen/general general. data            0    0        4
+                       setup.o          setup.c  data            4    0      800
+                       demo:gen/support support. data          804    0       14
+                       lib:sc.lib       mstep.c  data          818    0        4
+                       lib:sc.lib       sigfunc. data          81c    0       24
+                       lib:sc.lib       ctype.c  data          840    0      104
+                       lib:sc.lib       stack.c  data          944    0        4
+                       lib:sc.lib       _ufb.c   data          948    0        8
+                       lib:cres.o       c        bss           950    0       50
+                       lib:/source/_mai _main.c  bss           9a0    0       8c
+                       setup.o          setup.c  bss           a2c    0        c
+                       demo:gen/support support. bss           a38    0      218
+                       lib:sc.lib       errno.c  bss           c50    0        4
+                       lib:sc.lib       memheap. bss           c54    0        4
+                       lib:sc.lib       memtype. bss           c58    0        4
+                       lib:sc.lib       dosbase  bss           c5c    0        4
+                       lib:sc.lib       _top.c   bss           c60    0        4
+                       lib:sc.lib       _exit.c  bss           c64    0        4
+                       lib:sc.lib       sscanf.c bss           c68    0        8

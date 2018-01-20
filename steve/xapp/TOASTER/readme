@@ -1,0 +1,83 @@
+------------------------------ TOASTER XAPP ---------------------------
+
+>>>>>>> PS. Set the tab size to 2 when reading docs/sources from me.
+
+Hi Chris,
+
+Phew....didn't know I could produce a xapp so fast!
+
+Mmmm....How does it work?
+
+I used 99% of your screen drawings. The first screen however has
+two ways of selecting a transition. The first way is selecting one
+of the 8 transitions you chose, the other way makes it possible to
+choose any of the Toaster transitions. I guess this is the best (short
+term) work-around, it allows you to choose any transition.
+
+The 2nd and 3rd screen are for loading and saving a frame. it offers a
+real save requester. The loader works as follows: enter the frame you
+want the frame to be loaded in, hit the load button and select a file
+(for now it shows all files, it is very easy for me to add a toaster
+frame file filter or (if they are FORM/ILBM) to use the standard IFF file
+filter). The save requester has a source cycle button, an index selector
+and a save button. If you hit save, it takes the default save filename
+'frame.001' (or another index if you've entered an index). If you change
+the file name in the save requester, click on OK, change the index
+and hit save again it checks if the current file name ends with an index.
+If so, it replaces that index with the current index number as typed in
+the index string requester.
+
+The ARexx part:
+---------------
+
+The file toaster.c has the following line commented out:
+
+	//retval = IssueArexxCmd("ADDRESS BAUD baud 2400", errorStr);
+
+I used this to test the arexx functions I lifted from the ARexx xapp
+(I adapted them slightly to produce more error returns) with Baud Bandit.
+It actually changes the baud rate settings, so I assume it works fine. 
+
+I guess you can use this functions to do one or several calls to the
+Toaster switcher to get the results you want.
+
+IssueArexxCmd() returns a BOOL, if it is FALSE, return immediately with
+a FALSE from the function PerformActions(). If PerformActions() was
+called by setup.c (the GUI), it will present the user with an appropriate
+message (usually the same message as 'rx' gives when the execution of an
+ARexx command or script fails).
+
+All this will take place in the function PerformActions() (also in
+toaster.c). Note that this function is called when:
+
+1 - Preview is hit by the user in the first xapp screen
+2 - OK is pressed when a frame is loaded/saved.
+3 - The xapp is run by the script player.
+
+This means that not much can/may be done by this function other than
+calling the function IssueArexxCmd(). The reason why saving and loading
+is done is because I can only assume that this must also be done using
+ARexx commands.
+
+Compiling:
+----------
+
+Copy the all.sym file (that 400+ k file) you got with the GVR
+sources to toaster includes/ directory (or modify the smakefile to make
+it point to a shared directory with all the includes. You can use the
+toaster includes with the ones the GVR xapp uses.).
+
+While testing xapps I keep MP running and press CTRL - F10 to
+unload/load the xapps again. This speeds up testing a lot. Don't forget
+to copy the new object (called 'setup' after the compilation) to the
+xapps directory. The batch file 'cop' helps with this, add 'cop' to the
+smakefile to do this (it is commented out).
+
+Copy the Toaster.info file to the xapps directory of MP. It
+has a nice icon (Joost!) and the right tool types set. 
+
+Bye (and see you soon!),
+
+Erik
+
+------------------------------ TOASTER XAPP ---------------------------

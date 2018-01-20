@@ -1,0 +1,5 @@
+
+	XDEF	KPrintF
+
+KPrintF
+	rts

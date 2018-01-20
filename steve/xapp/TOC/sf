@@ -1,0 +1,32 @@
+CC = sc
+
+CFLAGS = DEFINE=TINY DATA=NEAR NMINC NOSTKCHK NOICONS
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+AS = asm
+
+XAPPNAME = test
+APP1 = test
+
+# the modules needed by each application
+APP10 = $(APP1).o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(XAPPNAME)
+
+$(XAPPNAME): $(APP10) 
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:scm.lib lib:sc.lib lib:amiga.lib lib:debug.lib
+TO $(XAPPNAME) $(LFLAGS)
+MAP $(XAPPNAME).map H
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

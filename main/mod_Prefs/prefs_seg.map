@@ -1,0 +1,81 @@
+prefs_seg               25-Aug-94 14:20:22  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         5120 lib:c.o          c        code            0    0      260
+                       prefs_seg.o      prefs_se code          260    0     2030
+                       selectmon.o      selectmo code         2290    0      5b0
+                       monsfuncs.o      monsfunc code         2840    0      2a4
+                       sc:source/_main. _main.c  code         2ae4    0      12c
+                       mpri:errors.o    errors.c code         2c10    0      298
+                       lib:sc.lib       _fpinit. code         2ea8    0       30
+                       lib:sc.lib       _MemClea code         2ed8    0       80
+                       lib:sc.lib       stricmp  code         2f58    0       3c
+                       lib:sc.lib       _stcul_d code         2f94    0       30
+                       lib:sc.lib       _stcl_o  code         2fc4    0       30
+                       lib:sc.lib       _stcl_h  code         2ff4    0       3c
+                       lib:sc.lib       _stcd_i  code         3030    0       54
+                       lib:sc.lib       stccpy.c code         3084    0       44
+                       lib:sc.lib       _getbuff code         30c8    0       48
+                       lib:sc.lib       _strupr. code         3110    0       3c
+                       lib:sc.lib       _write.c code         314c    0      100
+                       lib:sc.lib       _read.c  code         324c    0       f8
+                       lib:sc.lib       _lseek.c code         3344    0       94
+                       lib:sc.lib       _close.c code         33d8    0       70
+                       lib:sc.lib       _open.c  code         3448    0      1dc
+                       lib:sc.lib       _cxd33   code         3624    0       c4
+                       lib:sc.lib       _cxm22   code         36e8    0       30
+                       lib:sc.lib       _exit.c  code         3718    0       5c
+                       lib:sc.lib       _cxbrk.c code         3774    0      14c
+                       lib:sc.lib       _chkufb. code         38c0    0       4c
+                       lib:sc.lib       _chkabor code         390c    0       50
+                       lib:sc.lib       memchr   code         395c    0       24
+                       lib:sc.lib       memmove  code         3980    0       2c
+                       lib:sc.lib       free     code         39ac    0      16c
+                       lib:sc.lib       malloc   code         3b18    0      174
+                       lib:sc.lib       sscanf.c code         3c8c    0       5c
+                       lib:sc.lib       fscanf.c code         3ce8    0       78
+                       lib:sc.lib       sprintf. code         3d60    0       44
+                       lib:sc.lib       fprintf. code         3da4    0       a0
+                       lib:sc.lib       ungetc.c code         3e44    0       98
+                       lib:sc.lib       fgetc.c  code         3edc    0      168
+                       lib:sc.lib       fwrite.c code         4044    0      13c
+                       lib:sc.lib       fflush.c code         4180    0       d4
+                       lib:sc.lib       fclose.c code         4254    0       60
+                       lib:sc.lib       freopen. code         42b4    0      144
+                       lib:sc.lib       fopen.c  code         43f8    0       64
+                       lib:sc.lib       _sfmt.c  code         445c    0      618
+                       lib:sc.lib       _pfmt.c  code         4a74    0      438
+                       lib:sc.lib       _sf.c    code         4eac    0      168
+                       lib:sc.lib       _pf.c    code         5014    0       7c
+                       lib:sc.lib       remove.c code         5090    0       30
+                       lib:sc.lib       io2errno code         50c0    0       60
+   1 chip            4 prefs_seg.o      prefs_se datachip        0    0        4
+   2 __MERGED      b0c prefs_seg.o      prefs_se data            0    0      850
+                       selectmon.o      selectmo data          850    0       58
+                       monsfuncs.o      monsfunc data          8a8    0       18
+                       mpri:errors.o    errors.c data          8c0    0       10
+prefs_seg               25-Aug-94 14:20:22  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       mstep.c  data          8d0    0        4
+                       lib:sc.lib       sigfunc. data          8d4    0       24
+                       lib:sc.lib       ctype.c  data          8f8    0      104
+                       lib:sc.lib       stack.c  data          9fc    0        4
+                       lib:sc.lib       _iob.c   data          a00    0       68
+                       lib:sc.lib       _buffsiz data          a68    0        4
+                       lib:sc.lib       _ufb.c   data          a6c    0        8
+                       lib:sc.lib       _fmode.c data          a74    0        8
+                       lib:sc.lib       _cxbrk.c data          a7c    0       50
+                       lib:sc.lib       io2errno data          acc    0       40
+                       lib:c.o          c        bss           b0c    0       54
+                       prefs_seg.o      prefs_se bss           b60    0       84
+                       sc:source/_main. _main.c  bss           be4    0       8c
+                       mpri:errors.o    errors.c bss           c70    0      218
+                       lib:sc.lib       errno.c  bss           e88    0        4
+                       lib:sc.lib       memheap. bss           e8c    0        4
+                       lib:sc.lib       memtype. bss           e90    0        4
+                       lib:sc.lib       dosbase  bss           e94    0        4
+                       lib:sc.lib       _top.c   bss           e98    0        4
+                       lib:sc.lib       _exit.c  bss           e9c    0        4
+                       lib:sc.lib       sscanf.c bss           ea0    0        8
+                       lib:sc.lib       fscanf.c bss           ea8    0        8

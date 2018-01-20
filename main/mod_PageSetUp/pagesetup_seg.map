@@ -1,0 +1,33 @@
+pagesetup_seg           25-Aug-94 13:52:48  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text          f1c lib:c.o          c        code            0    0      260
+                       pagesetup_seg.o  pagesetu code          260    0      630
+                       sc:source/_main. _main.c  code          890    0      12c
+                       lib:sc.lib       _fpinit. code          9bc    0       30
+                       lib:sc.lib       _MemClea code          9ec    0       80
+                       lib:sc.lib       _write.c code          a6c    0      100
+                       lib:sc.lib       _lseek.c code          b6c    0       94
+                       lib:sc.lib       _exit.c  code          c00    0       5c
+                       lib:sc.lib       _cxbrk.c code          c5c    0      14c
+                       lib:sc.lib       _chkufb. code          da8    0       4c
+                       lib:sc.lib       _chkabor code          df4    0       50
+                       lib:sc.lib       memchr   code          e44    0       24
+                       lib:sc.lib       exit.c   code          e68    0       54
+                       lib:sc.lib       io2errno code          ebc    0       60
+   1 __MERGED      36c pagesetup_seg.o  pagesetu data            0    0      240
+                       lib:sc.lib       sigfunc. data          240    0       24
+                       lib:sc.lib       stack.c  data          264    0        4
+                       lib:sc.lib       _iob.c   data          268    0       68
+                       lib:sc.lib       _ufb.c   data          2d0    0        8
+                       lib:sc.lib       _cxbrk.c data          2d8    0       50
+                       lib:sc.lib       exitfunc data          328    0        4
+                       lib:sc.lib       io2errno data          32c    0       40
+                       lib:c.o          c        bss           36c    0       54
+                       pagesetup_seg.o  pagesetu bss           3c0    0       40
+                       sc:source/_main. _main.c  bss           400    0       8c
+                       lib:sc.lib       errno.c  bss           48c    0        4
+                       lib:sc.lib       memheap. bss           490    0        4
+                       lib:sc.lib       dosbase  bss           494    0        4
+                       lib:sc.lib       _top.c   bss           498    0        4
+                       lib:sc.lib       _exit.c  bss           49c    0        4

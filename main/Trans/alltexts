@@ -1,0 +1,5180 @@
+/***********************************************************/
+/*                                                         */
+/* Do not use the '*' in text!                             */
+/* Do not forget to place a '|' behind cycle gadget texts! */
+/* Be very careful to make each cycle gadget entry of the  */
+/* same size as all the other entries!                     */
+/*                                                         */
+/*  0 = Do Not Translate (not necessary or private)        */
+/*  1 = English                                            */
+/*  2 = Dutch                                              */
+/*  3 = German                                             */
+/*  4 = French                                             */
+/*  5 = Spanish                                            */
+/*  6 = Italian                                            */
+/*  7 = Portugese                                          */
+/*  8 = Danish                                             */
+/*  9 = Swedish                                            */
+/* 10 = Norwegian                                          */
+/*                                                         */
+/***********************************************************/
+
+/* MISC */
+
+1  "\0$VER: 1.4"
+2  "\0$VER: 1.4"
+3  "\0$VER: 1.4"
+4  "\0$VER: 1.4"
+6  "\0$VER: 1.1"
+10 "\0$VER: 1.0"
+
+/* NOT FOR TRANSLATOR: see also mediapoint.c for version number */
+
+0 "-"
+/* ^ version */
+0 "-"
+/* ^ revision */
+0 "128/B"
+/* ^^^ beta version */
+
+0 "                      MediaPointõ 128/B"
+0 "MediaPoint"
+
+1  "OK"
+2  "OK"
+3  "OK"
+4  "OK"
+6  "OK"
+10 "OK"
+
+1  "Cancel"
+2  "Annuleer"
+3  "Abbruch"
+4  "Annuler"
+6  "Annulla"
+10 "Avbryt"
+
+1  "More"
+2  "Meer"
+3  "Weiter"
+4  "Plus"
+6  "Avanti"
+10 "Mer"
+
+0 "Untitled"
+
+1  "Previous"
+2  "Vorige"
+3  "Vorher."
+4  "PrÈc."
+6  "Indietro"
+10 "Forrige"
+
+1  "Next"
+2  "Volgende"
+3  "N‰chstes"
+4  "Suivant"
+6  "Avanti"
+10 "Neste"
+
+0 "1|  2|  3|  4|  5|  6|  7|  8|  9|  10| 11| 12| 13| 14| 15| 16| 17| 18| 19| 20| 21| 22| 23| 24| 25| 26| 27| 28| 29| 30| 31| 32| 33| 34| 35| 36| 37| 38| 39| 40| "
+ /*----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++*/
+0 "1990| 1991| 1992| 1993| 1994| 1995| 1996| 1997| 1998| "
+ /*------++++++------++++++------++++++------++++++------*/
+0 "Auto| 1|    2|    3|    4|    5|    6|    7|    8|    9|    10|   11|   12|   13|   14|   15|   16|   17|   18|   19|   20|   21|   22|   23|   24|   25|   26|   27|   28|   29|   30|   31|   32|   33|   34|   35|   36|   37|   38|   39|   40|   41|   42|   43|   44|   45|   46|   47|   48|   49|   50|   51|   52|   53|   54|   55|   56|   57|   58|   59|   60|   61|   62|   63|   64|   65|   66|   67|   68|   69|   70|   71|   72|   73|   "
+ /*------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++------++++++*/
+0 "î|  1|  2|  3|  4|  5|  6|  7|  8|  9|  10| 11| 12| 13| 14| 15| 16| 17| 18| 19| 20| 21| 22| 23| 24| 25| 26| 27| 28| 29| 30| "
+ /*----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----++++----*/
+0 "-3| -2| -1| 0|  1|  2|  3|  4|  5|  6|  7|  8|  9|  10| 11| 12| 13| 14| 15| "
+ /*----++++----++++----++++----++++----++++----++++----++++----++++----++++----*/
+0 "0|  1|  2|  3|  4|  5|  6|  7|  8|  9|  10| 11| 12| 13| 14| 15| "
+ /*----++++----++++----++++----++++----++++----++++----++++----++++*/
+
+1  "Internal error: %d"
+2  "Interne fout: %d"
+3  "Interner Fehler: %d"
+4  "Erreur Interne: %d"
+6  "Errore interno: %d"
+10 "Intern feil: %d"
+
+1  "Yes"
+2  "Ja"
+3  "Ja"
+4  "Oui"
+6  "SÏ"
+10 "Ja"
+
+1  "No"
+2  "Nee"
+3  "Nein"
+4  "Non"
+6  "No"
+10 "Nei"
+
+/* ABOUT */
+
+0 "Copyright © 1992-'93-'94 by"
+0 "MediaPoint International."
+0 "All Rights Reserved."
+0 "MediaPoint and the logo"
+0 "are trademarks of"
+0 "MediaPoint International."
+
+1  "Design and Programming:"
+2  "Ontwerp en Programmering:"
+3  "Design und Programmierung:"
+4  "Conception et Programmation:"
+6  "<!>:"
+10 "Design og programmering:"
+
+0 "Erik van Eykelen"
+0 "Joost Honig"
+0 "Cees Lieshout"
+0 "Steve van der Horst"
+0 "Pascal Eeftinck"
+0 "Mike Kennedy"
+0 "Chris Palmer"
+0 " "
+
+1  "Graphics memory:"
+2  "Grafisch geheugen:"
+3  "Grafik-Speicher:"
+4  "MÈmoire graphique:"
+6  "Memoria grafica:"
+10 "Grafikkminne:"
+
+1  "Other memory:"
+2  "Overig geheugen:"
+3  "Sonstiger Speicher:"
+4  "Autre mÈmoire:"
+6  "Altra memoria:"
+10 "Annet minne:"
+
+1  "Program version:"
+2  "Programma versie:"
+3  "Programm-Version:"
+4  "Version logiciel:"
+6  "Versione programma:"
+10 "Programversjon:"
+
+1  "Library 1 version:"
+2  "Bibliotheek 1 versie:"
+3  "Bibliothek 1 Version:"
+4  "BibliothËque 1 version:"
+6  "Versione libreria 1:"
+10 "Bibliotek 1 versjon:"
+
+1  "Library 2 version:"
+2  "Bibliotheek 2 versie:"
+3  "Bibliothek 2 Version:"
+4  "BibliothËque 2 version:"
+6  "Versione libreria 2:"
+10 "Bibliotek 2 versjon:"
+
+1  "MB"
+2  "MB"
+3  "MB"
+4  "MO"
+6  "MB"
+10 "MB"
+
+1  "Translation:"
+2  "Vertaling:"
+3  "‹bersetzung:"
+4  "Traduction:"
+6  "<!>:"
+10 "Oversettelse:"
+
+1  "Jaap Zwart, MediaPoint Int."
+2  "Jaap Zwart, MediaPoint Int."
+3  "G¸nter Hagedorn, Activa Int. GmbH"
+4  "Aymeric de La VaissiËre, AvancÈe"
+6  "Massimiliano Pallavisini, AP & S"
+10 "B¯rge Haugsdal, Digital Grafikk ANS"
+
+1  "Support:"
+2  "Support:"
+3  "Support:"
+4  "Support:"
+6  "<!>:"
+10 "Support:"
+
+0 "Harold Oudshoorn"
+0 "Ruud Wilgenkamp"
+
+/* FA MENU */
+
+1  "Menu name:"
+2  "Menu naam:"
+3  "Men¸ Name:"
+4  "Nom de Menu:"
+6  "Nome men˘:"
+10 "Menynavn: "
+
+1  "Select program"
+2  "Selecteer programma"
+3  "Programm ausw‰hlen"
+4  "Choisir logiciel"
+6  "Selezionare programma"
+10 "Velg program"
+
+1  "No program selected"
+2  "Geen programma geselecteerd"
+3  "Kein Programm ausgew‰hlt"
+4  "Pas de logiciel sÈlectionnÈ"
+6  "Nessun programma selezionato"
+10 "Ingen program valgt"
+
+1  "Clear"
+2  "Weg"
+3  "Lˆschen"
+4  "Effacer"
+6  "Cancella"
+10 "Rens"
+
+/* OPEN FILE REQUESTER */
+
+1  "Parent"
+2  "Hoger"
+3  "Mutterv."
+4  "Parent"
+6  "Prec."
+10 "Forrige"
+
+1  "Disks"
+2  "Disks"
+3  "Laufw."
+4  "Disques"
+6  "Dischi"
+10 "Disk"
+
+1  "Assigns"
+2  "Assigns"
+3  "Assigns"
+4  "Assigns"
+6  "Assegn."
+10 "Assigns"
+
+1  "Open"
+2  "Open"
+3  "÷ffnen"
+4  "Ouvrir"
+6  "Apri"
+10 "Hent"
+
+1  "Home"
+2  "Paden"
+3  "Hauptv."
+4  "Principal"
+6  "Base"
+10 "Hjem"
+
+/* SAVE FILE REQUESTER */
+
+/* SAVE THIS DOCUMENT AS: or SAVE THIS SCRIPT AS: */
+
+1  "Save this %s as:"
+2  "Bewaar dit %s als:"
+3  "Speichere %s als:"
+4  "Sauver %s sous:"
+6  "Salvare %s come:"
+10 "Lagre dette %s som:"
+
+1  "Replace existing file '%s'?"
+2  "Vervang bestand '%s'?"
+3  "Bestehende Datei '%s' ersetzen?"
+4  "Remplacer le fichier existant '%s'?"
+6  "Sovrascrivere il file '%s'?"
+10 "Erstatt eksisterende fil '%s'?"
+
+/* CLOSE */
+
+/* SAVE CHANGES TO THE DOCUMENT '%s' BEFORE CLOSING? */
+/* SAVE CHANGES TO THE SCRIPT '%s' BEFORE CLOSING? */
+
+1  "Save changes to the %s '%s' before closing?"
+2  "Bewaar veranderingen aan %s '%s'?"
+3  "Vor dem Verlassen ƒnderungen in %s '%s' speichern?"
+4  "Sauver les modifications dans %s '%s' avant de fermer?"
+6  "Salvare %s modificato '%s' prima di chiudere?"
+10 "Lagre forandringer av %s '%s' f¯r avslutting?"
+
+1  "page"
+2  "pagina"
+3  "Dokument"
+4  "page"
+6  "documento"
+10 "side"
+
+1  "script"
+2  "script"
+3  "Skript"
+4  "script"
+6  "script"
+10 "script"
+
+1  "No"
+2  "Nee"
+3  "Nein"
+4  "Non"
+6  "No"
+10 "Nei"
+
+1  "Save"
+2  "Bewaar"
+3  "Speich."
+4  "Sauver"
+6  "Salva"
+10 "Lagre"
+
+/* PAGE SETUP */
+
+1  "Printer setup"
+2  "Printer setup"
+3  "Druckereinstellungen"
+4  "ParamËtres d'impression"
+6  "Impostazione stampante"
+10 "Printer oppsett"
+
+1  "Scale and orientation:"
+2  "Grootte en richting:"
+3  "Skalierung & Ausricht.:"
+4  "Echelle et orientation:"
+6  "Scala e orientamento:"
+10 "Skalering og orientering:"
+
+1  "Landscape|       Landscape 4x4|   Portrait|        Portrait 4x4|    "
+2  "Liggend|         Liggend 4x4|     Staand|          Staand 4x4|      "
+3  "Quer|            Quer 4x4|        Normal|          Normal 4x4|      "
+4  "Paysage|         Paysage 4x4|     Portrait|        Portrait 4x4|    "
+6  "Orizzontale|     Orizzontale 4x4| Verticale|       Verticale 4x4|   "
+10 "Landskap|        Landskap 4x4|    Portrett|        Portrett 4x4|    "
+  /*-----------------+++++++++++++++++-----------------+++++++++++++++++*/
+
+1  "Quality:"
+2  "Kwaliteit:"
+3  "Qualit‰t:"
+4  "QualitÈ:"
+6  "Qualit‡:"
+10 "Kvalitet:"
+
+1  "Draft"
+2  "Proefdruk"
+3  "Entwurf"
+4  "Brouillon"
+6  "Bozza"
+10 "Kladd"
+
+1  "Letter"
+2  "Hoog"
+3  "Brief"
+4  "Lettre"
+6  "Lettera"
+10 "Brev"
+
+1  "Get WB prefs"
+2  "Gebruik WB instellingen"
+3  "WB Einstellungen"
+4  "Obtenir les prefs WB"
+6  "Usa preferenze WB"
+10 "Hent WB innstillinger"
+
+/* PRINT */
+
+1  "Print page"
+2  "Print pagina"
+3  "Dokument drucken"
+4  "Imprimer document"
+6  "Stampa documento"
+10 "Skriv ut side"
+
+1  "Print script"
+2  "Print script"
+3  "Skript drucken"
+4  "Imprimer script"
+6  "Stampa script"
+10 "Skriv ut script"
+
+1  "Destination:"
+2  "Druk af op/naar:"
+3  "Ausdruck ¸ber:"
+4  "Destination:"
+6  "Destinazione:"
+10 "Destinasjon:"
+
+1  "Printer"
+2  "Printer"
+3  "Drucker"
+4  "Imprimante"
+6  "Stampante"
+10 "Skriver"
+
+1  "PostScriptÆ device on SER:"
+2  "PostScriptÆ apparaat via SER:"
+3  "PostScriptÆ Ger‰t via SER:"
+4  "PostScriptÆ sur port SER:"
+6  "Unit‡ PostScriptÆ su SER:"
+10 "PostScriptÆ utgang via SER:"
+
+1  "PostScript device on PAR:"
+2  "PostScript apparaat via PAR:"
+3  "PostScript Ger‰t via PAR:"
+4  "PostScript sur port PAR:"
+6  "Unit‡ PostScript su PAR:"
+10 "PostScript utgang via PAR:"
+
+1  "PostScript file"
+2  "PostScript bestand"
+3  "PostScript Datei"
+4  "Fichier PostScript"
+6  "File PostScript"
+10 "PostScript fil"
+
+1  "Options:"
+2  "Opties:"
+3  "Optionen:"
+4  "Options:"
+6  "Opzioni:"
+10 "Opsjoner:"
+
+1  "Text only"
+2  "Alleen tekst"
+3  "Nur Text"
+4  "Texte seulement"
+6  "Solo testo"
+10 "Bare tekst"
+
+1  "Multiple files"
+2  "Meerdere bestanden"
+3  "Mehrere Dateien"
+4  "Fichiers multiples"
+6  "File multipli"
+10 "Flere filer"
+
+1  "Copies:"
+2  "Aantal:"
+3  "Kopien:"
+4  "Copies:"
+6  "Copie:"
+10 "Antall:"
+
+1  "Print"
+2  "Print"
+3  "Drucken"
+4  "Imprimer"
+6  "Stampa"
+10 "Skriv ut"
+
+/* DISTRIBUTOR */
+
+1  "Window distribution"
+2  "Vensters verplaatsen"
+3  "Fenster verteilen"
+4  "RÈpartition des fenÍtres"
+6  "Finestra di riordino"
+10 "Vindus distribusjon"
+
+1  "Distribute:"
+2  "Verdeel:"
+3  "Verteilen:"
+4  "RÈpartir:"
+6  "Riordina:"
+10 "Distribuer:"
+
+1  "Center:"
+2  "Centreer:"
+3  "Zentrieren:"
+4  "Centrer:"
+6  "Centra:"
+10 "Sentrer:"
+
+1  "Between left and right|   Between top and bottom|   "
+2  "Tussen links en rechts|   Tussen boven en onder|    "
+3  "Zwischen Links & Rechts|  Zwischen Oben & Unten|    "
+4  "Entre gauche et droite|   Entre haut et bas|        "
+6  "Da destra a sinistra|     Da sopra a sotto|         "
+10 "Mellom venstre og h¯yre|  Mellom topp og bunn|      "
+  /*--------------------------++++++++++++++++++++++++++*/
+		
+1  "Horizontally|   Vertically|     "
+2  "Horizontaal|    Verticaal|      "
+3  "Horizontal|     Vertikal|       "
+4  "Horizontal|     Vertical|       "
+6  "Orizzontale|    Verticale|      "
+10 "Horisontalt|    Vertikalt|      "
+  /*----------------++++++++++++++++*/
+
+/* DUPLICATOR */
+
+1  "Window duplication"
+2  "Vensters kopiÎren"
+3  "Fenster vervielfachen"
+4  "Duplication de fenÍtre"
+6  "Finestra di duplicazione"
+10 "Vinduskopiering"
+
+1  "Copy"
+2  "Kopieer"
+3  "Kopiere"
+4  "Copier"
+6  "Copia"
+10 "Kopier"
+
+1  "times"
+2  "maal"
+3  "Mal"
+4  "fois"
+6  "volte"
+10 "ganger"
+
+1  "Add"
+2  "Tel"
+3  "Plus"
+4  "Ajout"
+6  "Agg."
+10 "Adder"
+
+1  "to x"
+2  "op bij x"
+3  "zu x"
+4  "sur x"
+6  "a coord. x"
+10 "til x"
+
+1  "to y"
+2  "op bij y"
+3  "zu y"
+4  "sur y"
+6  "a coord. y"
+10 "til y"
+
+/* IMPORT */
+
+1  "Import"
+2  "Importeer"
+3  "Importieren"
+4  "Importer"
+6  "Importa"
+10 "Importer"
+
+1  "Background"
+2  "Achtergrond"
+3  "Hintergrund"
+4  "ArriËre-Plan"
+6  "<!>"
+10 "Bakgrunn"
+
+1  "Picture"
+2  "Plaatje"
+3  "Grafik"
+4  "Image"
+6  "Immagine"
+10 "Bilde"
+
+1  "Screen"
+2  "Scherm"
+3  "Bildschirm"
+4  "Ecran"
+6  "Schermo"
+10 "Skjerm"
+
+1  "Text"
+2  "Tekst"
+3  "Text"
+4  "Texte"
+6  "Testo"
+10 "Tekst"
+
+0 "Datatype"
+
+1  "Remap"
+2  "'Remap'"
+3  "'Remap'"
+4  "Remapper"
+6  "'Remap'"
+10 "'Remap'"
+
+1  "Resize"
+2  "Schalen"
+3  "Skalieren"
+4  "Redimension"
+6  "A misura"
+10 "Skaler"
+
+1  "The picture is too small."
+2  "Het plaatje is te klein."
+3  "Die Grafik ist zu klein."
+4  "L'image est trop petite."
+6  "L'immagine Ë troppo piccola."
+10 "Bildet er for lite."
+
+1  "Delay:"
+2  "Wacht:"
+3  "Warte:"
+4  "DÈlai:"
+6  "Ritardo:"
+10 "Forsinkelse:"
+
+/* GRAB SCREEN */
+
+1  "Grab"
+2  "Pak"
+3  "Grab"
+4  "Capturer"
+6  "Cattura"
+10 "Grab"
+
+/* WINDEF */
+
+1  "Window definitions"
+2  "Venster instellingen"
+3  "Fenster-Einstellungen"
+4  "ParamËtres de fenÍtres"
+6  "Definizione della finestra"
+10 "Vindusdefinisjoner"
+
+1  "Border width:"
+2  "Kader breedte:"
+3  "Rand-Breite:"
+4  "Largeur du bord:"
+6  "Larghezza bordo:"
+10 "Kantbredde:"
+
+1  "Fill type:"
+2  "Vulling:"
+3  "F¸ll-Typ:"
+4  "Contenu:"
+6  "Interno:"
+10 "Fyll type:"
+
+1  "Solid|    Pattern|  Transp|   "
+2  "Kleur|    Raster|   Transp.|  "
+3  "Solid|    Pattern|  Transp.|  "
+4  "Solide|   Motif|    Transp.|  "
+6  "Solido|   Motivo|   Trasp.|   "
+10 "Solid|    M¯nster|  Gj.siktig|"
+  /*----------++++++++++----------*/
+
+0  "X:"
+0  "Y:"
+
+1  "W:"
+2  "B:"
+3  "B:"
+4  "L:"
+6  "L:"
+10 "B:"
+
+1  "H:"
+2  "H:"
+3  "H:"
+4  "H:"
+6  "A:"
+10 "H:"
+
+1  "All"
+2  "Alle"
+3  "Alle"
+4  "Tout"
+6  "Tutto"
+10 "Alle"
+
+1  "Window:"
+2  "Venster:"
+3  "Fenster:"
+4  "FenÍtre:"
+6  "Finestra:"
+10 "Vindu:"
+
+/* PALETTE */
+
+1  "R"
+2  "R"
+3  "R"
+4  "R"
+6  "R"
+10 "R"
+
+1  "G"
+2  "G"
+3  "G"
+4  "V"
+6  "V"
+10 "G"
+
+1  "B"
+2  "B"
+3  "B"
+4  "B"
+6  "B"
+10 "B"
+
+1  "Spread"
+2  "Verloop"
+3  "Verlauf"
+4  "DÈgradÈ"
+6  "Diffondi"
+10 "Spre"
+
+1  "Swap"
+2  "Wissel"
+3  "Tausch"
+4  "Echanger"
+6  "Scambia"
+10 "Bytt"
+
+1  "Undo"
+2  "Herstel"
+3  "R¸ckg."
+4  "Undo"
+6  "Annulla"
+10 "Gj¯r om"
+
+1  "Load"
+2  "Open"
+3  "Laden"
+4  "Charger"
+6  "Carica"
+10 "Hent"
+
+1  "Save"
+2  "Bewaar"
+3  "Speich."
+4  "Sauver"
+6  "Salva"
+10 "Lagre"
+
+1  "Limits"
+2  "Grenzen"
+3  "Grenzen"
+4  "Limites"
+6  "Limiti"
+10 "Grenser"
+
+1  "Broadcast limits"
+2  "Minimum-Maximum"
+3  "Bereich Min-Max"
+4  "Limites Broadcast"
+6  "Minimo-Massimo"
+10 "Broadcast grenser"
+
+1  "Min:"
+2  "Min:"
+3  "Min:"
+4  "Min:"
+6  "Min:"
+10 "Min:"
+
+1  "Max:"
+2  "Max:"
+3  "Max:"
+4  "Max:"
+6  "Max:"
+10 "Max:"
+
+1  "The file '%s' contains no color information."
+2  "Het bestand '%s' bevat geen kleur-informatie."
+3  "Die Datei '%s' enth‰lt keine Farb-Informationen."
+4  "Le fichier '%s' ne contient aucune palette."
+6  "Il file '%s' non contiene dati colori."
+10 "Filen '%s' inneholder ingen fargeinformasjon."
+
+1  "Select color file:"
+2  "Kies een kleurenbestand:"
+3  "Bitte Farb-Datei selektieren:"
+4  "Choisisser un fichier couleur:"
+6  "Seleziona file colore:"
+10 "Velg fargefil:"
+
+1  "Save this color file as:"
+2  "Bewaar kleuren als:"
+3  "Farben speichern unter:"
+4  "Sauver cette palette sous:"
+6  "Salva file colore come:"
+10 "Lagre fargefilen som:"
+
+/* SCREEN SIZE */
+
+1  "Screen Size"
+2  "Schermgrootte"
+3  "Bildschirm"
+4  "Taille d'Ècran"
+6  "Dim. schermo"
+10 "Skjerm"
+
+0 "low|       low lace|  high|      high lace| super|     super lace|prod|      prod lace| "
+ /*-----------+++++++++++-----------+++++++++++-----------+++++++++++-----------+++++++++++*/
+
+1  "Overscan:"
+2  "Overscan:"
+3  "Overscan:"
+4  "Overscan:"
+6  "Overscan:"
+10 "Overscan:"
+
+0  "Off|  Txt|  Gfx|  Max|  Video "
+  /*------++++++------++++++------*/
+
+/*2  "Uit|Tekst||"*/
+/*3  "Off|Std|Max|"*/
+/*4  "Non|Std|Max|"*/
+/*6  "No| Std|Max|"*/
+/*10 "Av| Std|Max|"*/
+  /*----++++----*/
+
+1  "Colors:"
+2  "Kleuren:"
+3  "Farben:"
+4  "Couleurs:"
+6  "Colori:"
+10 "Farger:"
+
+0 "2|   4|   8|   16|  32|  EHB| HAM|  "
+ /*-----+++++-----+++++-----+++++------*/
+0 "2|   4|   8|   16|  32|  EHB| 64|  128| 256| HAM| HAM8| "
+ /*-----+++++-----+++++-----+++++-----+++++-----+++++------*/
+
+0 "PAL| NTSC|"
+ /*-----+++++*/
+
+1  "Low-Res"
+2  "Laag"
+3  "Low-Res"
+4  "Low-Res"
+6  "Bassa ris."
+10 "Low-Res"
+
+1  "Low-Res Lace"
+2  "Laag 'Lace'"
+3  "Low-Res Lace"
+4  "Low-Res Lace"
+6  "Bassa ris. int."
+10 "Low-Res Lace"
+
+1  "High-Res"
+2  "Hoog"
+3  "High-Res"
+4  "High-Res"
+6  "Alta ris."
+10 "High-Res"
+
+1  "High-Res Lace"
+2  "Hoog 'Lace'"
+3  "High-Res Lace"
+4  "High-Res Lace"
+6  "Alta ris. inter."
+10 "High-Res Lace"
+
+1  "Super"
+2  "Super"
+3  "Super"
+4  "Super"
+6  "Super"
+10 "Super"
+
+1  "Super Lace"
+2  "Super Lace"
+3  "Super Lace"
+4  "Super Lace"
+6  "Super inter."
+10 "Super Lace"
+
+0 "Unknown format"
+
+/* CHANGE SCREEN MODE */
+
+1  "Change to screen size of loaded page?"
+2  "Gebruik schermgrootte van pagina?"
+3  "Bildschirmmaﬂe des Dokumentes ¸bernehmen?"
+4  "Prendre la taille du document chargÈ?"
+6  "Usare dimensioni di schermo del documento caricato?"
+10 "Forandre skjermst¯rrelse til den innhentede sidens?"
+
+/* WINDOW TRANSITIONS */
+
+1  "Window transitions"
+2  "Venster effecten"
+3  "Fenster-Effekte"
+4  "Transitions de fenÍtre"
+6  "Transizioni della finestra"
+10 "Vinduoverganger"
+
+1  "Window"
+2  "Venster"
+3  "Fenster"
+4  "FenÍtre"
+6  "Finestra"
+10 "Vindu"
+
+1  "In"
+2  "In"
+3  "Ein"
+4  "Arr."
+6  "Entrata"
+10 "Inn"
+
+1  "Out"
+2  "Uit"
+3  "Aus"
+4  "Sor."
+6  "Uscita"
+10 "Ut"
+
+1  "Delay"
+2  "Wacht"
+3  "Warte"
+4  "DÈlai"
+6  "Ritardo"
+10 "Fors."
+
+/* PREFS 1 */
+
+1  "User level:"
+2  "Gebruiksniveau:"
+3  "Anwender-Niveau:"
+4  "Niveau utilisateur:"
+6  "Livello utente:"
+10 "BrukernivÂ:"
+
+1  "Test Drive|    Presentation|  Multimedia|    Expert|        "
+2  "Oefenen|       Presentatie|   Multimedia|    Expert|        "
+3  "Testen|        Pr‰sentation|  Multimedia|    Experte|       "
+4  "Test|          PrÈsentation|  MultimÈdia|    Expert|        "
+6  "Giro di prova| Presentaz.|    Multimedia|    Esperto|       "
+10 "Testkj¯ring|   Presentasjon|  Multimedia|    Ekspert|       "
+  /*---------------+++++++++++++++---------------+++++++++++++++*/
+
+1  "Color set:"
+2  "Kleuren:"
+3  "Farben:"
+4  "Jeu de couleurs:"
+6  "Set colori:"
+10 "Fargesett:"
+
+1  "Language:"
+2  "Taal:"
+3  "Sprache:"
+4  "Langage:"
+6  "Lingua:"
+10 "SprÂk:"
+
+0 "Dansk|        Deutsch|      English|      EspaÒol|      FranÁais|     Italiano|     Nederlands|   Norsk|        PortuguÍs|    Svenska|      "
+ /*--------------++++++++++++++--------------++++++++++++++--------------++++++++++++++--------------++++++++++++++--------------++++++++++++++*/
+
+0  "Workbench:"
+
+1  "On|   Off|  "
+2  "Aan|  Uit|  "
+3  "An|   Aus|  "
+4  "Oui|  Non|  "
+6  "SÏ|   No|   "
+10 "PÂ|   Av|   "
+  /*------++++++*/
+
+1  "Menus:"
+2  "Menu's:"
+3  "Men¸s:"
+4  "Menus:"
+6  "Men˘:"
+10 "Meny:"
+
+1  "Player:"
+2  "Speler:"
+3  "Abspieler:"
+4  "Diffuseur:"
+6  "Esecutore:"
+10 "Avspiller:"
+
+0 "PAL|          NTSC|         Double PAL|   Double NTSC|  Super 72|     "
+ /*--------------++++++++++++++--------------++++++++++++++--------------*/
+
+1  "Script screen:"
+2  "Script scherm:"
+3  "Skript-Bildschirm:"
+4  "Editeur de Script:"
+6  "Schermo script:"
+10 "Scriptskjerm:"
+
+1  "Normal|    Laced|     "
+2  "Normaal|   Laced|     "
+3  "Normal|    Laced|     "
+4  "Normal|    EntrelacÈ| "
+6  "Normale|   Laced|     "
+10 "Normal|    Laced|     "
+  /*-----------+++++++++++*/
+
+/* PREFS 2 */
+
+1  "Thumbnail size:"
+2  "Miniatuur grootte:"
+3  "Miniatur-Grˆﬂe:"
+4  "Taille vignettes:"
+6  "Dim. miniature:"
+10 "Miniatyr-st¯rr.:"
+
+1  "Small|    Large|    "
+2  "Klein|    Groot|    "
+3  "Klein|    Groﬂ|     "
+4  "Petit|    Grand|    "
+6  "Piccola|  Grande|   "
+10 "Liten|    Stor|     "
+  /*----------++++++++++*/
+
+1  "Thumb colors:"
+2  "Miniatuur kleuren:"
+3  "Miniatur-Farben:"
+4  "Nbr. Couleur Vign:"
+6  "Colori miniature:"
+10 "Miniatyr-farger:"
+
+1  "<!>Thumb screen:"
+2  "<!>Miniatuur scherm:"
+3  "<!>Miniatur-Bildsch.:"
+4  "<!>Ecran Vignettes:"
+6  "<!>Schermo miniature:"
+10 "<!>Miniatyr-bilder:"
+
+1  "Scheduling:"
+2  "Datum progr.:"
+3  "Progr. zeigen:"
+4  "Afficher progs:"
+6  "Mostra prog:"
+10 "Tidsplan:"
+
+1  "Show dates:"
+2  "Toon datums:"
+3  "Zeige Datum:"
+4  "Afficher Jours:"
+6  "Mostra giorni:"
+10 "Vis datoer:"
+
+1  "Yes| No|  "
+2  "Ja|  Nee| "
+3  "Ja|  Nein|"
+4  "Oui| Non| "
+6  "SÏ|  No|  "
+10 "Ja|  Nei| "
+  /*-----+++++*/
+
+/* PREFS 3 */
+
+1  "Programmable frame codes:"
+2  "Programmeerbare framecodes:"
+3  "Programmierbare Frame-Codes:"
+4  "Framecodes programmables:"
+6  "Frame programmabili:"
+10 "Programmerbare framecodes:"
+
+0 "F1:"
+0 "F2:"
+0 "F3:"
+0 "F4:"
+0 "F5:"
+0 "F6:"
+0 "F7:"
+0 "F8:"
+0 "F9:"
+0 "F10:"
+
+/* PREFS 4 */
+
+1  "Default directories:"
+2  "Standaard paden:"
+3  "Standard-Pfade:"
+4  "RÈpertoires par dÈfaut:"
+6  "Percorso di default:"
+10 "Standard sti:"
+
+1  "Home directories:"
+2  "Eigen paden:"
+3  "Eigene Pfade:"
+4  "RÈpertoires principaux:"
+6  "Percorso di base:"
+10 "Grunnsti:"
+
+1  "Pictures|            Animations|          Music|               Samples|             Texts|               Pages|               Scripts|             "
+2  "Plaatjes|            Animaties|           Muziek|              Sample's|            Teksten|             Pagina's|            Scripts|             "
+3  "Grafiken|            Animationen|         Musik|               Samples|             Texte|               Dokumente|           Skripte|             "
+4  "Images|              Animations|          Musique|             Echantillon|         Textes|              Documents|           Scripts|             "
+6  "<!>Immagini|          |                    |                                        Testi|               Documenti|           Scripts|             "
+10 "<!>Bilder|            |                    |                                        Tekster|             Sider|               Scripter|            "
+  /*---------------------+++++++++++++++++++++---------------------+++++++++++++++++++++---------------------+++++++++++++++++++++---------------------*/
+
+1  "Description:"
+2  "Omschrijving:"
+3  "Beschreibung:"
+4  "Description:"
+6  "Descrizione:"
+10 "Beskrivelse:"
+
+1  "Path:"
+2  "Pad:"
+3  "Pfad:"
+4  "Chemin:"
+6  "Percorso:"
+10 "Sti:"
+
+/* PREFS 5 */
+
+1  "Player device:"
+2  "Extern apparaat:"
+3  "Externes Ger‰t:"
+4  "Appareils externes:"
+6  "Unit‡ esterna:"
+10 "Spiller enhet:"
+
+0  "Baud rate:"
+
+0 "1200| 2400| 4800| 9600| "
+ /*------++++++------++++++*/
+
+1  "Serial device:"
+2  "Serial device:"
+3  "Serial Device:"
+4  "Port SÈrie:"
+6  "Porta seriale:"
+10 "Seriell enhet:"
+
+1  "Unit:"
+2  "Poort:"
+3  "Port:"
+4  "UnitÈ:"
+6  "Unit‡:"
+10 "Port:"
+
+1  "No device selected"
+2  "Geen apparaat gekozen"
+3  "Kein Device eingestellt"
+4  "Pas de pÈriphÈrique sÈlectionnÈ"
+6  "Nessun'unit‡ selezionata"
+10 "Ingen enhet valgt"
+
+/* PREFS MISC */
+
+1  "The language %s is not available. Switching back to %s."
+2  "De taal %s is niet aanwezig. De taal %s zal gebruikt worden."
+3  "Die Sprache %s ist nicht verf¸gbar. Wechsle zur¸ck zu %s."
+4  "Le language %s n'est pas disponible. Retour au %s."
+6  "La lingua %s non Ë disponibile. La lingua %s verr‡ usato."
+10 "SprÂket %s er ikke tilgjengelig. Setter sprÂket tilbake til %s."
+
+1  "Script"
+2  "Script"
+3  "Skript"
+4  "Script"
+6  "Script"
+10 "Script"
+
+1  "The requested monitor is not available. Drag it from the storage drawer to the monitors drawer."
+2  "De gewenste monitor is niet aanwezig. Verplaats hem van de storage lade naar de monitors lade."
+3  "Der angeforderte Monitor ist nicht definiert. Ziehen Sie das entsprechende Piktogramm von der 'Storage'- in die 'Monitors'-Schublade."
+4  "La moniteur demandÈ n'est pas disponible. DÈplacez-le depuis le tiroir Storage vers le tiroir Monitors."
+6  "Il monitor desiderato non Ë disponibile. Trascinilo del cassetto 'Storage' al cassetto 'Monitor'."
+10 "Den ¯nskede skjerminnstillingen er ikke tilgjengelig. "
+
+/* FILE THUMBS */
+
+1  "Image too"
+2  "Plaatje te"
+3  "Bild zu"
+4  "Image aussi"
+6  "Troppo"
+10 "Bilde til"
+
+1  "large"
+2  "groot"
+3  "groﬂ"
+4  "grand"
+6  "grande"
+10 "stor"
+
+/* TRANSITION */
+
+1  "Select transition:"
+2  "Kies effect:"
+3  "Effekt ausw‰hlen:"
+4  "Choisissez transitions:"
+6  "Seleziona transizione:"
+10 "Velg overgang:"
+
+1  "Speed:"
+2  "Snelheid:"
+3  "Geschw.:"
+4  "Vitesse:"
+6  "Velocit‡:"
+10 "Hastigh.:"
+
+1  "Variation:"
+2  "Variatie:"
+3  "Variation:"
+4  "Variante:"
+6  "Variazione:"
+10 "Variasjon:"
+
+1  "No effect"
+2  "Geen"
+3  "Kein"
+4  "Annule"
+6  "Niente"
+10 "Ingen"
+
+/* SCRIPT SCREEN */
+
+0 "Global Keys"
+0 "Time Code"
+0 "Main"
+0 "Comment"
+0 "Variables"
+
+1  "Play"
+2  "Speel"
+3  "Start"
+4  "Action"
+6  "Esegui"
+10 "Spill"
+
+1  "Record"
+2  "Opnemen"
+3  "Aufn."
+4  "Enregis."
+6  "Registra"
+10 "Ta opp"
+
+/* NEW: CHANGE 'GLOBAL EVENTS' TO 'GLOBAL KEYS' */
+
+1  "There is a global key which has no object. Shall I delete this global key?"
+2  "Er is een global key zonder object. Verwijder deze global key?"
+3  "Es existiert eine globale Taste ohne Objekte. Soll sie gelˆscht werden?"
+4  "Il y a un ÈvÈnement global qui n'a pas d'objet. Dois-je dÈtruire cet ÈvÈnement global?"
+6  "Tasto globale non associato ad un oggetto. Posso cancellare questo tasto globale?"
+10 "Det er en global tast som ikke er tilknyttet noe objekt. Skal jeg fjerne denne globale koblingen?"
+
+1  "The script is too elaborate for the chosen user level. Shall I close the script or ignore the new user level?"
+2  "Het script is te uitgebreid voor het gekozen gebruiksniveau. Zal ik het script sluiten of het niveau onveranderd laten?"
+3  "Der Skript ist zu kompliziert f¸r das gew‰hlte User-Niveau. Soll der Skript gelˆscht oder das Niveau ignoriert werden?"
+4  "Le script est trop ÈlaborÈ pour le niveau utilisateur choisi. Dois-je fermer le script ou ignorer le nouveau niveau?"
+6  "Lo script Ë troppo elaborato per il livello utente scelto. Chiudo lo script o ignoro il nuovo livello utente?"
+10 "Scriptet er for komplisert for det valgte brukernivÂ. Skal jeg stenge scriptet eller ignorere det nye brukernivÂet?"
+
+1  "Ignore"
+2  "Onver."
+3  "Ignor."
+4  "Ignorer"
+6  "Ignora"
+10 "Ignorer"
+
+1  "Close"
+2  "Sluiten"
+3  "Schlieﬂen"
+4  "Fermer"
+6  "Chiudi"
+10 "Avslutt"
+
+0  "û"
+
+/* GLOBAL EVENTS AND LABELS */
+
+1  "Available keys:"
+2  "Toetsen:"
+3  "Verf¸gbare Tasten:"
+4  "Touches disponibles:"
+6  "Tasti disponibili:"
+10 "Tilgj.taster:"
+
+1  "Assigned labels:"
+2  "Toegekende labels:"
+3  "Vergebene Marken:"
+4  "Etiquettes assignÈes:"
+6  "Etichette assegnate:"
+10 "Tilknyttede lables:"
+
+1  "Select a label:"
+2  "Kies een label:"
+3  "Bitte Marke w‰hlen:"
+4  "Choisissez Ètiquette:"
+6  "Selezionare etich.:"
+10 "Velg en label:"
+
+1  "Enter a unique label name:"
+2  "Geef een unieke labelnaam:"
+3  "Einmaligen Markennamen eing.:"
+4  "Taper un nom d'Ètiquette unique:"
+6  "Inserire nome di etichetta unico:"
+10 "Tast inn et unikt label navn:"
+
+1  "Name this parallel branch:"
+2  "Benoem deze parallelle tak:"
+3  "Parallelen Zweig benennen:"
+4  "Nommer cette branche parallËle:"
+6  "Nominare questo salto parallelo:"
+10 "Navn pÂ denne parallelle grein:"
+
+1  "Name this serial branch:"
+2  "Benoem deze seriÎle tak:"
+3  "Seriellen Zweig benennen:"
+4  "Nommer cette branche contigue:"
+6  "Nominare questo salto seriale:"
+10 "Navnet pÂ denne serielle grein:"
+
+1  "Enter comment for this object:"
+2  "Geef commentaar aan dit object:"
+3  "Beschreibung f¸r das Objekt eingeben:"
+4  "Tapez un commentaire pour cette objet:"
+6  "Commentare questo oggetto:"
+10 "Kommentar for dette objektet:"
+
+1  "Enter comment for this xapp:"
+2  "Geef commentaar aan deze xapp:"
+3  "Beschreibung f¸r Xapp eingeben:"
+4  "Tapez un commentaire pour cet xapp:"
+6  "Commentare questa 'xapp':"
+10 "Kommentar for denne xapp:"
+
+/* TIME CODE */
+
+1  "Timing source:"
+2  "Tijdcode bron:"
+3  "Timing-Quelle:"
+4  "RÈfÈrence timing:"
+6  "Sorgente temp.:"
+10 "Tidskode kilde:"
+
+1  "Timing rate:"
+2  "Tijdcode snelheid:"
+3  "Timing-Rate:"
+4  "Taux de timing:"
+6  "Ritmo temp.:"
+10 "Tidskode rate:"
+
+1  "Timing type:"
+2  "Tijdcode type:"
+3  "Timing-Typ:"
+4  "Type de timing:"
+6  "Tipo temp.:"
+10 "Tidskode type:"
+
+1  "Internal"
+2  "Intern"
+3  "Intern"
+4  "Interne"
+6  "Interna"
+10 "Intern"
+
+1  "External"
+2  "Extern"
+3  "Extern"
+4  "Externe"
+6  "Esterna"
+10 "Ekstern"
+
+0 "HH:MM:SS:T"
+0 "MIDI Time Code"
+0 "SMPTE/EBU"
+
+1  "25 FPS"
+2  "25 FPS"
+3  "25 BPS"
+4  "25 FPS"
+6  "25 FPS"
+10 "25 FPS"
+
+1  "30 FPS"
+2  "30 FPS"
+3  "30 BPS"
+4  "30 FPS"
+6  "30 FPS"
+10 "30 FPS"
+
+1  "Offset:"
+2  "Offset:"
+3  "Offset:"
+4  "DÈcalage:"
+6  "Inizio:"
+10 "Offset:"
+
+1  "Send out"
+2  "Stuur uit"
+3  "Senden"
+4  "Envoyer"
+6  "Manda fuori"
+10 "Send ut"
+
+1  "Switching from HH:MM:SS:T to time code will discard all scheduling information."
+2  "Veranderen van HH:MM:SS:T naar tijdcode zal alle datumprogrammering wissen."
+3  "Das ƒndern von HH:MM:SS:T zum Timecode wird alle vorhandenen Zeitdefinitionen lˆschen!"
+4  "Passer de HH:MM:SS:T au Time Code dÈtruira toutes les informations temporelles."
+6  "Passare dal formato HH:MM:SS:T al <!>time code> annuller‡ tutte le informazioni di <!>?schedule."
+10 "Forandring fra HH:MM:SS:T til tidskoding vil ¯delegge all fastsatt informasjon."
+
+1  "Switching from time code to HH:MM:SS:T will discard all frame codes."
+2  "Veranderen van tijdcode naar HH:MM:SS:T zal alle framecodes verwijderen."
+3  "Das ƒndern vom Timecode zu HH:MM:SS:T wird alle Framecodes lˆschen!"
+4  "Passer du Time Code ‡ HH:MM:SS:T dÈtruira toutes les informations temporelles."
+6  "Cambiare dal time code al formato HH:MM:SS:T annuller‡ tutti i codici di frame."
+10 "Forandring fra tidskode til "HH:MM:SS:T vil ¯delegge alle frame-innstillingene."
+
+1  "Discard"
+2  "Weg"
+3  "Lˆschen"
+4  "DÈtruire"
+6  "Annulla"
+10 "Annuller"
+
+1  "Script timing:"
+2  "Script timing:"
+3  "Skript-Timing:"
+4  "Type de timing:"
+6  "Temp. di script:"
+10 "Script timing:"
+
+1  "Normal|    Precise|   "
+2  "Standaard| Nauwkeurig|"
+3  "Normal|    Genau|     "
+4  "Normal|    PrÈcis|    "
+6  "Normale|   Esatta|    "
+10 "Normal|    N¯yaktig|  "
+  /*-----------+++++++++++*/
+
+1  "Preload:"
+2  "Preload:"
+3  "Vorladen:"
+4  "PrÈcharger:"
+6  "Precarica:"
+10 "Preload:"
+
+1  "None|                       All after a label|          All objects|                "
+2  "Niets|                      Alles na een label|         Alle objecten|              "
+3  "Keine|                      Alle nach der Marke|        Alle Objekte|               "
+4  "Aucun|                      Tout aprËs un label|        Tous les objets|            "
+6  "Nessuna|                    Tutte dopo una label|       Tutti gli oggetti|          "
+10 "Ingen|                      Alle etter en label|        Alle objekter|              "
+  /*----------------------------++++++++++++++++++++++++++++----------------------------*/
+
+/* SCRIPT PLAYING OPTIONS */
+
+1  "Play options:"
+2  "Speler opties:"
+3  "Spiel-Optionen:"
+4  "Options diffusion:"
+6  "Opzioni per vedi:"
+10 "Spiller opsj.:"
+
+1  "Automatic|     Manual|        "
+2  "Automatisch|   Handmatig|     "
+3  "Automatisch|   Manuell|       "
+4  "Automatique|   Manuel|        "
+6  "Automatico|    Manuale|       "
+10 "Automatisk|    Manuell|       "
+  /*---------------+++++++++++++++*/
+
+/* SCRIPT OBJECTS AND XAPPS */
+
+1  "Wait"
+2  "Wacht"
+3  "Warten"
+4  "Attendre"
+6  "Attendi"
+10 "Vent"
+
+1  "View"
+2  "Toon"
+3  "Zeigen"
+4  "Voir"
+6  "Mostra"
+10 "Vis"
+
+1  "Edit"
+2  "Bewerk"
+3  "Editieren"
+4  "Editer"
+6  "Modifica"
+10 "Editer"
+
+1  "Command"
+2  "Commando"
+3  "Kommando"
+4  "Commande"
+6  "Comando"
+10 "Kommando"
+
+1  "Frames per second:"
+2  "Beelden per seconde:"
+3  "Bilder pro Sekunde:"
+4  "Images par seconde:"
+6  "Fotog. per secondo:"
+10 "Bilder per sekund:"
+
+1  "Play from disk"
+2  "Speel van disk"
+3  "Von Disk spielen"
+4  "Depuis disque"
+6  "Esegue da disco"
+10 "Spill fra disk"
+
+1  "Add loop frames"
+2  "'loop frames'"
+3  "Bild-Schleifen"
+4  "Boucler Anim"
+6  "'loop frames'"
+10 "'loop frames'"
+
+1  "Loops:"
+2  "Loops:"
+3  "Schleifen:"
+4  "Boucles:"
+6  "Cicli:"
+10 "L¯kke:"
+
+1  "Freq.:"
+2  "Freq.:"
+3  "Freq.:"
+4  "FrÈq.:"
+6  "Freq.:"
+10 "Frekv:"
+
+1  "Volume:"
+2  "Volume:"
+3  "Lautst‰rke:"
+4  "Volume:"
+6  "Volume:"
+10 "Volum:"
+
+1  "Port:"
+2  "Adres:"
+3  "Port:"
+4  "Port:"
+6  "Porta:"
+10 "Port:"
+
+1  "CDTV speed"
+2  "CDTV snelheid"
+3  "CDTV Geschw."
+4  "Vitesse CDTV"
+6  "Velocit‡ CDTV"
+10 "CDTV hastighet"
+
+1  "Show"
+2  "Toon"
+3  "Zeigen"
+4  "Montrer"
+6  "Mostra"
+10 "Vis"
+
+1  "Stop"
+2  "Stop"
+3  "Stop"
+4  "Stop"
+6  "Stop"
+10 "Stopp"
+
+1  "No file selected yet."
+2  "Nog geen bestand geselecteerd."
+3  "Keine Dateien selektiert."
+4  "Pas de fichier dÈj‡ sÈlectionnÈ."
+6  "File non ancora selezionato."
+10 "Ingen fil er valgt ennÂ."
+
+1  "Wait|     Loop|     Stop|     "
+2  "Wacht|    Loop|     Stop|     "
+3  "Warten|   Schleife| Stop|     "
+4  "Attente|  Boucle|   Stop|     "
+6  "Attendi|  Giri|     Stop|     "
+10 "Vent|     L¯kke|    Stopp|    "
+  /*----------++++++++++----------*/
+
+/* DISPLAY PROGRAMMER */
+
+1  "Sunday|        Monday|        Tuesday|       Wednesday|     Thursday|      Friday|        Saturday|      "
+2  "Zondag|        Maandag|       Dinsdag|       Woensdag|      Donderdag|     Vrijdag|       Zaterdag|      "
+3  "Sonntag|       Montag|        Dienstag|      Mittwoch|      Donnerstag|    Freitag|       Samstag|       "
+4  "Dimanche|      Lundi|         Mardi|         Mercredi|      Jeudi|         Vendredi|      Samedi|        "
+6  "Domenica|      LunedÏ|        MartedÏ|       MercoledÏ|     GiovedÏ|       VenerdÏ|       Sabato|        "
+10 "S¯ndag|        Mandag|        Tirsdag|       Onsdag|        Torsdag|       Fredag|        L¯rdag|        "
+  /*---------------+++++++++++++++---------------+++++++++++++++---------------+++++++++++++++---------------*/
+
+1  "January|       February|      March|         April|         May|           June|          July|          August|        September|     October|       November|      December|      "
+2  "Januari|       Februari|      Maart|         April|         Mei|           Juni|          Juli|          Augustus|      September|     Oktober|       November|      December|      "
+3  "Januar|        Febuar|        M‰rz|          April|         Mai|           Juni|          Juli|          August|        September|     Oktober|       November|      Dezember|      "
+4  "Janvier|       FÈvrier|       Mars|          Avril|         Mai|           Juin|          Juillet|       Ao˚t|          Septembre|     Octobre|       Novembre|      DÈcembre|      "
+6  "Gennaio|       Febbraio|      Marzo|         Aprile|        Maggio|        Giugno|        Luglio|        Agosto|        Settembre|     Ottobre|       Novembre|      Dicembre|      "
+10 "Januar|        Februar|       Mars|          April|         Mai|           Juni|          Juli|          August|        September|     Oktober|       November|      Desember|      "
+  /*---------------+++++++++++++++---------------+++++++++++++++---------------+++++++++++++++---------------+++++++++++++++---------------+++++++++++++++---------------+++++++++++++++*/
+
+1  "Start day"
+2  "Start dag"
+3  "Start-Tag"
+4  "Jr dÈmar."
+6  "Giorno inizio"
+10 "Startdag"
+
+1  "End day"
+2  "Eind dag"
+3  "End-Tag"
+4  "Jr fin"
+6  "Giorno fine"
+10 "Sluttdag"
+
+1  "Start time"
+2  "Start tijd"
+3  "Startzeit"
+4  "Hre dÈmar."
+6  "Inizio inzio"
+10 "Starttid"
+
+1  "End time"
+2  "Eind tijd"
+3  "Endzeit"
+4  "Hre de fin"
+6  "Inizio fine"
+10 "Sluttid"
+
+1  "Date/Time relation"
+2  "Datum/Tijd relatie"
+3  "Datum/Zeit Relation"
+4  "Relation Jour/Heure"
+6  "Relazione Data/Tempo"
+10 "Dato-/Tidsforhold"
+
+1  "Su"
+2  "Zo"
+3  "So"
+4  "Di"
+6  "Do"
+10 "S¯"
+
+1  "Mo"
+2  "Ma"
+3  "Mo"
+4  "Lu"
+6  "Lu"
+10 "Ma"
+
+1  "Tu"
+2  "Di"
+3  "Di"
+4  "Ma"
+6  "Ma"
+10 "Ti"
+
+1  "We"
+2  "Wo"
+3  "Mi"
+4  "Me"
+6  "Me"
+10 "On"
+
+1  "Th"
+2  "Do"
+3  "Do"
+4  "Je"
+6  "Gi"
+10 "To"
+
+1  "Fr"
+2  "Vr"
+3  "Fr"
+4  "Ve"
+6  "Ve"
+10 "Fr"
+
+1  "Sa"
+2  "Za"
+3  "Sa"
+4  "Sa"
+6  "Sa"
+10 "L¯"
+
+1  "Duration"
+2  "Duur"
+3  "Dauer"
+4  "DurÈe"
+6  "Durata"
+10 "Varighet"
+
+/* PARSER */
+
+1  "illegal command in line %d"
+2  "onbekend commando in regel %d"
+3  "Illegales Kommando in Zeile %d"
+4  "Commande illÈgale ‡ la ligne %d"
+6  "commando illegale alla linea %d"
+10 "ulovlig kommando i linje %d"
+
+1  "misses START or bad preceding command"
+2  "mist START of verkeerd voorgaand commando"
+3  "Fehlender Start oder vorheriges Kommando fehlerhaft"
+4  "START manquant ou mauvaise commande prÈcÈdente"
+6  "manca START oppure commando precedente errato"
+10 "mangler START eller dÂrlig innledningskommando"
+
+1  "misses OBJECTSTART or bad preceding cpmmand"
+2  "mist OBJECTSTART of verkeerd voorgaand commando"
+3  "Fehlender Objekt-Start oder vorheriges Kommando fehlerhaft"
+4  "OBJETSTART ratÈ ou mauvaise commande prÈcÈdente"
+6  "manca OBJECTSTART oppure comando precedente errato"
+10 "mangler OBJECTSTART eller dÂrlig innledningskommando"
+
+1  "invalid number of arguments"
+2  "foutief aantal argumenten"
+3  "Falsche Anzahl von Argumenten"
+4  "nombre d'arguments invalide"
+6  "numero di argomenti non valido"
+10 "feil antall argumenter"
+
+1  "serial branch within parallel branch"
+2  "seriÎle tak binnen parallelle tak"
+3  "Serieller Zweig im parallelen Zweig"
+4  "Branche contigue dans branche parallËle"
+6  "salto seriale all'interno di un salto parallelo"
+10 "seriell grein inne i parallell grein"
+
+1  "parallel branch within parallel branch"
+2  "parallelle tak binnen parallelle tak"
+3  "Paralleler Zweig im parallelen Zweig"
+4  "Branche parallËle dans une branche parallËle"
+6  "salto parallelo all'interno di un salto parallelo"
+10 "parallell grein inne i parallell grein"
+
+1  "Reading of clip '%s' failed."
+2  "Lezen van plaatje '%s' mislukt."
+3  "Lesen des Clips '%s' fehlgeschlagen."
+4  "Echec durant la lecture du clip '%s'"
+6  "Lettura della clip '%s' fallita."
+10 "Innlesning av klipp '%s' feilet."
+
+1  "Syntax error at line %d, in function %s: %s."
+2  "Taalfout op regel %d, in funktie %s: %s."
+3  "Sytaktischer Fehler in Zeile %d, in Funktion %s: %s."
+4  "Erreur de syntaxe ‡ la ligne %d dans la fonction %s: %s."
+6  "Errore di sintassi alla linea %d, nella funzione %s: %s."
+10 "Stavefeil i linje %d, i funksjon %s: %s."
+
+1  "Syntax error: %s."
+2  "Taalfout: %s."
+3  "Syntaktischer Fehler: %s."
+4  "Erreur de syntaxe: %s."
+6  "Errore di sintassi: %s."
+10 "Stavefeil: %s."
+
+1  "The page is too large."
+2  "De pagina is te groot."
+3  "Das Dokument ist zu groﬂ."
+4  "Le document est trop grand."
+6  "Il documento Ë troppo grande."
+10 "Siden er for stort."
+
+1  "The page is unreadable."
+2  "De pagina is onleesbaar."
+3  "Das Dokument kann nicht gelesen werden."
+4  "La page est illisible."
+6  "Il documento Ë illeggibile."
+10 "Siden er uleselig."
+
+1  "The script is too large."
+2  "Het script is te groot."
+3  "Der Skript ist zu groﬂ."
+4  "Le script est trop grand."
+6  "Lo script Ë troppo grande."
+10 "Scriptet er for stort."
+
+1  "The script is unreadable."
+2  "Het script is onleesbaar."
+3  "Der Skript kann nicht gelesen werden."
+4  "Le script est illisible."
+6  "Lo script Ë illegibile."
+10 "Scriptet er uleselig."
+
+/* SELECT FILES */
+
+1  "Select a program:"
+2  "Kies een programma:"
+3  "Programm w‰hlen:"
+4  "Choisissez un logiciel:"
+6  "Selezionare un programma:"
+10 "Velg et program:"
+
+1  "Save this page as:"
+2  "Bewaar deze pagina als:"
+3  "Dokument speichern als:"
+4  "Sauver cette page sous:"
+6  "Salvare documento come:"
+10 "Lagre siden som:"
+
+1  "Select pages or pictures:"
+2  "Kies pagina's of plaatjes:"
+3  "Dokumente oder Bilder w‰hlen:"
+4  "Choisissez pages ou images:"
+6  "Selezionare documenti o immagini:"
+10 "Velg sider eller bilder:"
+
+1  "Select page or picture:"
+2  "Kies pagina of plaatje:"
+3  "Dokument oder Bild w‰hlen:"
+4  "Choisissez une page ou une image:"
+6  "Selezionare documento o immagine:"
+10 "Velg side eller bilde:"
+
+1  "Select a script:"
+2  "Kies een script:"
+3  "Skript w‰hlen:"
+4  "Choisissez un script:"
+6  "Selezionare uno script:"
+10 "Velg et script:"
+
+1  "Save this script as:"
+2  "Bewaar dit script als:"
+3  "Skript speichern als:"
+4  "Sauver ce script sous:"
+6  "Salvare lo script come:"
+10 "Lagre dette scriptet som:"
+
+1  "Select a text file:"
+2  "Kies een tekstbestand:"
+3  "Text-Datei w‰hlen:"
+4  "Choisissez un fichier texte:"
+6  "Selezionare un file di testo:"
+10 "Velg en tekstfil:"
+
+1  "Select pictures:"
+2  "Kies plaatjes:"
+3  "Bilder w‰hlen:"
+4  "Choisissez des images:"
+6  "Selezionare immagini:"
+10 "Velg bilder:"
+1  "Select animations:"
+2  "Kies animaties:"
+3  "Animationen w‰hlen:"
+4  "Choisissez des animations:"
+6  "Selezionare animazioni:"
+10 "Velg animasjoner:"
+
+1  "Select an animation:"
+2  "Kies een animatie:"
+3  "Eine Animation w‰hlen:"
+4  "Choisissez une animation:"
+6  "Selezionare un animazione:"
+10 "Velg en animasjon:"
+
+1  "Select files:"
+2  "Kies bestanden:"
+3  "Dateien w‰hlen:"
+4  "Choisissez des fichiers:"
+6  "Selezionare i files:"
+10 "Velg filer:"
+
+1  "Select a file:"
+2  "Kies een bestand:"
+3  "Eine Datei w‰hlen:"
+4  "Choisissez un fichier:"
+6  "Selezionare un file:"
+10 "Velg en fil:"
+
+1  "Select mail files:"
+2  "Kies postbestanden:"
+3  "Mail-Dateien w‰hlen:"
+4  "Choisissez des fichiers 'courrier':"
+6  "Selezionare i files di posta:"
+10 "Velg postfiler:"
+
+1  "Select a mail file:"
+2  "Kies een postbestand:"
+3  "Mail-Datei w‰hlen:"
+4  "Choisissez un fichier 'courrier':"
+6  "Selezionare un file di posta:"
+10 "Velg en postfil:"
+
+1  "Select music files:"
+2  "Kies muziekbestanden:"
+3  "Musik-Dateien w‰hlen:"
+4  "Choisissez des fichier 'musique':"
+6  "Selezionare brani:"
+10 "Velg musikkfiler:"
+
+1  "Select a music file:"
+2  "Kies een muziekbestand:"
+3  "Musik-Datei w‰hlen:"
+4  "Choisissez un fichier 'musique':"
+6  "Selezionare un brano:"
+10 "Velg en musikkfil:"
+
+1  "Select an ARexx script:"
+2  "Kies een ARexx script:"
+3  "ARexx-Skript w‰hlen:"
+4  "Choisissez un script ARexx:"
+6  "Selezionare uno script Arexx:"
+10 "Velg ARexx-scripter:"
+
+1  "Select a DOS script:"
+2  "Kies een DOS script:"
+3  "Dos-Skript w‰hlen:"
+4  "Choisissez un script DOS:"
+6  "Selezionare uno script DOS:"
+10 "Velg et DOS-script:"
+
+1  "Select a path:"
+2  "Kies een pad:"
+3  "Pfad definieren:"
+4  "Choisissez un chemin:"
+6  "Selezionare un percorso:"
+10 "Velg en sti:"
+
+1  "Select a player device:"
+2  "Kies een player device:"
+3  "Player-Device w‰hlen:"
+4  "Choisissez un pÈriphÈrique externe:"
+6  "Selezione di player device:"
+10 "Velg en avspillingsenhet:"
+
+/* DOS ERRORS */
+
+1  "Unable to execute '%s'."
+2  "Het programma '%s' kan niet worden gestart."
+3  "Das Programm '%s' kann nicht gestartet werden."
+4  "Impossible d'exÈcuter '%s'."
+6  "Impossibile eseguire '%s'."
+10 "Kan ikke kj¯re filen '%s'."
+
+1  "Unable to launch the '%s' xapp."
+2  "De '%s' xapp kan niet worden gestart."
+3  "Der '%s'-Xapp kann nicht gestartet werden."
+4  "Impossible de dÈmarrer l'xapp '%s'."
+6  "Impossibile lanciare la xapp. '%s'."
+10 "Kan ikke starte '%s' xapp."
+
+1  "Unable to read picture '%s'."
+2  "Plaatje '%s' kan niet worden gelezen."
+3  "Bild '%s' kann nicht gelesen werden."
+4  "Impossible de lire l'image '%s'."
+6  "Impossibile leggere l'immagine '%s'."
+10 "Kunne ikke lese bildet '%s'."
+
+1  "Problems with IFF picture '%s'."
+2  "Er is een probleem met het IFF plaatje '%s'."
+3  "Es gibt Probleme mit der IFF-Datei '%s'."
+4  "ProblËmes avec l'image IFF '%s'."
+6  "Problemi con l'immagine IFF '%s'."
+10 "Problemer med IFF bildet '%s'."
+
+1  "Sorry: a memory problem occurred."
+2  "Sorry: er is een geheugen probleem."
+3  "Achtung! Es gibt ein Speicher-Problem."
+4  "DÈsolÈ: un problËme mÈmoire est survenu."
+6  "Spiacente: incorso in problemi di memoria."
+10 "Beklager: et minne-problem er oppstÂtt."
+
+1  "The .info file of page '%s' can't be found."
+2  "Het .info bestand van pagina '%s' is weg."
+3  "Die .info-Datei des Dokumentes '%s' existiert nicht."
+4  "Le fichier .info du document '%s' ne peut Ítre trouvÈ. "
+6  "Non trovo il file .info del documento '%s'."
+10 "Finner ikke .info filen til siden '%s'."
+
+1  "This picture misses its '%s' header."
+2  "Dit plaatje mist de '%s' informatie."
+3  "Bei dem Bild fehlt der '%s'-Header."
+4  "Cette image n'a pas l'en-tÍte '%s'."
+6  "Informazioni '%s' mancanti nell'immagine."
+10 "Dette bildet mangler dets '%s' informasjon."
+
+1  "Unable to write page icon."
+2  "Het pagina ikoon kan niet worden bewaard."
+3  "Piktogramm kann nicht gespeichert werden."
+4  "Impossible de crÈer l'icÙne."
+6  "Impossibile scrivere l'icona."
+10 "Kunne ikke lagre ikon."
+
+1  "Unable to read page '%s'."
+2  "De pagina '%s' kan niet worden gelezen."
+3  "Dokument '%s' kann nicht gelesen werden."
+4  "Impossible de lire la page '%s'."
+6  "Impossibile leggere il documento '%s'."
+10 "Kan ikke lese siden '%s'."
+
+1  "The clip '%s' couldn't be written."
+2  "Het plaatje '%s' kan niet worden bewaard."
+3  "Der Clip '%s' kann nicht gespeichert werden."
+4  "Le clip '%s' ne peut Ítre Ècrit."
+6  "La clip '%s' non puÚ essere scritta."
+10 "Klarte ikke Â lagre klippet '%s'."
+
+1  "The 'clips' directory misses so I will create it."
+2  "De 'clips' directory mist, deze zal worden aangemaakt."
+3  "Das 'Clips'-Verzeichnis fehlt. Es wird erzeugt."
+4  "Le rÈpertoire 'clips' manque, je vais donc le crÈer."
+6  "Manca la directory 'clips'. Provvedo alla sua creazione."
+10 "Utklippsskuffen mangler, sÂ jeg oppretter den."
+
+1  "Unable to create 'clips' directory!"
+2  "De 'clips' directory kan niet worden aangemaakt!"
+3  "'Clips'-Verzeichnis kann nicht erzeugt werden!"
+4  "Impossible de crÈer le rÈpertoire 'clips'."
+6  "Impossibile creare la directory 'clips'!"
+10 "Kunne ikke opprette utklippsskuffen!"
+
+1  "The page '%s' couldn't be saved."
+2  "De pagina '%s' kan niet worden bewaard."
+3  "Das Dokument '%s' kann nicht gespeichert werden."
+4  "La page '%s' ne peut Ítre sauvÈe."
+6  "Impossibile salvare il documento '%s'."
+10 "Kunne ikke lagre siden '%s'."
+
+1  "Unable to read script '%s'."
+2  "Het script '%s' kan niet worden gelezen."
+3  "Der Skript '%s' kann nicht gelesen werden."
+4  "Impossible de lire le script '%s'."
+6  "Impossibile leggere lo script '%s'."
+10 "Klarer ikke Â lese scriptet '%s'."
+
+1  "The script '%s' couldn't be saved."
+2  "Het script '%s' kan niet worden bewaard."
+3  "Der Skript '%s' kann nicht gespeichert werden."
+4  "Impossible de sauver le script '%s'." 
+6  "Lo script '%s' non puÚ essere salvato."
+10 "Klarte ikke Â lagre scriptet '%s'."
+
+1  "The 'untitled' script is missing and will be created again."
+2  "Het 'untitled' script mist en zal opnieuw worden aangemaakt."
+3  "Der Skript 'Untitled' fehlt und wird jetzt erzeugt."
+4  "Le script 'untitled' manque et va Ítre de nouveau crÈÈ."
+6  "Lo script 'untitled' Ë stato cancellato e verr‡ creato di nuovo."
+10 "Scriptet med navnet 'untitled' mangler og vil bli lagd pÂ nytt."
+
+1  "The 'untitled' script is missing and can't be created either. Please replace it from the installation disk."
+2  "Het 'untitled' script mist en kan ook niet opnieuw worden aangemaakt. Kopieer het vanaf de installatie schijf."
+3  "Der Skript 'Untitled' fehlt und kann nicht erzeugt werden. Bitte kopieren Sie die Datei von der Installations-Disk."
+4  "Le script 'untitled' manque et ne peut Ítre crÈÈ. RecrÈez-le depuis le disque d'installation."
+6  "Lo script 'untitled' manca e non puÚ essere creato. Per piacere ricopiarlo dai dischetti di installazione."
+10 "Scriptet med navnet 'untitled' mangler og kan heller ikke bli lagd. Kopier denne fra installasjondisketten."
+
+/* STYLE SELECT */
+
+1  "Plain"
+2  "Geen"
+3  "Normal"
+4  "Normal"
+6  "Normale"
+10 "Enkel"
+
+1  "Bold"
+2  "Vet"
+3  "Fett"
+4  "Gras"
+6  "Grassetto"
+10 "Tykk"
+
+1  "Italic"
+2  "Cursief"
+3  "Kursiv"
+4  "Italique"
+6  "Corsivo"
+10 "Kursiv"
+
+1  "Underline"
+2  "Onderstr."
+3  "Unterstrichen"
+4  "SoulignÈ"
+6  "Sottolin."
+10 "Underlinje"
+
+0 " | | |"
+ /*--++--*/
+0 "||||||||"
+ /*--++--++--++--++*/
+0 " | | | | |"
+ /*--++--++--*/
+0 "-45∞|    -27∞|    -14∞|    +14∞|    +27∞|    +45∞|    "
+ /*---------+++++++++---------+++++++++---------+++++++++*/
+
+1  "Antialias:"
+2  "Antialias:"
+3  "Antialias:"
+4  "Antialias:"
+6  "Antialias:"
+10 "Antialias:"
+
+1  "Justification:"
+2  "Inspringen:"
+3  "Anordung:"
+4  "Justification:"
+6  "Giustificazione:"
+10 "Justering:"
+
+1  "Letter spacing:"
+2  "Karakterbreedte:"
+3  "Buchstaben-Abst:"
+4  "Interlettrage:"
+6  "Spaziatura lettere:"
+10 "Bokstav-avstand:"
+
+1  "Line spacing:"
+2  "Regelhoogte:"
+3  "Linien-Abstand:"
+4  "Interlignes:"
+6  "Interlinea:"
+10 "Linje-avstand:"
+
+1  "Slanting:"
+2  "Cursief-hoek:"
+3  "Neigung:"
+4  "Inclinaison:"
+6  "Corsivo:"
+10 "Hellning:"
+
+1  "Shadow type:"
+2  "Schaduw type:"
+3  "Schatten-Typ:"
+4  "Type d'ombre:"
+6  "Tipo di ombra:"
+10 "Skygge-type:"
+
+1  "Shadow weight:"
+2  "Schaduw lengte:"
+3  "Schatten-Breite:"
+4  "Epaisseur d'ombre:"
+6  "Lunghezza ombra:"
+10 "Skygge-tykkelse:"
+
+1  "Shadow direction:"
+2  "Schaduw richting:"
+3  "Schatten-Richtung:
+4  "Direction d'ombre:"
+6  "Direzione ombra:"
+10 "Skygge-retning:"
+
+1  "Underline weight:"
+2  "Onderstr. dikte:"
+3  "Unterst. Breite:"
+4  "Epaisseur soulignÈ:"
+6  "Dim. sottolineatura:"
+10 "Underlinje-tykkelse:"
+
+1  "Underline offset:"
+2  "Onderstr. afstand:"
+3  "Unterst. Offset:"
+4  "DÈcalage soulignÈ:"
+6  "Distanza sottolin.:"
+10 "Underlinje-posis.:"
+
+0 "DATE-1|     DATE-2|     DATE-3|     DATE-4|     TIME-1|     TIME-2|     TIME-3|     SECONDS|    DAY NUMBER| LONGDAY|    SHORTDAY|   LONGMONTH|  SHORTMONTH| LONGYEAR|   SHORTYEAR|  FILE|       "
+ /*------------++++++++++++------------++++++++++++------------++++++++++++------------++++++++++++------------++++++++++++------------++++++++++++------------++++++++++++------------++++++++++++*/
+
+/* GET XAPPS */
+
+1  "The 'xapps' directory couldn't be found. Is it in the same directory as the %s application?"
+2  "De 'xapps' directory is onvindbaar. Is het in dezelfde directory als het %s programma?"
+3  "Das 'Xapps'-Verzeichnis ist nicht da. Ist es im selben Verzeichnis wie die %s Applikationen?"
+4  "Le rÈpertoire 'xapps' ne peut Ítre trouvÈ. Est-il dans le mÍme rÈpertoire que l'application %s?"
+6  "Impossibile trovare il percorso 'xapps'. » nello stesso percorso dell'applicazione %s?"
+10 "Kunne ikke finne xapps skuffen? Er den i den samme skuffen som %s applikasjonen?"
+
+1  "You have too many xapps! A maximum of %d xapps is allowed."
+2  "U heeft teveel xapps! Maximaal %d xapps is toegestaan."
+3  "Sie haben zu viele Xapp's! Maximal %d Xapp's sind gestattet."
+4  "Vous avez trop de xapps! Un Maximum de %d xapp est autorisÈ"
+6  "Troppe 'xapps'! Ë ammesso un massimo di %d 'xapps'."
+10 "Du har for mange xapps! Maksimalt %d xapps er tillatt."
+
+1  "The .info file of the '%s' xapp couldn't be read."
+2  "Het .info bestand van de '%s' xapp is onleesbaar."
+3  "Die .info-Datei des '%s'-Xapp kann nicht gelesen werden."
+4  "Le fichier .info de l'xapp ne peut Ítre lu."
+6  "Impossibile leggere il file .info della xapp '%s'."
+10 "Kunne ikke lese .info filen til '%s' xapp."
+
+1  "The '%s' xapp has no Tool Type. It will be treated as an external application."
+2  "De '%s' xapp heeft geen Tool Type. Hij zal als extern programma worden behandeld."
+3  "Der '%s' Xapp besitzt keine Tool-Types. Es wird als externe Applikation gehandhabt."
+4  "Le module xapp '%s' n'a pas de type d'outils. Il va Ítre considÈrÈ comme une application externe."
+6  "'Tool Type' assente per la xapp '%s': verr‡ trattata come applicazione esterna."
+10 "'%s' xapp har ingen verkt¯ytype. Den vil bli betraktet som en ekstern applikasjon."
+
+1  "The icon of the '%s' xapp has wrong dimensions."
+2  "Het ikoon van de '%s' xapp heeft een verkeerde grootte."
+3  "Die Grˆﬂe des '%s'-Xapp-Icons hat falsche Ausmaﬂe."
+4  "L'icone de l'xapp '%s' n'a pas la bonne dimension."
+6  "L'icona della xapp '%s' Ë di dimensioni errate."
+10 "Ikonet til '%s' xapp har feil dimensjoner."
+
+/* MODULE TYPES */
+
+0 "Mark II"
+0 "DSS"
+0 "Soundtracker 15"
+0 "Sound/Noise/Protracker"
+0 "Future Composer 1.3"
+0 "Future Composer 1.4"
+0 "JamCracker"
+0 "SoundMonitor"
+
+1  "Unknown type"
+2  "Onbekend type"
+3  "Unbekannter Typ"
+4  "Type inconnu"
+6  "Tipo sconosciuto"
+10 "Ukjent type"
+
+/* SPECIAL CHARS */
+
+0 "ç"
+0 "é"
+0 "àá"
+0 "ö"
+
+/* MENU TEXTS */
+
+/* Favourite Applications Menu */
+
+0 "Ñ"
+
+1  "About..."
+2  "Over..."
+3  "‹ber..."
+4  "A Propos..."
+6  "Info..."
+10 "Om..."
+
+/* Project (file) menu */
+
+1  "Project"
+2  "Project"
+3  "Projekt"
+4  "Projet"
+6  "Progetto"
+10 "Prosjekt"
+
+1  "New"
+2  "Nieuw"
+3  "Neu"
+4  "Nouveau"
+6  "Nuovo"
+10 "Ny"
+
+1  "Open..."
+2  "Open..."
+3  "Laden..."
+4  "Ouvrir..."
+6  "Apri..."
+10 "Hent..."
+
+1  "Close"
+2  "Sluit"
+3  "Schlieﬂen"
+4  "Fermer"
+6  "Chiudi"
+10 "Steng"
+
+1  "Save"
+2  "Bewaar"
+3  "Speichern"
+4  "Sauver"
+6  "Salva"
+10 "Lagre"
+
+1  "Save As..."
+2  "Bewaar als..."
+3  "Speichern als..."
+4  "Sauver sous..."
+6  "Salva come..."
+10 "Lagre som..."
+
+1  "Printer Setup..."
+2  "Printer Inst..."
+3  "Drucker einstellen"
+4  "Param. imprimante.."
+6  "Imp. Stampante..."
+10 "Skriver oppsett..."
+
+1  "Print..."
+2  "Print..."
+3  "Drucken..."
+4  "Imprimer..."
+6  "Stampa..."
+10 "Utskrift..."
+
+1  "Quit"
+2  "Einde"
+3  "Ende"
+4  "Quitter"
+6  "Esci"
+10 "Avslutt"
+
+/* Edit menu */
+
+1  "Edit"
+2  "Bewerk"
+3  "Editieren"
+4  "Editer"
+6  "Modifica"
+10 "Editer"
+
+1  "Undo"
+2  "Herstel"
+3  "Zur¸ck"
+4  "Annuler"
+6  "Annulla"
+10 "Gj¯r om"
+
+1  "Cut"
+2  "Knip"
+3  "Ausschneiden"
+4  "Couper"
+6  "Taglia"
+10 "Klipp ut"
+
+1  "Copy"
+2  "Kopieer"
+3  "Kopieren"
+4  "Copier"
+6  "Copia"
+10 "Ta kopi"
+
+1  "Paste"
+2  "Plak"
+3  "Einf¸gen"
+4  "Coller"
+6  "Incolla"
+10 "Lim inn"
+
+1  "Clear"
+2  "Wis"
+3  "Lˆschen"
+4  "Effacer"
+6  "Cancella"
+10 "Slett"
+
+1  "Select All"
+2  "Alles"
+3  "Alles anw‰hlen"
+4  "Tout SÈlect."
+6  "Selez. tutto"
+10 "Velg alt"
+
+1  "Distribute..."
+2  "Verplaatsen..."
+3  "Verteilen..."
+4  "RÈpartir..."
+6  "Distribuisci..."
+10 "Del ut..."
+
+1  "Duplicate..."
+2  "KopiÎren..."
+3  "Kopieren..."
+4  "Dupliquer..."
+6  "Duplica..."
+10 "Kopier..."
+
+/* Font (typeface) menu */
+
+1  "Text"
+2  "Tekst"
+3  "Text"
+4  "Texte"
+6  "Testo"
+10 "Tekst"
+
+1  "Font..."
+2  "Font..."
+3  "Font..."
+4  "Fonte..."
+6  "Font..."
+10 "Skrifttype..."
+
+1  "Style..."
+2  "Opmaak..."
+3  "Stil..."
+4  "Style..."
+6  "Stile..."
+10 "Stil..."
+
+/* Page miscellaneous menu */
+
+1  "Misc"
+2  "Div."
+3  "Div."
+4  "Div."
+6  "Misc."
+10 "Div."
+
+1  "Import..."
+2  "Importeer..."
+3  "Importieren..."
+4  "Importer..."
+6  "Importa..."
+10 "Importer..."
+
+1  "Define..."
+2  "Venster inst."
+3  "Definieren..."
+4  "DÈfinir..."
+6  "Definisci..."
+10 "Definer..."
+
+1  "Palette..."
+2  "Palet..."
+3  "Palette..."
+4  "Palette..."
+6  "Colori..."
+10 "Palette..."
+
+1  "Screen Size..."
+2  "Schermgrootte..."
+3  "Bildschirm..."
+4  "Taille d'Ècran..."
+6  "Dim. schermo..."
+10 "Skjerm..."
+
+1  "Crawl..."
+2  "Scroll tekst..."
+3  "Text scrollen..."
+4  "Scrolling..."
+6  "Scorri..."
+10 "Scrolltekst..."
+
+1  "Remap"
+2  "Remap"
+3  "Remap"
+4  "Remapper"
+6  "Rimappa"
+10 "Remap"
+
+1  "Extras..."
+2  "Extra's..."
+3  "Extras..."
+4  "Extras..."
+6  "Extras..."
+10 "Ekstra..."
+
+1  "Transitions..."
+2  "Effecten..."
+3  "Effekte..."
+4  "Transitions..."
+6  "Transizioni..."
+10 "Effekter..."
+
+/* Screen menu */
+
+0 "ù"
+
+1  "Page"
+2  "Pagina"
+3  "Dokument"
+4  "Page"
+6  "Pagina"
+10 "Side"
+
+1  "Prefs..."
+2  "Instellingen..."
+3  "Einstellungen"
+4  "PrÈfÈrences..."
+6  "Preferenze..."
+10 "Innstilling..."
+
+1  "Script"
+2  "Script"
+3  "Skript"
+4  "Script"
+6  "Script"
+10 "Script"
+
+1  "Xfer"
+2  "Comm"
+3  "Transfer"
+4  "Comm"
+6  "Tras."
+10 "Komm"
+
+1  "Upload..."
+2  "Verstuur..."
+3  "Senden..."
+4  "Envoyer..."
+6  "Ricevi..."
+10 "Upload..."
+
+1  "Download..."
+2  "Ontvang..."
+3  "Empfangen..."
+4  "Recevoir"
+6  "Invia..."
+10 "Download..."
+
+/* Script miscellaneous menu */
+
+1  "Misc"
+2  "Div."
+3  "Div."
+4  "Div."
+6  "Misc."
+10 "Div."
+
+1  " Scheduling"
+2  " Datum progr."
+3  " Prog. zeigen"
+4  " Programmation"
+6  " Mostra Prog"
+10 " Vis datoer"
+
+1  " Show Days"
+2  " Toon dagen"
+3  " Tage zeigen"
+4  " Aff. Jours"
+6  " Mostra Giorni"
+10 " Vis dager"
+
+/* NEW: CALL THIS 'BUTTONS' NOT 'LOCAL EVENTS'
+
+1  "Buttons..."
+2  "Knoppen..."
+3  "Schalter..."
+4  "Boutons..."
+6  "<!>Eventi locali..."
+10 "Knapper..."
+
+/* Fonts */
+
+1  "Font '%s' can't be found."
+2  "Het font '%s' mist."
+3  "Font '%s' existiert nicht."
+4  "La fonte '%s' ne peut Ítre trouvÈe."
+6  "Non trovo il font '%s'."
+10 "Skrifttypen '%s' mangler."
+
+/* script printing */
+
+1  "The %s is now being printed. To cancel printing, click Stop."
+2  "Het %s wordt afgedrukt. Klik op Stop om het afdrukken te stoppen."
+3  "%s wird jetzt gedruckt. Um das Drucken abzubrechen, Stop dr¸cken."
+4  "%s en cours d'impression. Pour annuler l'impression cliquer sur Stop."
+6  "%s in stampa. Fare click su Stop per interrompere."
+10 "%s blir nÂ skrevet ut. For Â avbryte utskriften, trykk Stopp."
+
+1  "The printer can't be accessed."
+2  "De printer reageert niet."
+3  "Der Drucker reagiert nicht."
+4  "Impossible d'accÈder ‡ l'imprimante."
+6  "Impossibile accedere alla stampante."
+10 "FÂr ingen kontakt med printer."
+
+1  "Page"
+2  "Pagina"
+3  "Dokument"
+4  "Page"
+6  "Pagina"
+10 "Side"
+
+1  "Event List"
+2  "Event Lijst"
+3  "Event-Liste"
+4  "Liste d'EvÈnements"
+6  "Elenco Eventi"
+10 "Handlingsliste"
+
+/* PH MESSAGES */
+
+1  "Unable to start the frame code recorder."
+2  "De tijdcode-opnemer kan niet worden gestart."
+3  "Der Framecode-Rekorder kann nicht gestartet werden."
+4  "Impossible de dÈmarrer l'enregistreur de FrameCode."
+6  "Impossibile lanciare la registratore frame."
+10 "Klarte ikke Â starte tidskode-opptaker."
+
+1  "Out of memory."
+2  "Onvoldoende beschikbaar geheugen."
+3  "Nicht genug Speicher."
+4  "Pas assez de mÈmoire."
+6  "Memoria esaurita."
+10 "For lite minne."
+
+1  "Unable to load a xapp."
+2  "Een xapp kan niet worden gestart."
+3  "Xapp kann nicht geladen werden."
+4  "Impossible de charger un xapp."
+6  "Impossibile leggere una 'xapp'."
+10 "Kunne ikke hente xapp."
+
+1  "Stack overflow."
+2  "De 'stack' is te groot."
+3  "Stapel-‹berlauf."
+4  "DÈbordement de pile."
+6  "'Stack overflow'."
+10 "Stakken er overfylt."
+
+1  "Out of graphics memory."
+2  "Onvoldoende beschikbaar grafisch geheugen."
+3  "Nicht genug Grafik-Speicher."
+4  "Pas assez de mÈmoire graphique."
+6  "Memoria grafica esaurita."
+10 "For lite grafikkminne igjen."
+
+1  "Unable to launch the input handler."
+2  "Het invoer-programma kan niet worden gestart."
+3  "Input-Handler kann nicht gestartet werden."
+4  "Impossible de dÈmarrer le gestionnaire d'entrÈe."
+6  "Impossibile lanciare l' 'input-handler'."
+10 "Kunne ikke hente inn input handler."
+
+1  "The script is empty."
+2  "Het script is leeg."
+3  "Der Skript ist leer."
+4  "Le script est vide."
+6  "Lo script Ë vuoto."
+10 "Scriptet er tomt."
+
+1  "The script contains an invalid frame code."
+2  "Het script bevat een verkeerde tijdcode."
+3  "Der Skript enth‰lt falsche Framecodes."
+4  "Le script contient un FrameCode invalide."
+6  "The script contains an invalid frame code."
+10 "Scriptet inneholder en ugyldig tidskode."
+
+1  "Unable to play the script."
+2  "Het script kan niet worden gespeeld."
+3  "Der Skript kann nicht gespielt werden."
+4  "Impossible de jouer le script."
+6  "Impossibile far partire lo script."
+10 "Kunne ikke kj¯re scriptet."
+
+/* Crawl */
+
+1  "Crawl"
+2  "Scroll tekst"
+3  "Text scrollen"
+4  "Scroll de texte"
+6  "Scorri"
+10 "Scrolltekst"
+
+1  "Font:"
+2  "Font:"
+3  "Font:"
+4  "Fonte:"
+6  "Font:"
+10 "Skr.type:"
+
+1  "Color"
+2  "Kleur"
+3  "Farbe"
+4  "Couleur"
+6  "Colore"
+10 "Farge"
+
+/* XAPP TEXTS */
+
+0 "MediaPointõ XaPPõ"
+
+1  "Preview"
+2  "Kijk"
+3  "Vorschau"
+4  "Tester"
+6  "Antepr."
+10 "Forh.vis"
+
+1  "Communication with device aborted."
+2  "Het apparaat geeft geen respons."
+3  "Kommunikation mit Device abgebrochen."
+4  "Communication interrompue avec l'appareil."
+6  "Interrotta comunicazione con l'unit‡."
+10 "Kommunikasjon med enhet avbrutt."
+
+1  "Enter a value between %d and %d."
+2  "Geef een waarde tussen %d en %d."
+3  "Bitte Wert zwischen %d und %d eingeben."
+4  "Tapez une valeur entre %d et %d."
+6  "Inserisci un numero tra %d e %d."
+10 "Tast inn en verdi mellom %d og %d."
+
+1  "No file selected yet."
+2  "Nog geen bestand geselecteerd."
+3  "Bisher keine Datei angew‰hlt."
+4  "Pas de fichier dÈj‡ sÈlectionnÈ."
+6  "Ancora nessun file selzionato."
+10 "Ingen fil er valgt."
+
+/* LaserDisc xapp */
+
+0 "Videodisc/VCR Player"
+
+1  "Video"
+2  "Video"
+3  "Video"
+4  "VidÈo"
+6  "Video"
+10 "Video"
+
+1  "Audio 1"
+2  "Audio 1"
+3  "Audio 1"
+4  "Audio 1"
+6  "Audio 1"
+10 "Lyd 1"
+
+1  "Audio 2"
+2  "Audio 2"
+3  "Audio 2"
+4  "Audio 2"
+6  "Audio 2"
+10 "Lyd 2"
+
+1  "Index"
+2  "Index"
+3  "Index"
+4  "Index"
+6  "Indice"
+10 "Indeks"
+
+1  "Controller"
+2  "Bediening"
+3  "Kontroller"
+4  "ContrÙleur"
+6  "Controller"
+10 "Kontroller"
+
+1  "Action:"
+2  "Actie:"
+3  "Aktion:"
+4  "Action:"
+6  "Azione:"
+10 "Aksjon:"
+
+1  "Start"
+2  "Start"
+3  "Start"
+4  "DÈbut"
+6  "Inizio"
+10 "Start"
+
+1  "End"
+2  "Eind"
+3  "Ende"
+4  "Fin"
+6  "Fine"
+10 "Slutt"
+
+1  "Initialize player before start"
+2  "Initialiseer speler voor starten"
+3  "Player vor dem Start initialisieren"
+4  "Initialiser le diffuseur avant dÈmarrage"
+6  "Inizializzare esecutore prima di iniziare"
+10 "Initialiser spiller f¯r start"
+
+1  "Eject|          Forward|        Forward slow|   Forward fast|   Initialize|     Play|           Reverse|        Reverse slow|   Reverse fast|   Search|         Standby|        Step forward|   Step reverse|   Still|          "
+2  "Uitwerpen|      Vooruit|        Langz. terug|   Snel vooruit|   Initialiseer|   Weergeven|      Terugspoelen|   Langz. terug|   Snel terug|     Zoek|           Standby|        Stap vooruit|   Stap terug|     Pauze|          "
+3  "Auswerfen|      Vorw‰rts|       Langs. vorw‰.|  Schnell vorw‰.| Initialisieren| Wiedergabe|     Zur¸ck|         Langs. Zur¸ck|  Schnell Zur¸ck| Suchen|         Warten|         Schritt vorw‰.| Schritt zur¸ck| Pause|          "
+4  "Ejecter|        Avance|         Avance lente|   Avance rapide|  Initialiser|    Jouer|          Retour|         Retour lent|    Retour rapide|  Recherche|      Attente|        Ralenti avant|  Ralenti arriËre|Pause|          "
+6  "Espelli|        Avanti|         Avanti piano|   Avanti veloce|  Inizializza|    Esegui|         Indietro|       Indietro piano| Indietro veloce|Cerca|          Attesa|         Passo avanti|   Passo indietro| Pausa|          "
+10 "St¯t ut|        Framover|       Framover sakte| Framover raskt| Initialiser|    Spill|          Bakover|        Bakover sakte|  Bakover raskt|  S¯k|            Standby|        Steg framover|  Steg bakover|   Pause|          "
+  /*----------------++++++++++++++++----------------++++++++++++++++----------------++++++++++++++++----------------++++++++++++++++----------------++++++++++++++++----------------++++++++++++++++----------------++++++++++++++++*/
+
+/* Ion xapp */
+
+0 "Canon Still Video Player RV-321"
+
+1  "Show frame"
+2  "Toon beeld"
+3  "Bild zeigen"
+4  "Voir image"
+6  "Immagine"
+10 "Vis bilde"
+
+1  "Show from frame"
+2  "Toon van beeld"
+3  "Zeigen ab Bild"
+4  "Depuis l'image"
+6  "Da immagine"
+10 "Vis fra bilde"
+
+1  "to"
+2  "t/m"
+3  "bis"
+4  "‡"
+6  "a"
+10 "til"
+
+1  "Duration per frame:"
+2  "Duur per beeld:"
+3  "Dauer pro Bild:
+4  "DurÈe par image:"
+6  "Durata immagine:"
+10 "Varighet per bilde:"
+
+1  "seconds"
+2  "seconden"
+3  "Sekunden"
+4  "secondes"
+6  "secondi"
+10 "sekunder"
+
+1  "Blank screen after showing"
+2  "Scherm uit na vertoning"
+3  "Lehres Bild nach Anzeigen"
+4  "Ecran noir aprËs affichage"
+6  "Schermo vuoto dopo immagini"
+10 "Blank ut skjerm etter visning"
+
+1  "Counter"
+2  "Teller"
+3  "Z‰hler"
+4  "Compteur"
+6  "Contatore"
+10 "Teller"
+
+1  "Controller"
+2  "Besturing"
+3  "Kontroller"
+4  "ContrÙleur"
+6  "Controller"
+10 "Kontroller"
+
+1  "Canon RV-321 controller"
+2  "Canon RV-321 besturing"
+3  "Canon RV-321-Kontroller"
+4  "Canon RV-321 contrÙleur"
+6  "Canon RV-321 controller"
+10 "Canon RV-321 kontroller"
+
+/* Studio 16 xapp */
+
+0 "Studio 16 AD516/AD1012"
+
+1  "Play|        Misc.|       "
+2  "Speel|       Div.|        "
+3  "Spielen|     Div.|        "
+4  "Jouer|       Div.|        "	
+6  "Esegui|      Misc.|       "	
+10 "Spill|       Div.|        "
+  /*-------------+++++++++++++*/
+
+1  "<!>Channel 2"
+2  "<!>Kanaal 2"
+3  "<!>Kanal 2"
+4  "<!>Canal 2"
+6  "<!>Canale 2"
+10 "<!>Kanal 2"
+
+1  "File:"
+2  "File:"
+3  "Datei:"
+4  "Fic.:"
+6  "File:"
+10 "Fil:"
+
+1  "Volume:"
+2  "Volume:"
+3  "Lautst‰rke:"
+4  "Volume:"
+6  "Volume:"
+10 "Volum:"
+
+1  "Rate:"
+2  "Snelheid:"
+3  "Rate:"
+4  "Taux:"
+6  "Velocit‡:"
+10 "Rate:"
+
+1  "The Studio16 ARexx host is not running."
+2  "De Studio16 ARexx host draait niet."
+3  "Der Studio16 ARexx host ist nicht aktiv."
+4  "L'hÙte ARexx Studio16 n'est pas prÈsent."
+6  "<!>"
+10 "<!>"
+
+1  "Select a sample:"
+2  "Kies een sample:"
+3  "Sample w‰hlen:"
+4  "Choisir un Èchantillon:"
+6  "Selezionare un campione:"
+10 "Velg en sampling:"
+
+1  "The Studio 16 card doesn't respond."
+2  "De Studio 16 kaart geeft geen respons."
+3  "Die 'Studio 16'-Karte reagiert nicht."
+4  "La carte Studio 16 ne rÈpond pas."
+6  "La scheda Studio 16 non risponde."
+10 "Studio 16-kortet gir ingen respons."
+
+1  "<!>The file '%s' is not a sample."
+2  "<!>Het bestand '%s' is geen sample."
+3  "<!>Die Datei '%s' ist kein Sample."
+4  "<!>Le fichier '%s' n'est pas un Èchantillon."
+6  "<!>Il file '%s' non Ë un campione."
+10 "<!>Filen '%s' er ingen sampling."
+
+1  "<!>Unable to read sample."
+2  "<!>De sample kan niet worden gelezen."
+3  "<!>Der Sample kann nicht gelesen werden."
+4  "<!>Impossible de lire l'Èchantillon."
+6  "<!>Impossibile leggere il campione."
+10 "<!>Kan ikke lese denne samplingen."
+
+1  "<!>Can't allocate desired audio channel."
+2  "<!>Het gewenste geluidskanaal is bezet."
+3  "<!>Gew¸nschter Audiokanal ist nicht belegbar."
+4  "<!>Impossible d'allouer le canal audio."
+6  "<!>Impossibile allocare i canali audio."
+10 "<!>Kan ikke allokere ¯nsket lydkanal."
+
+/* CDTV xapp */
+
+0 "CDTVõ Audio CD player"
+
+1  "Tracks:"
+2  "Nummer:"
+3  "Nummer:"
+4  "Pistes:"
+6  "Brani:"
+10 "Spor:"
+
+1  "Duration:"
+2  "Duur:"
+3  "Dauer:"
+4  "DurÈe:"
+6  "Durata:"
+10 "Varighet:"
+
+1  "Fade in"
+2  "Fade in"
+3  "Fade in"
+4  "Fade in"
+6  "Fade in"
+10 "Fade inn"
+
+1  "Play track:"
+2  "Speel nr.:"
+3  "Spiele Nr.:"
+4  "Piste:"
+6  "Dal brano:"
+10 "Spill spor:"
+
+1  "to:"
+2  "tot:"
+3  "bis:"
+4  "‡:"
+6  "a:"
+10 "til:"
+
+1  "Play from:"
+2  "Speel van:"
+3  "Spiele ab:"
+4  "Depuis:"
+6  "Suona da:"
+10 "Spill fra:"
+
+1  "Fade in slow|      Fade in fast|      Fade out slow|     Fade out fast|     Mute on|           Mute off|          Pause|             Stop play|         Single step|       1/2 speed|         1/4 speed|         Video/no audio|    Slow motion off|   "
+2  "Fade in langz.|    Fade in snel|      Fade uit langz.|   Fade uit snel|     Geluid uit|        Geluid aan|        Pauze|             Stop spelen|       Stap voor stap|    1/2 snelheid|      1/4 snelheid|      Video/geen audio|  Slow motion uit|   "
+3  "Fade in langsam|   Fade in schnell|   Fade out langsam|  Fade out schnell|  Mute an|           Mute aus|          Pause|             Stop|              Einzelschritt|     1/2 Geschw.|       1/4 Geschw.|       Video/kein Audio|  Einzelbild aus|    "
+4  "Fondu in lent|     Fondu in rapide|   Fondu out lent|    Fondu out rapide|  Sourdine active|   Sourdine inactive| Pause|             Stopper Ècoute|    <!>|               <!>|               <!>|               <!>|               <!>|               "
+6  "Fade in lento|     Fade in veloce|    Fade out lento|    Fade out veloce|   Mute on|           Mute off|          Pausa|             Stop|              <!>|               <!>|               <!>|               <!>|               <!>|               "
+10 "Fade inn sakte|    Fade inn raskt|    Fade ut sakte|     Fade ut raskt|     Dempe pÂ|          Dempe av|          Pause|             Stopp spilling|    <!>|               <!>|               <!>|               <!>|               <!>|               "
+  /*-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------+++++++++++++++++++-------------------*/
+
+1  "New CD"
+2  "Ander"
+3  "Neue CD"
+4  "Nouveau"
+6  "Nuovo CD"
+10 "Ny CD"
+
+1  "Control via:"
+2  "Bestuur via:"
+3  "Steuern via:"
+4  "ContrÙle via:"
+6  "Controllo via:"
+10 "Kontroll via:"
+
+1  "<!>Serial cable|  CD-ROM drive|  "
+2  "<!>SeriÎle kabel| CD-ROM drive|  "
+3  "<!>Kabel Seriell| CD-ROM Drive|  "
+4  "<!>Cable sÈrie|   Lecteur CD-ROM|"
+6  "<!>Cavo seriale|  Lettore CD-ROM|"
+10 "<!>Seriell kabel| CD-Rom drive|  "
+  /*---------------+++++++++++++++*/
+
+1  "Looking for the CDTV..."
+2  "Er wordt contact gezocht met de CDTV..."
+3  "Suche das CDTV-Laufwerk ..."
+4  "Connexion avec le CDTV..."
+6  "Attivazione CDTV..."
+10 "Pr¯ver Â fÂ kontakt med CDTV..."
+
+1  "No audio on CD"
+2  "Geen audio CD"
+3  "Kein Audio auf der CD"
+4  "Pas de musique sur le CD"
+6  "CD senza audio"
+10 "Ingen lyd pÂ CD"
+
+1  "The CDTV doesn't respond!"
+2  "De CDTV antwoordt niet!"
+3  "Das CDTV reagiert nicht!"
+4  "Le CDTV ne rÈpond pas!"
+6  "Il CDTV non risponde!"
+10 "CDTV gir ingen tilbakemelding!"
+
+/* CDXL xapp */
+
+1  "Show"
+2  "Toon"
+3  "Zeigen"
+4  "Montrer"
+6  "Mostra"
+10 "Vis"
+
+1  "Frames per second:"
+2  "Beelden per seconde:"
+3  "Bilder pro Sekunde:"
+4  "Images par seconde:"
+6  "Fotog. per secondo:"
+10 "Bilder per sekund:"
+
+1  "CDTV speed"
+2  "CDTV snelheid"
+3  "CDTV Geschw."
+4  "Vitesse CDTV"
+6  "Velocit‡ CDTV"
+10 "CDTV hastighet"
+
+1  "Loops:"
+2  "Loops:"
+3  "Schl.:"
+4  "Boucles:"
+6  "Cicli:"
+10 "Loops:"
+
+1  "Play from disk"
+2  "Speel van disk"
+3  "Von Disk spielen"
+4  "Depuis disque"
+6  "Esegui da disco"
+10 "Spill fra disk"
+
+1  "Select a CDXL file:"
+2  "Kies een CDXL bestand:"
+3  "Eine CDXL-Datei w‰hlen:"
+4  "Choisir un fichier CDXL:"
+6  "Selezionare un file CDXL:"
+10 "Velg en CDXL fil:"
+
+1  "Enlarge"
+2  "Vergroot"
+3  "Vergrˆﬂern"
+4  "Zoom"
+6  "Allargare"
+10 "Forst¯rr"
+
+/* IV24 page 1 */
+
+0 "GVP IV-24 controller"
+
+1  "Picture-In-Picture|    Full Screen Video|     Framebuffer|           Control panel|         Composite keyer|       Freeze PIP|            Freeze all but PIP|    Freeze all|            Unfreeze all|          "
+2  "Picture-In-Picture|    Full Screen Video|     Frame buffer|          Controle paneel|       Composiet besturing|   Bevries PIP|           Bvr. alles behalve PIP|Bevries alles|         Ontvries alles|        "
+3  "Picture-In-Picture|    Full Screen Video|     Framebuffer|           Bedienfeld|            Composite Keyer|       PIP einfrieren|        Einfrieren (nicht PIP)|Alles einfrieren|      Alles reaktivieren|    "
+4  "Picture-In-Picture|    VidÈo Plein Ecran|     Framebuffer|           Panneau de contrÙle|   Keyer composite|       Geler PIP|             Tout geler sauf PIP|   Tout geler|            Stopper gel|           "
+6  "Picture-In-Picture|    Video a Tutto Schermo| Framebuffer|           Pannello di controllo| 'Keyer' composito|     Congela PIP|           Cong. tutto ma non PIP|Congela tutto|         Scongela tutto|        "
+10 "Bilde-I-Bilde|         Fullskjerms Video|     Frame buffer|          Kontrollpanel|         Composite keyer|       Frys PIP|              Frys alt annet enn PIP|Frys alt|              Slutt all frysing|     "
+  /*-----------------------+++++++++++++++++++++++-----------------------+++++++++++++++++++++++-----------------------+++++++++++++++++++++++-----------------------+++++++++++++++++++++++-----------------------*/
+
+1  "Size:"
+2  "Grootte:"
+3  "Grˆﬂe:"
+4  "Taille:"
+6  "Dimens.:"
+10 "Dimens.:"
+
+1  "Small|       Smaller|     Very small|  Tiny|        "
+2  "Groot|       Klein|       Kleiner|     Heel klein|  "
+3  "Klein|       Kleiner|     Sehr klein|  Winzig|      "
+4  "Petit|       Plus petit|  TrÈs petit|  Minuscule|   "
+6  "Media|       Piccola|     Mini|        Micro|       "
+10 "Liten|       Mindre|      Veldig liten|Aller minst| "
+  /*-------------+++++++++++++-------------+++++++++++++*/
+
+1  "Close PIP when done"
+2  "Sluit PIP na actie"
+3  "PIP schlieﬂen wenn fertig"
+4  "Fermer PIP aprËs usage"
+6  "Chiudere PIP dopo fine"
+10 "Steng PIP nÂr unnagjort"
+
+1  "Place at X,Y|      Move down to X,Y|  Move up to X,Y|    "
+2  "Plaats op X,Y|     Omlaag naar X,Y|   Omhoog naar X,Y|   "
+3  "Position bei X,Y|  Hochbewegen X,Y|   Runterbewegen X,Y| "
+4  "Placer at X,Y|     Descendre vers X,Y|Monter vers X,Y|   "
+6  "Mettere a X,Y|     Abbassare a X,Y|   Alzare a X,Y|      "
+10 "Plasser ved X,Y|   Flytt ned til X,Y| Flytt opp til X,Y| "
+  /*-------------------+++++++++++++++++++-------------------*/
+
+0  "X:"
+0  "Y:"
+
+1  "Mode:"
+2  "Modus:"
+3  "Modus:"
+4  "Mode:"
+6  "Modo:"
+10 "Modus:"
+
+1  "Speed:"
+2  "Snelheid:"
+3  "Geschwindigkeit:"
+4  "Vitesse:"
+6  "Velocit‡:"
+10 "Hastighet:"
+
+/* IV24 page 2 */
+
+1  "Picture:"
+2  "Plaatje:"
+3  "Bild:"
+4  "Image:"
+6  "Immagine:"
+10 "Bilde:"
+
+1  "Delay:"
+2  "Duur:"
+3  "Wartezeit:"
+4  "DÈlai:"
+6  "Ritardo:"
+10 "Forsink.:"
+
+/* IV24 page 3 */
+
+1  "Composite output:"
+2  "Composiet uit:"
+3  "Composite Ausgabe:"
+4  "Sortie Composite:"
+6  "Uscita composita:"
+10 "Composite utgang:"
+
+1  "RGB output:"
+2  "RGB uit:"
+3  "RGB Ausgabe:"
+4  "Sortie RVB:"
+6  "Uscita RGB:"
+10 "RGB utgang:"
+
+1  "Amiga|  Keyer|  Ext.|   "
+2  "Amiga|  Keyer|  Ext.|   "
+3  "Amiga|  Keyer|  Ext.|   "
+4  "Amiga|  Incrust|Ext.|   "
+6  "Amiga|  'Keyer'|Est.|   "
+10 "Amiga|  Keyer|  Ext.|   "
+  /*--------++++++++--------*/
+
+1  "Ext.|  Int.|  "
+2  "Ext.|  Int.|  "
+3  "Ext.|  Int.|  "
+4  "Ext.|  Int.|  "
+6  "Ext.|  Int.|  "
+10 "Ext.|  Int.|  "
+  /*-------+++++++*/
+
+1  "Pos.|  Neg.|  "
+2  "Pos.|  Neg.|  "
+3  "Pos.|  Neg.|  "
+4  "Pos.|  NÈg.|  "
+6  "Pos.|  Neg.|  "
+10 "Pos.|  Neg.|  "
+  /*-------+++++++*/
+
+1  "Hi-Scan|     Video-Scan|  "
+2  "Hi-Scan|     Video-Scan|  "
+3  "Hi-Scan|     Video-Scan|  "
+4  "Hi-Scan|     VidÈo-Scan|  "
+6  "Hi-Scan|     Video-Scan|  "
+10 "Hi-Scan|     Video-Scan|  "
+  /*-------------+++++++++++++*/
+
+1  "Millions|  4096|      "
+2  "Miljoenen| 4096|      "
+3  "Millionen| 4096|      "
+4  "Millions|  4096|      "
+6  "Milioni|   4096|      "
+10 "Millioner| 4096|      "
+  /*-----------+++++++++++*/
+
+1  "Bypass"
+2  "Bypass"
+3  "Bypass"
+4  "Bypass"
+6  "Bypass"
+10 "Bypass"
+
+/* IV24 page 4 */
+
+1  "Amiga|       External|    Cross fade|  "
+2  "Amiga|       Extern|      Cross fade|  "
+3  "Amiga|       Extern|      Cross Fade|  "
+4  "Amiga|       Externe|     Cross fade|  "
+6  "Amiga|       Esterna|     Cross fade|  "
+10 "Amiga|       Ekstern|     Cross Fade|  "
+  /*-------------+++++++++++++-------------*/
+
+1  "from"
+2  "van"
+3  "von"
+4  "depuis"
+6  "da"
+10 "fra"
+
+1  "to"
+2  "t/m"
+3  "bis"
+4  "vers"
+6  "a"
+10 "til"
+
+/* IV24 page mode descriptions */
+
+1  "Full screen video"
+2  "Full screen video"
+3  "Full Screen Video"
+4  "Mode Plein Ecran"
+6  "Video a tutto schermo"
+10 "Fullskjerms video"
+
+1  "Amiga in PIP"
+2  "Amiga in PIP"
+3  "Amiga im PIP"
+4  "Amiga dans PIP"
+6  "Amiga in PIP"
+10 "Amiga i PIP"
+
+1  "Full screen Amiga"
+2  "Full screen Amiga"
+3  "Full screen Amiga"
+4  "Amiga Plein Ecran"
+6  "Amiga a tutto schermo"
+10 "Fullskjerms Amiga"
+
+1  "Video in PIP"
+2  "Video in PIP"
+3  "Video im PIP"
+4  "VidÈo dans PIP"
+6  "Video in PIP"
+10 "Video i PIP"
+
+1  "Keyed video and Amiga"
+2  "Keyed video en Amiga"
+3  "Keyed Video und Amiga"
+4  "VidÈo incrustÈe dans Amiga"
+6  "Video 'Keyed' e Amiga"
+10 "Keyed video og Amiga"
+
+1  "Amiga in PIP"
+2  "Amiga in PIP"
+3  "Amiga im PIP"
+4  "Amiga dans PIP"
+6  "Amiga in PIP"
+10 "Amiga i PIP"
+
+1  "Negative keyed video and Amiga"
+2  "Negative keyed video en Amiga"
+3  "Keyed Video (Negativ) und Amiga"
+4  "Incrustation nÈgative et Amiga"
+6  "Video 'Keyed' negativo e Amiga"
+10 "Negativ keyed video og Amiga"
+
+1  "Amiga in PIP"
+2  "Amiga in PIP"
+3  "Amiga in PIP"
+4  "Amiga dans PIP"
+6  "Amiga in PIP"
+10 "Amiga i PIP"
+
+1  "Full screen Amiga"
+2  "Full screen Amiga"
+3  "Full Screen Amiga"
+4  "Amiga Plein Ecran"
+6  "Amiga a tutto schermo"
+10 "Fullskjerms Amiga"
+
+1  "Keyed video and Amiga in PIP"
+2  "Keyed video en Amiga in PIP"
+3  "Keyed Video und Amiga im PIP"
+4  "VidÈo incrustÈe et Amiga dans PIP"
+6  "Video 'Keyed' e Amiga in PIP"
+10 "Keyed video og Amiga i PIP"
+
+1  "Full screen Amiga"
+2  "Full screen Amiga"
+3  "Full Screen Amiga"
+4  "Amiga Plein Ecran"
+6  "Amiga a tutto schermo"
+10 "Fullskjerms Amiga"
+
+1  "Negative keyed video and Amiga in PIP"
+2  "Negative keyed video en Amiga in PIP"
+3  "Keyed Video (Negativ) und Amiga im PIP"
+4  "VidÈo incrustÈe nÈgative et Amiga dans PIP"
+6  "Video 'Keyed' negativo e Amiga in PIP"
+10 "Negativt keyed video og Amiga i PIP"
+
+/* IV24 misc */
+
+1  "The IV-24 doesn't respond."
+2  "De IV-24 antwoordt niet."
+3  "Die IV-24 reagiert nicht."
+4  "L'IV-24 ne rÈpond pas."
+6  "La IV-24 non risponde."
+10 "IV-24 gir ingen tilbakemelding."
+
+1  "Can't open the fye.library." 
+2  "De fye.library kan niet geopend worden." 
+3  "'fye.library' kann nicht geˆffnet werden."
+4  "Impossible d'ouvrir la fye.library."
+6  "Impossibile aprire la fye.library." 
+10 "Kan ikke Âpne fye.library."
+
+1  "The IV-24 card is not available."
+2  "De IV-24 kaart is niet aanwezig."
+3  "Die IV-24-Karte ist nicht verf¸gbar."
+4  "La carte IV-24 n'est pas disponible."
+6  "Scheda IV-24 non disponibile."
+10 "IV-24 kortet er ikke tilgjengelig."
+
+1  "Select a 24 bits picture:"
+2  "Kies een 24 bits plaatje:"
+3  "24-Bit-Bild w‰hlen:"
+4  "Choisissez une image 24 bits:"
+6  "Selez. un'immagine a 24 bit:"
+10 "Velg et 24 bits bilde:"
+
+/* MIDI xapp */
+
+1  "Select a MIDI file:"
+2  "Kies een MIDI bestand:"
+3  "Eine MIDI-Datei w‰hlen:"
+4  "Choisir un fichier MIDI:"
+6  "Seleczionare un file MIDI:"
+10 "Velg en MIDI fil:"
+
+/* rest of Sample xapp */
+
+1  "Play|        Stop|        Fade out|    Fade in|     Set volume|  "
+2  "Speel|       Stop|        Fade uit|    Fade in|     Zet volume|  "
+3  "Spielen|     Stop|        Ausblenden|  Einblenden|  Lautst‰rke|  "
+4  "Jouer|       Stopper|     Fondu out|   Fondu in|    Choisir vol.|"
+6  "Esegui|      Stop|        Fade out|    Fade in|     Imp. volume| "
+10 "Spill|       Stopp|       Fade ut|     Fade inn|    Sett volum|  "
+  /*-------------+++++++++++++-------------+++++++++++++-------------*/
+
+1  "Fade in:"
+2  "Fade in:"
+3  "Einbl.:"
+4  "Fondu in"
+6  "Fade in:"
+10 "Fade inn:"
+
+1  "Balance:"
+2  "Balans:"
+3  "Balance:"
+4  "Balance:"
+6  "Balance:"
+10 "Balanse:"
+
+1  "in"
+2  "in"
+3  "Ein"
+4  "in"
+6  "in"
+10 "inn"
+
+1  "at"
+2  "op"
+3  "bei"
+4  "‡"
+6  "a"
+10 "ved"
+
+1  "Track:"
+2  "Kanaal:"
+3  "Kanal:"
+4  "Piste:"
+6  "Traccia:"
+10 "Spor:"
+
+/* Interactive */
+
+/* DON'T CALL THIS 'LOCAL EVENTS' ETC. BUT 'BUTTONS' */
+
+1  "Buttons"
+2  "Knoppen"
+3  "Schalter"
+4  "Boutons"
+6  "<!>Eventi locali"
+10 "Knapper"
+
+1  "Name:"
+2  "Naam:"
+3  "Name:"
+4  "Nom:"
+6  "Nome:"
+10 "Navn:"
+
+1  "Highlight:"
+2  "Reactie:"
+3  "Markieren:"
+4  "SÈlection:"
+6  "Evidenzia:"
+10 "Markere:"
+
+1  "Audio cue:"
+2  "Geluid:"
+3  "Audio Cue:"
+4  "Son:"
+6  "Audio:"
+10 "Lyd k¯:"
+
+1  "Key:"
+2  "Toets:"
+3  "Taste:"
+4  "Touche:"
+6  "Tasto:"
+10 "Tast:"
+
+0  "None|             Goto|             Gosub|            Gosub previous|   Gosub next|       Goto prev. page|  Goto next page|   "
+  /*------------------++++++++++++++++++------------------++++++++++++++++++------------------++++++++++++++++++------------------*/
+
+1  "None|             Invert A|         Box A|            Fat box A|        Invert B|         Box B|            Fat box B|        "
+2  "Geen|             Inverteer A|      Kader A|          Dik kader A|      Inverteer B|      Kader B|          Dik kader B|      "
+3  "Keine|            Invertieren A|    Box A|            Groﬂe Box A|      Invertieren B|    Box B|            Groﬂe Box B|      "
+4  "Aucun|            Inverser A|       Boite A|          Grosse boite A|   Inverser B|       Boite B|          Grosse boite B|   "
+6  "Nessuno|          Invertire A|      Rettangolo A|     Rett. spesso A|   Invertire B|      Rettangolo B|     Rett. spesso B|   "
+10 "Ingen|            Inverter A|       Boks A|           Fet boks A|       Inverter B|       Boks B|           Fet boks B|       "
+  /*------------------++++++++++++++++++------------------++++++++++++++++++------------------++++++++++++++++++------------------*/
+
+1  "None|      Beep|      True|      False|     "
+2  "Geen|      Piep|      Goed|      Fout|      "
+3  "Keine|     Beep|      Wahr|      Falsch|    "
+4  "Aucun|     Bip|       Vrai|      Faux|      "
+6  "Nessuno|   Bip|       Vero|      Falso|     "
+10 "Ingen|     Pip|       Sant|      Usant|     "
+  /*-----------+++++++++++-----------+++++++++++*/
+
+/* Variable declaration */
+
+1  "Declaration List"
+2  "Declaratie Lijst"
+3  "Deklarations-Liste"
+4  "Liste DÈclaration"
+6  "List Dichiarazioni"
+10 "Deklarasjonsliste"
+
+1  "New"
+2  "Nieuw"
+3  "Neu"
+4  "Nouveau"
+6  "Nuova"
+10 "Ny"
+
+1  "Delete"
+2  "Wis"
+3  "Lˆschen"
+4  "DÈtruire"
+6  "Cancella"
+10 "Fjern"
+
+/* Expression declaration */
+
+1  "Expression List"
+2  "Expressie Lijst"
+3  "Ausdrucks-Liste"
+4  "Liste Expression"
+6  "Lista Espressioni"
+10 "Uttrykksliste"
+
+/* local events */
+
+/* NEW: DON'T USE 'LOCAL EVENTS' BUT CALL THIS 'BUTTONS' */
+
+1  "Buttons"
+2  "Knoppen"
+3  "Schalter"
+4  "Boutons"
+6  "Tasti Locali"
+10 "Knapper"
+
+1  "Pages:"
+2  "Pagina's:"
+3  "Dokumente:"
+4  "Pages:"
+6  "Documenti:"
+10 "Sider:"
+
+1  "Jumps to:"
+2  "Springt naar:"
+3  "Springe zu:"
+4  "Sauter ‡:"
+6  "Salto a:"
+10 "Hopper til:"
+
+1  "There are no pages with buttons."
+2  "Er zijn geen pagina's met knoppen."
+3  "Es gibt keine Dokumente mit Schaltern."
+4  "Il n'y a pas de pages ayant des boutons."
+6  "Non ci sono documenti con tasti locali."
+10 "Det er ingen sider med knapper."
+
+1  "Pick"
+2  "Kies"
+3  "W‰hle"
+4  "Choisir"
+6  "Scegliere"
+10 "Velg"
+
+1  "Button:"
+2  "Knop:"
+3  "Schalter:"
+4  "Bouton:"
+6  "<!>:"
+10 "Knapp:"
+
+1  "< unreferenced >"
+2  "< onbekend >"
+3  "< unbekannt >"
+4  "< inconnu>"
+6  "< sconosciuto >"
+10 "< ureferert >"
+
+1  "Action:"
+2  "Actie:"
+3  "Aktion:"
+4  "Action:"
+6  "Azione:"
+10 "Aksjon:"
+
+/* rest prefs */
+
+1  "To be fully localized, also set the Workbench locale preferences to %s."
+2  "Zet voor een volledige vertaling ook de Workbench locale preferences op %s."
+3  "F¸r komplette, deutsche Sprache setzen sie auch die Workbench Locale auf %s."
+4  "Pour Ítre complËtement localisÈ, vous devez aussi choisir '%s' la prefs Locale."
+6  "Per una traduzione completa anche cambia i Workbench locale preferences in %s"
+10 "For Â fÂ fullstendig lokalisering, sett Workbench locale preferences til %s."
+
+1  "The 'devs:player.device' is not available."
+2  "De 'devs:player.device' is niet beschikbaar."
+3  "Das 'devs:player.device' ist nicht verf¸gbar."
+4  "Le 'devs:player.device' n'est pas disponible."
+6  "Il 'devs:player.device' non Ë disponibile."
+10 "'devs:player.device' er ikke tilgjengelig"
+
+1  "Player memory:"
+2  "Speler-geheugen:"
+3  "Spieler-Speicher:"
+4  "Gestion mÈmoire:"
+6  "Mem. esecutore:"
+10 "Avspiller-minne:"
+
+1  "Keep|               Flush|              "
+2  "Bewaar|             Leeg|               "
+3  "Bewahren|           Ausleeren|          "
+4  "Conserver|          Vider|              "
+6  "Tenere|             Svuotare|           "
+10 "Bevar|              Full|               "
+  /*--------------------++++++++++++++++++++*/
+
+1  "Press any key."
+2  "Druk op een toets."
+3  "Bitte Taste dr¸cken."
+4  "Appuyer sur une touche."
+6  "<!>Prema un tasto."
+10 "Trykk en knapp."
+
+1  "Standby:"
+2  "Standby:"
+3  "Standby:"
+4  "Standby:"
+6  "Standby:"
+10 "Standby:"
+
+1  "Player input:"
+2  "Speler invoer:"
+3  "Spieler-Bedienung:"
+4  "Ctrl. Diffusion:"
+6  "Manovra esecutore:"
+10 "Avspiller input:"
+
+1  "Cursor|         Mouse|          Cursor+Mouse|   None|           "
+2  "Cursor|         Muis|           Cursor+Muis|    Geen|           "
+3  "Cursor|         Maus|           Cursor+Maus|    Keine|          "
+4  "Curseur|        Souris|         Curs.+Souris|   Aucun|          "
+6  "Cursore|        Mouse|          Cursore+Mouse|  Nessuna|        "
+10 "Mark¯r|         Mus|            Mark¯r+Mus|     Ingen|          "
+  /*----------------++++++++++++++++----------------++++++++++++++++*/
+
+1  "Mouse pointer:"
+2  "Muispijl:"
+3  "Mauszeiger:"
+4  "Pointeur souris:"
+6  "Puntatore mouse:"
+10 "Muspeker:"
+
+/* tweaker */
+
+1  "Time Code Tweaker"
+2  "Tijdcode aanpassen"
+3  "Timecode ‰ndern"
+4  "Changer Time Code"
+6  "Cambiare time code"
+10 "Tilpass tidskode"
+
+1  "Start:"
+2  "Start:"
+3  "Start:"
+4  "DÈbut:"
+6  "Inizio:"
+10 "Start:"
+
+1  "End:"
+2  "Eind:"
+3  "Ende:"
+4  "Fin:"
+6  "Fine:"
+10 "Slutt:"
+
+1  "Delta:"
+2  "Delta:"
+3  "Delta:"
+4  "Delta:"
+6  "Delta:"
+10 "Delta:"
+
+1  "Offset:"
+2  "Offset:"
+3  "Offset:"
+4  "Offset:"
+6  "Offset:"
+10 "Offset:"
+
+1  "Scheduling"
+2  "Datum progr."
+3  "Programme zeigen"
+4  "Programmation"
+6  "Mostra prog."
+10 "Vis prog."
+
+0 "16| 32| "
+ /*----++++*/
+
+/* misc page editor */
+
+1  "Picture '%s' has too many colors."
+2  "Plaatje '%s' heeft te veel kleuren."
+3  "Das Bild '%s' hat zu viele Farben."
+4  "L'image '%s' a trop de couleurs."
+6  "Immagine '%s' ha troppo colori."
+10 "Bildet '%s' har for mange farger."
+
+1  "Searching for fonts..."
+2  "Fontlijst wordt gemaakt..."
+3  "Suche Fonts..."
+4  "Recherche des fontes..."
+6  "<!>"
+10 "Leter etter skrifttyper..."
+
+/* palette */
+
+1  "Hide"
+2  "Weg"
+3  "Verst."
+4  "Cacher"
+6  "<!>"
+10 "Gjem"
+
+/* rest menu */
+
+1  "Colors..."
+2  "Kleuren..."
+3  "Farben..."
+4  "Couleurs..."
+6  "Colori..."
+10 "Farger..."
+
+/* specials/extra's */
+
+1  "Select a picture:"
+2  "Kies een plaatje:"
+3  "Bild w‰hlen:"
+4  "Choisir une image:"
+6  "<!>Selez. un'immagine:"
+10 "Velg et bilde:"
+
+0  "<!>OBSOLETE"
+
+1  "Use colors of imported picture?"
+2  "Gebruik kleurenpalet van plaatje?"
+3  "Farbpalette benutzen?"
+4  "Utiliser la palette importÈe?"
+6  "Utilizzare la tavolozza dei colori dell'immagine?"
+10 "Bruk paletten pÂ dette bildet?"
+
+/* rest interact */
+
+1  "Button"
+2  "Knop"
+3  "Schalter"
+4  "Bouton"
+6  "<!>"
+10 "Knapp"
+
+/* variables */
+
+1  "Variables:"
+2  "Variabelen:"
+3  "Variablen:"
+4  "Variables:"
+6  "<!>:"
+10 "Variabler:"
+
+1  "Press Help to insert a label"
+2  "Druk Help om een label tussen te voegen"
+3  "Dr¸cke Help um eine Marke einzusetzen"
+4  "Appuyer Help pour insÈrer une Ètiquette"
+6  "<!>"
+10 "Trykk Help for Â sette inn en label"
+
+/* rest script texts */
+
+1  "Abort"
+2  "Stop"
+3  "Stop"
+4  "Stop"
+6  "<!>"
+10 "Stopp"
+
+1  "Declarations:"
+2  "Declaraties:"
+3  "Deklarationen:"
+4  "DÈclarations:"
+6  "<!>:"
+10 "Deklarasjoner:"
+
+1  "Expressions:"
+2  "Expressies:"
+3  "Ausdr¸cke:"
+4  "Expressions:"
+6  "<!>:"
+10 "Uttrykk:"
+
+1  "You must first declare variables in the root."
+2  "U moet eerst variabelen declareren in de root."
+3  "Sie m¸ssen erst Variablen in der Hauptebene deklarieren."
+4  "DÈclarez d'abord variables au niveau racine."
+6  "<!>"
+10 "Du mÂ f¯rst deklarere variabler i roten."
+
+1  "Clearing the declaration object will clear all expressions too!"
+2  "Het weghalen van het declaratie object zal ook de expressies verwijderen!"
+3  "Beim Lˆschen des Deklarations-Objektes gehen auch alle Ausdr¸cke verloren!"
+4  "Si vous effacer les dÈclarations d'objets, vous perdez Ègalement les expressions!"
+6  "<!>"
+10 "Rensing av det deklarerte objektet vil rense alle uttrykkene ogsÂ!"
+
+1  "The stack size is too small. Set it to at least 40000 bytes."
+2  "De stack is te klein. Verhoog het tot 40000 bytes."
+3  "Die Stapel-Grˆﬂe ist zu klein. Setzen Sie sie auf mindestens 40000 Bytes."
+4  "La pile est trop petite. Augmentez la ‡ au moins 40000 octets."
+6  "<!>"
+10 "Stakkens st¯rrelse er for liten. Sett den til minimum 40000 tegn"
+
+0  "(GOTO PREV)"
+0  "(GOTO NEXT)"
+
+1  "Destination can't be set for this button."
+2  "De bestemming kan niet worden veranderd voor deze knop."
+3  "Aktion kann f¸r diesen Schalter nicht definiert werden."
+4  "Impossible de trouver la destination de ce bouton."
+6  "<!>Destination can't be set for this button."
+10 "Destinasjonen kan ikke bli satt for denne knappen."
+
+0  "Color cycle"
+
+/* NEW FOR 126 */
+
+1  "Pattern:"
+2  "Raster:"
+3  "Pattern:"
+4  "Motif:"
+6  "Motivo:"
+10 "M¯nster:"
+
+/* Script Manager */
+
+/* Msg_SM_1 - Msg_SM_12 */
+
+1  "Script Manager"
+2  "Script Manager"
+3  "Skript Manager"
+4  "Gestionnaire de Scripts"
+
+1  "Create run-time version of script"
+2  "Maak run-time versie van script"
+3  "Erstelle Run-Time Version vom Skript"
+4  "CrÈer une version autonome de script"
+
+1  "Find missing files in script"
+2  "Zoek naar vermiste bestanden in script"
+3  "‹berpr¸fe Skript-Zugriffe auf fehlende Dateien"
+4  "Fichiers manquant localisÈs dans le script"
+
+1  "Calculate script size"
+2  "Bereken de script grootte"
+3  "Berechne Skript-Grˆﬂe"
+4  "Calculer la taille du script"
+
+1  "Create run-time version of script on:"
+2  "Zet run-time versie van script op:"
+3  "Erstelle Run-Time Version vom Skript auf:"
+4  "CreÈr la version autonome du script sur:"
+
+1  "Volume:"
+2  "Schijf:"
+3  "Laufwerk:"
+4  "Volume:"
+
+1  "Copy:"
+2  "Kopieer:"
+3  "Kopiere:"
+4  "Copier:"
+
+1  "Script and data"
+2  "Script en data"
+3  "Skript und Daten"
+4  "Script et donnÈes"
+
+1  "Script, data, fonts and system files"
+2  "Script, data, fonts en systeem bestanden"
+3  "Skript, Daten, Fonts und System-Daten"
+4  "Script, donnÈes, fonts et fichiers systËmes"
+
+1  "Look for missing files in:"
+2  "Zoek naar vermiste bestanden in:"
+3  "Suche fehlende Daten auf:"
+4  "Recherche des fichiers manquants dans:"
+
+1  "Path:"
+2  "Pad:"
+3  "Verzeichnis:"
+4  "Chemin:"
+
+1  "and then on:"
+2  "en daarna op:"
+3  "und dann auf:"
+4  "puis sur:"
+
+* Msg_SM_20 - Msg_SM_31 */
+
+1  "Searching for file '%s'"
+2  "Op zoek naar bestand '%s'"
+3  "Suche Datei '%s'"
+4  "Recherce du fichier '%s'"
+
+1  "Scanning volume '%s'"
+2  "Disk '%s' wordt bekeken"
+3  "Untersuche Laufwerk '%s'"
+4  "Exploration du volume '%s'"
+
+1  "Creating run-time script..."
+2  "Run-time script wordt gemaakt..."
+3  "Erstelle Run-Time Skript..."
+4  "CrÈation d'un script autonome..."
+
+1  "Searching for missing files..."
+2  "Op zoek naar vermiste bestanden..."
+3  "Suche fehlende Dateien..."
+4  "Recherche des fichiers manquants..."
+
+1  "Ready."
+2  "Klaar."
+3  "Fertig."
+4  "PrÍt."
+
+1  "Total size of data files: %d KB"
+2  "Totale grootte van data bestanden: %d KB"
+3  "Gesamtgrˆﬂe aller Daten: %d KB"
+4  "Taille totale des fichiers donnÈes: %d KO"
+
+1  "Total size of system files: %d KB"
+2  "Totale grootte van systeem bestanden: %d KB"
+3  "Gesamtgrˆﬂe der System-Daten: %d KB"
+4  "Taille totale des fichiers systËmes: %d KO"
+
+1  "Largest file: %d KB"
+2  "Grootste bestand: %d KB"
+3  "Grˆﬂte Datei: %d KB"
+4  "Fichier le plus grand: %d KO"
+
+1  "File '%s' couldn't be copied to '%s'"
+2  "Bestand '%s' kon niet worden gekopieerd naar '%s'"
+3  "Datei '%s' konnte nicht nach '%s' kopiert werden"
+4  "Le fichier '%s' ne peut Ítre copiÈ sur '%s'"
+
+1  "Copying file '%s' to '%s'"
+2  "Bestand '%s' wordt gekopieerd naar '%s'"
+3  "Kopiere Datei '%s' nach '%s'"
+4  "Copie du fichier '%s' sur '%s'"
+
+1  "Creating directory '%s'"
+2  "Directory '%s' wordt gemaakt"
+3  "Erstelle Verzeichnis '%s'"
+4  "CrÈation du rÈpertoire '%s'"
+
+1  "Insert next disk in drive '%s'"
+2  "Doe de volgende diskette in '%s'"
+3  "Bitte n‰chste Diskette in Laufwerk '%s' einlegen"
+4  "InsËrer le disque suivant dans le lecteur '%s'"
+
+* Msg_SM_32 - Msg_SM_37 */
+
+1  "WARNING: Unable to find file '%s'"
+2  "WAARSCHUWING: Het bestand '%s' is onvindbaar"
+3  "ACHTUNG: Kann Datei '%s' nicht finden"
+4  "ATTENTION: Impossible de trouver le fichier '%s'"
+
+1  "WARNING: %d files couldn't be found"
+2  "WAARSCHUWING: %d bestanden zijn onvindbaar"
+3  "ACHTUNG: %d Dateien konnten nicht gefunden werden"
+4  "ATTENTION: %d fichiers ne peuvant Ítre trouvÈs"
+
+1  "WARNING: %d file couldn't be found"
+2  "WAARSCHUWING: %d bestand is onvindbaar"
+3  "ACHTUNG: %d Datein konnte nicht gefunden werden"
+4  "ATTENTION: %d fichier ne peut Ítre trouvÈ"
+
+1  "The file 'ram:logfile' lists all missing files."
+2  "Het bestand 'ram:logfile' bevat een lijst van alle vermiste bestanden."
+3  "Die Datei 'ram:logfile' listet alle fehlenden Dateien."
+4  "Le fichier 'ram:logfile' indique tous les fichiers manquants."
+
+1  "There's a file larger than fits on the destination."
+2  "Er is een bestand dat groter is dan de schijf."
+3  "Eine Datei ist zu groﬂ f¸r den Datentr‰ger."
+4  "Il y a un fichier plus grand que la taille de la destination."
+
+1  "You'll need multiple disks for '%s'."
+2  "U heeft meerdere disks nodig voor '%s'."
+3  "Sie benˆtigen mehrere Disketten f¸r '%s'."
+4  "Vous avez besoin de plusieurs disques pour '%s'."
+
+/* save changes to script '%s' */
+
+1  "Save changes to the script '%s'?"
+2  "Bewaar veranderingen aan script '%s'?"
+3  "ƒnderungen in Skript '%s' speichern?"
+4  "Sauver les modifications dans script '%s'?"
+6  "Salvare script modificato '%s'?"
+10 "Lagre forandringer av script '%s'?"
+
+1  "The script can be found on '%s'"
+2  "Het script staat op '%s'"
+3  "Der Skript befindet sich nun auf '%s'"
+4  "Le script se trouve sur '%s'"
+
+1  "Sorry, you can't copy a script to itself."
+2  "Sorry, u kunt een script niet over zichzelf kopiÎren."
+3  "Achtung, der Skript kann nicht auf sich selbst kopiert werden."
+4  "DÈsolÈ, vous ne pouvez copier un script sur lui-mÍme."
+
+/* Preferences: sprite ON, OFF, AUTO */
+
+1  "On|   Off|  Auto| "
+2  "Aan|  Uit|  Auto| "
+3  "An|   Aus|  Auto| "
+4  "Oui|  Non|  Auto| "
+6  "SÏ|   No|   Auto| "
+10 "PÂ|   Av|   Auto| "
+  /*------++++++------*/
+
+/* new in page editor */
+
+1  "You're advised not to use the same name for more than one button."
+2  "U kunt beter niet dezelfde naam voor meerdere knoppen gebruiken."
+3  "Sie werden gebeten, Namen f¸r Schalter jeweils nur einmal zu verwenden."
+4  "Il vous est conseillÈ de ne pas utiliser le mÍme nom pour plus d'un bouton."
+
+/* NEW FOR 127 */
+
+1  "Best colors"
+2  "Beste kleuren"
+3  "Optimale Farbwahl"
+4  "Couleurs optimums"
+
+1  "The file '%s' can't be found."
+2  "Het bestand '%s' mist."
+3  "Die Datei '%s' ist nicht vorhanden."
+4  "Le fichier '%s' ne peut Ítre trouvÈ."
+
+1  "Sorry, but some files couldn't be found."
+2  "Sorry, sommige bestanden kunnen niet worden gevonden."
+3  "Achtung, einige Dateien konnten nicht gefunden werden."
+4  "DÈsolÈ, mais des fichiers restent introuvables."
+
+1  "Try the 'Find missing files' option first."
+2  "Probeer eerst de optie 'Zoek naar vermiste bestanden'."
+3  "Probieren Sie zun‰chst die Option 'Suche fehlende Dateien'"
+4  "Essayez la fonction 'Trouver les fichiers maquants' d'abord."
+
+1  "Shall I tile this picture for you?"
+2  "Moet dit plaatje als 'tegel' worden gebruikt?"
+3  "Soll dieses Bild gekachelt werden?"
+4  "Dois-je mettre l'image en mosaÔque?"
+
+/* new for define window */
+
+1  "None|    |       |       |       |       "
+2  "Geen|    |       |       |       |       "
+3  "Keine|   |       |       |       |       "
+4  "Aucun|   |       |       |       |       "
+6  "Nessuna| |       |       |       |       "
+10 "Ingen|   |       |       |       |       "
+  /*---------+++++++++---------+++++++++---------*/
+
+1  "Shadow:"
+2  "Schaduw:"
+3  "Schatten:"
+4  "OmbrÈ:"
+6  "Ombra:"
+10 "Skygge:"
+
+1  "Best"
+2  "Beste"
+3  "Optimal"
+4  "Optimum"
+
+/* new Extra's requester */
+
+1  "Extras"
+2  "Extra's"
+3  "Extras"
+4  "Extras"
+6  "Extra"
+10 "Ekstra"
+
+1  "Background|         Picture|            Text|               "
+2  "Achtergrond|        Plaatje|            Tekst|              "
+3  "Hintergrund|        Grafik|             Text|               "
+4  "ArriËre-Plan|       Image|              Texte|              "
+6  "<!>|                Immagine|           Testo|              "
+10 "Bakgrunn|           Bilde|              Tekst|              "
+  /*--------------------++++++++++++++++++++--------------------*/
+
+0 "                            "
+
+1  "c Remap"
+2  "c 'Remap'"
+3  "c 'Remap'"
+4  "c Remapper"
+6  "c 'Remap'"
+10 "c 'Remap'"
+
+1  "c Resize"
+2  "c Schalen"
+3  "c Skalieren"
+4  "c Redimension"
+6  "c A misura"
+10 "c Skaler"
+
+1  "  Delete picture..."
+2  "  Verwijder plaatje..."
+3  "  Bild im Fenster lˆschen..."
+4  "  DÈtruire image..."
+6  "  Cancella immagine..."
+10 "  Fjern bilde fra vindu..."
+
+1  "  Use colors of picture"
+2  "  Gebruik kleurenpalet van plaatje"
+3  "  Farbpalette benutzen"
+4  "  Utiliser la palette de cette image"
+6  "  <!>Utilizzare la tavolozza dei colori dell'immagine"
+10 "  Bruk paletten til dette bildet"
+
+1  "  Window to picture size"
+2  "  Maak venster even groot als foto"
+3  "  Fenster auf Bildgrˆﬂe bringen"
+4  "  Adapter fenÍtre ‡ taille image"
+6  "  Adegua finestra all'immagine"
+10 "  Sett vindu til bilde st¯rrelse"
+
+1  "  Set picture offset to 0,0"
+2  "  Herstel plaatje op 0,0"
+3  "  Bild-Offset auf 0,0 setzen"
+4  "  Placer l'image ‡ 0,0"
+6  "  Scostamento immagine a 0,0"
+10 "  Sett bildeposisjon til 0,0"
+
+1  "c Opaque"
+2  "c Ondoorzichtig"
+3  "c Opak"
+4  "c Opaque"
+  
+1  "r Floyd-Steinberg dithering"
+2  "r Floyd-Steinberg dithering"
+3  "r Floyd-Steinberg Dithering"
+4  "r Dithering Floyd-Steinberg"
+
+1  "r Burkes dithering"
+2  "r Burkes dithering"
+3  "r Burkes Dithering"
+4  "r Dithering Burkes"
+
+1  "r Ordered dithering"
+2  "r Ordered dithering"
+3  "r Geordnetes Dithering"
+4  "r Dithering ordonnÈ"
+
+1  "c Tile background"
+2  "c 'Tegel' achtergrond"
+3  "c Hintergrund kacheln"
+4  "c Fond mosaÔque"
+
+/* preferences */
+
+1  "<!>Fast menus:"
+2  "<!>Snelle menu's:"
+3  "<!>Direkt Menu:"
+4  "<!>Menus rapides:"
+
+1  "Game port:"
+2  "Game port:"
+3  "Game Port:"
+4  "Port Joystick:"
+
+1  "r No dithering"
+2  "r Geen dithering"
+3  "r Kein Dithering"
+4  "r Pas de dithering"
+
+/* specials */
+
+1  "Delete picture?"
+2  "Plaatje verwijderen?"
+3  "Bild lˆschen?"
+4  "DÈtruire image?"
+
+/* window definitions */
+
+1  "Border:"
+2  "Kader:"
+3  "Rand:"
+4  "Bords:"
+
+/* specials */
+
+1  "r Random dithering"
+2  "r Random dithering"
+3  "r Zuf‰lliges Dithering"
+4  "r Dithering alÈatoire"
+
+/* Buttons in page */
+
+1  "Follow:"
+2  "Volg:"
+3  "Folgen:"
+4  "DÈtecter:"
+
+/* save requester */
+
+0  "IFF"
+
+/* page editor */
+
+1  "Saving page as IFF picture..."
+2  "Pagina wordt als IFF plaatje weggeschreven..."
+3  "Speichere Seite als IFF-Bild..."
+4  "Sauver la page comme image IFF..."
+
+/* dbase import */
+
+1  "Import a dBASE file"
+2  "Importeren dBASE bestand"
+3  "dBASE-Datei importieren"
+4  "Importer un fichier dBASE"
+
+1  "First record:"
+2  "Eerste record:"
+3  "Erster-Eintrag:"
+4  "PremiËre fiche:"
+
+1  "Last record:"
+2  "Laatste record:"
+3  "Letzter-Eintrag:"
+4  "DerniËre fiche:"
+
+1  "Number of records:"
+2  "Aantal records:"
+3  "Anzahl Eintr‰ge:"
+4  "Nombre de fiches:"
+
+1  "Fields to import:"
+2  "Te importeren velden:"
+3  "Zu importierende Felder:"
+4  "Champs ‡ importer:"
+
+1  "Format records as:"
+2  "Rangschik records in:"
+3  "Formatiere Eintr‰ge als:"
+4  "Afficher les fiches en:"
+
+1  "Rows"
+2  "Rijen"
+3  "Zeilen"
+4  "Lignes"
+
+1  "Columns"
+2  "Kolommen"
+3  "Spalten"
+4  "Colonnes"
+
+1  "The dBASE file couldn't be read."
+2  "Het dBASE bestand kan niet worden gelezen."
+3  "Die dBASE-Datei konnte nicht gelesen werden."
+4  "Le fichier dBASE ne peut Ítre lu."
+
+1  "The dBASE file is empty."
+2  "Het dBASE bestand is leeg."
+3  "Die dBASE-Datei ist leer."
+4  "Le fichier dBASE est vide."
+
+1  "There's not enough memory to read the dBASE file."
+2  "Er is niet genoeg geheugen om de dBASE file te lezen."
+3  "Nicht gen¸g Speicher vorhanden, um die dBASE-Datei zu laden."
+4  "Il n'y a pas assez de mÈmoire pour lire le fichier dBASE."
+
+1  "An error occurred while reading the dBASE file."
+2  "Een fout is opgetreden tijdens het lezen van het dBASE bestand."
+3  "W‰hrend des Lesens der dBASE-Datei ist ein Fehler aufgetreten."
+4  "Une erreur est survenue durant la lecture de fichier dBASE."
+
+/* Tocatta board */
+
+1  "Play|        Record|      Misc.|       "
+2  "Speel|       Opnemen|     Div.|        "
+3  "Spielen|     Aufn.|       Div.|        "
+4  "Jouer|       Enregis.|    Div.|        "	
+6  "Esegui|      Registra|    Misc.|       "	
+10 "Spill|       Ta opp|      Div.|        "
+  /*-------------+++++++++++++-------------*/
+
+0  "8 bit"
+0  "16 bit"
+0  "A-Law"
+0  "µ-Law"
+
+1  "Stereo"
+2  "Stereo"
+3  "Stereo"
+4  "StÈreo"
+
+0  "Line"
+0  "Aux1"
+0  "Mic"
+0  "Mix"
+
+1  "Mic. gain"
+2  "Mic. ver."
+3  "Mik. Vorv."
+4  "Gain Mic."
+
+1  "Level:"
+2  "Uitsturing:
+3  "Ausst.:"
+4  "Niveau:"
+
+1  "Stop"
+2  "Stop"
+3  "Stop"
+4  "Stop."
+6  "Stop"
+10 "Stopp"
+
+1  "Fade in"
+2  "Fade in"
+3  "Einblenden"
+4  "Fondu in"
+6  "Fade in"
+10 "Fade inn"
+
+1  "Fade out"
+2  "Fade uit"
+3  "Ausblenden"
+4  "Fondu out"
+6  "Fade out"
+10 "Fade ut"
+
+1  "Fade out:"
+2  "Fade uit:"
+3  "Ausblenden:"
+4  "Fondu out:"
+6  "Fade out:"
+10 "Fade ut:"
+
+1  "Set volume"
+2  "Zet volume"
+3  "Lautst‰rke"
+4  "Choisir vol."
+6  "Imp. volume"
+10 "Sett volum"
+
+/* 'in' as in 'in 10 seconds' */
+
+1  "in:"
+2  "in:"
+3  "in:"
+4  "en:"
+6  "in:"
+10 "inn:"
+
+/* 'at' as in 'set volume at' */
+
+1  "at:"
+2  "op:"
+3  "bei:"
+4  "‡:"
+6  "a:"
+10 "ved:"
+
+0  "5513 Hz|  6615 Hz|  8000 Hz|  9600 Hz|  11025 Hz| 16000 Hz| 18900 Hz| 22050 Hz| 27429 Hz| 32000 Hz| 33075 Hz| 37800 Hz| 44100 Hz| 48000 Hz| "
+  /*----------++++++++++----------++++++++++----------++++++++++----------++++++++++----------++++++++++----------++++++++++----------++++++++++*/
+
+1  "Can't open the toccata.library." 
+2  "De toccata.library kan niet geopend worden." 
+3  "'toccata.library' kann nicht geˆffnet werden."
+4  "Impossible d'ouvrir la toccata.library."
+6  "Impossibile aprire la toccata.library." 
+10 "Kan ikke Âpne toccata.library."
+
+1  "The Toccata card is not available."
+2  "De Toccata kaart is niet aanwezig."
+3  "Die Toccata-Karte ist nicht verf¸gbar."
+4  "La carte Toccata n'est pas disponible."
+6  "Scheda Toccata non disponibile."
+10 "Toccata kortet er ikke tilgjengelig."
+
+1  "Save this sample as:"
+2  "Bewaar deze sample als:"
+3  "Den Klang speichern als:"
+4  "Sauver cette Èchan. sous:"
+6  "Salvare <!> come:"
+10 "Lagre dette <!> som:"
+
+1  "Start recording"
+2  "Start opnemen"
+3  "Starte Aufnahme"
+4  "DÈbuter enregistrement"
+
+1  "Stop recording"
+2  "Stop opnemen"
+3  "Beende Aufnahme"
+4  "Terminer enregistrement"
+
+1  "Script monitor:"
+2  "Script monitor:"
+3  "Monitor Skript:"
+4  "Moniteur Script:
+
+1  "Page monitor:"
+2  "Page monitor:"
+3  "Monitor Seite:"
+4  "Moniteur Page:"
+
+1  "Player monitor:"
+2  "Player monitor:"
+3  "Monitor Abspieler:"
+4  "Mon. Diffuseur:"
+
+1  "<!>Script lace:"
+2  "<!>Script lace:"
+3  "<!>Skript Lace:"
+4  "<!>Script entrelacÈ"
+
+1  "<!>Thumbs lace:"
+2  "<!>Miniatuur lace:"
+3  "<!>Miniaturbilder Lace:"
+4  "<!>Vignettes entrelacÈes:"
+
+1  "Select a monitor:"
+2  "Selecteer een monitor:"
+3  "Bitte Monitor ausw‰hlen:"
+4  "Choisissez un moniteur:"
+
+/* THE FOLLOWING SENTENCES MUST BE THE SAME AS IN YOUR WORKBENCH !! */
+
+1  "supports genlock"
+2  "ondersteunt genlock"
+3  "unterst¸tzt Genlock"
+4  "supporte genlock"
+
+1  "does not support genlock"
+2  "ondersteunt geen genlock"
+3  "unterst¸tzt kein Genlock"
+4  "ne supporte pas les genlock"
+
+/* Default as in 'default monitor' */
+
+1  "Default"
+2  "Standaard"
+3  "Vorgabe"
+4  "par dÈfaut"
+
+/* New for Script Manager */
+
+1  "Insert disk 1 in drive '%s'"
+2  "Doe diskette 1 in '%s'"
+3  "Bitte Diskette 1 in Laufwerk '%s' einlegen"
+4  "InsËrer disque 1 dans le lecteur '%s'"
+
+1  "Some files can't be found."
+2  "Sommige bestanden kunnen niet worden gevonden."
+3  "Einige Dateien sind nicht auffindbar."
+4  "Certains fichiers introuvables."
+
+1  "Try to repair the script first."
+2  "Probeer het script eerst te repareren."
+3  "Versuchen Sie erst, den Skript zu reparieren."
+4  "Essayez de rÈparer ce script d'abord."
+
+1  "The fixed script can be found in 'RAM'. Do you want to open it?"
+2  "Het gerepareerde script staat in 'RAM'. Wilt u het openen?"
+3  "Der neue Skript befindet sich im 'RAM'. Soll er geladen werden?"
+4  "Le script rÈparÈ se trouve dans le disque 'RAM. DÈsirez-vous l'ouvrir?"
+
+/*  Genlock xapp */
+
+0  "Genlock Control"
+
+1  "Genlock mode"
+2  "Genlock modus"
+3  "Genlock Modus"
+4  "Mode Genlock"
+
+/* next two lines belong together */
+
+1  "Display is..."
+2  "Uitvoer is..."
+3  "Bildschirm ist..."
+4  "Affichage...."
+
+1  "always laced"
+2  "altijd 'laced'"
+3  "immer im Lace"
+4  "toujours 'lace'"
+
+/* new for style requester */
+
+1  "Off|  1|    2|    3|    4|    "
+2  "Uit|  1|    2|    3|    4|    "
+3  "Aus|  1|    2|    3|    4|    "
+4  "Non|  1|    2|    3|    4|    "
+  /*------++++++------++++++------*/
+
+/* rest of tocatta */
+
+0  "MS Toccata Audio Card"
+
+/* vuport */
+
+0  "Selectra VuPort"
+
+0  "Cue to frame|           Eject|                  Fast Forward|           Forward shuttle|        Play|                   Play Fast Forward|      Play Fast Reverse|      Play Segment|           Play To Frame|          Power on/off|           Record|                 Reset|                  Reverse Play|           Reverse shuttle|        Rewind|                 Set Cue Type|           Step forward 1 field|   Step reverse 1 field|   Still Frame|            Stop|                   "
+  /*------------------------++++++++++++++++++++++++------------------------++++++++++++++++++++++++------------------------++++++++++++++++++++++++------------------------++++++++++++++++++++++++------------------------++++++++++++++++++++++++------------------------++++++++++++++++++++++++------------------------++++++++++++++++++++++++------------------------++++++++++++++++++++++++------------------------++++++++++++++++++++++++------------------------++++++++++++++++++++++++*/
+
+1  "All|    1|      2|      3|      4|      5|      6|      7|      8|      " };
+2  "Alle|   1|      2|      3|      4|      5|      6|      7|      8|      " };
+3  "Alle|   1|      2|      3|      4|      5|      6|      7|      8|      " };
+4  "Tout|   1|      2|      3|      4|      5|      6|      7|      8|      " };
+6  "Tutto|  1|      2|      3|      4|      5|      6|      7|      8|      " };
+10 "Alle|   1|      2|      3|      4|      5|      6|      7|      8|      " };
+  /*++++++++--------++++++++--------++++++++--------++++++++--------++++++++*/
+
+1  "Command:"
+2  "Commando:"
+3  "Kommando:"
+4  "Commande:"
+6  "Comando:"
+10 "Kommando:"
+
+/* Unit in the sense of Unit=1, Unit=2 etc. or Unit=All */
+
+1  "Unit:"
+2  "Apparaat:"
+3  "Ger‰t:"
+4  "UnitÈ:"
+6  "<!>"
+10 "<!>"
+
+1  "The ARexx host 'RexxMast' is not running."
+2  "De ARexx host 'RexxMast' draait niet."
+3  "Der ARexx host 'RexxMast' ist nicht aktiv."
+4  "L'hÙte ARexx 'RexxMast' n'est pas prÈsent."
+6  "<!>"
+10 "<!>"
+
+/* Added after release 127 */
+
+0  "Filter"
+
+/* AirLink */
+
+0  "Geodesic Design AirLink"
+
+/* Get button names from a running AirLink application. An Arexx command must */
+/* 'get' the button names. */
+
+1  "Get button names"
+2  "Lees knop namen"
+3  "Lese Schalternamen"
+4  "<!>"
+6  "<!>"
+10 "<!>"
+
+/* 'Do' is followed by a button name of an AirLink application */
+/* E.g. Do 'Power Off' or Do 'Play track' */
+
+1  "Do:"
+2  "Doe:"
+3  "Befehl:"
+4  "<!>"
+6  "<!>"
+10 "<!>"
+
+/* Neptun */
+
+0  "Electronic Design Neptun Genlock"
+
+1  "Modes|      Fade 1|     Fade 2|     "
+2  "Modes|      Fade 1|     Fade 2|     "
+3  "Modi|       Blende 1|   Blende 2|   "
+4  "<!>|         |           |          "
+6  "<!>|         |           |          "
+10 "<!>|         |           |          "
+  /*------------++++++++++++------------*/
+
+0  "Computer"
+0  "Genlock"
+0  "Amiga"
+0  "Overlay"
+0  "Normal"
+0  "Alpha"
+0  "Video"
+0  "Invert"
+
+1  "Fade in"
+2  "Fade in"
+3  "Einblenden"
+
+1  "Fade out"
+2  "Fade uit"
+3  "Ausblenden"
+
+1  "From:"
+2  "Van:"
+3  "Von:"
+
+1  "To:"
+2  "Naar:"
+3  "Nach:"
+
+1  "Get"
+2  "Lees"
+3  "Lese"
+
+1  "Enter a value between %s and %s."
+2  "Geef een waarde tussen %s en %s."
+3  "Bitte Wert zwischen %s und %s eingeben."
+4  "Tapez une valeur entre %s et %s."
+6  "Inserisci un numero tra %s e %s."
+10 "Tast inn en verdi mellom %s og %s."
+
+1  "Click mouse or hit key to stop preview."
+2  "Klik muis of druk toets om preview te stoppen."
+3  "Taste oder Maustaste dr¸cken um Vorschau zu beenden."
+4  "<!>"
+6  "<!>"
+10 "<!>"
+
+1  "The %s ARexx host is not running."
+2  "De %s ARexx host draait niet."
+3  "Der %s ARexx host ist nicht aktiv."
+4  "L'hÙte ARexx %s n'est pas prÈsent."
+6  "<!>"
+10 "<!>"
+
+1  "Can't find an AirLink application."
+2  "Er draait geen AirLink programma."
+3  "Finde keine AirLink-Applikation."
+4  "<!>"
+6  "<!>"
+10 "<!>"
+
+1  "The port '%s' doesn't exist."
+2  "De poort '%s' bestaat niet."
+3  "Der Port '%s' existiert nicht."
+4  "<!>"
+6  "<!>"
+10 "<!>"
+
+/* resource xapp */
+
+1  "Load|       Flush|      "
+2  "Laad|       Leeg|       "
+3  "Laden|      Ausleeren|  "
+4  "Charger|    Vider|      "
+6  "Carica|     Svuotare|   "
+10 "Hent|       Full|       "
+  /*------------++++++++++++*/
+
+1  "File size:"
+2  "Bestandsgrootte:"
+3  "Dateigrˆﬂe:"
+4  "<!>"
+6  "<!>"
+10 "<!>"
+
+/* CD≥≤ */
+
+0  "Eureka Communicator - MPEG/Audio - CD≥≤õ"
+
+/* New anim settings in extras menu in Page Layout */
+
+1  "  Anim settings..."
+2  "  Anim instellingen..."
+3  "  Anim Einstellungen..."
+4  "<!>"
+6  "<!>"
+10 "<!>"
+
+1  "This is not an animation."
+2  "Dit is geen animatie."
+3  "Das ist keine Animation."
+4  "<!>"
+6  "<!>"
+10 "<!>"
+
+/* New warning during startup */
+
+1  "There is less than 1 MB left on this hard drive."
+2  "Er is minder dan 1 MB vrij op deze hard disk."
+3  "Weniger als 1 MB Platz auf dieser Festplatte verf¸gbar."
+4  "<!>"
+6  "<!>"
+10 "<!>"
+
+/* vertical scroll */
+
+0  "Credit Roll"
+
+1  "Background:"
+2  "Achtergrond:"
+3  "Hintergrund:"
+4  "ArriËre-Plan:"
+6  "<!>:"
+10 "Bakgrunn:"
+
+1  "Text:"
+2  "Tekst:"
+3  "Text:"
+4  "Texte:"
+6  "Testo:"
+10 "Tekst:"
+
+1  "Weight:"
+2  "Lengte:"
+3  "Breite:"
+4  "Epaisseur:"
+6  "Lunghezza:"
+10 "Tykkelse:"
+
+1  "Type:"
+2  "Type:"
+3  "Typ:"
+4  "Type:"
+6  "Tipo:"
+10 "Type:"
+
+/* colors for credit roll. L. means Light and D. means dark */
+
+1  "Black|    White|    L.Red|    L.Green|  L.Blue|   L.Yellow| L.Cyan|   L.Purple| L.Grey|   D.Red|    D.Green|  D.Blue|   D.Yellow| D.Cyan|   D.Purple| D.Grey|   "
+2  "Zwart|    Wit|      L.Rood|   L.Groen|  L.Blauw|  L.Geel|   L.Cyaan|  L.Paars|  L.Grijs|  D.Rood|   D.Groen|  D.Blauw|  D.Geel|   D.Cyaan|  D.Paars|  D.Grijs|  "
+3  "Schwarz|  Weiﬂ|     H.Rot|    H.Gr¸n|   H.Blau|   H.Gelb|   H.Cyan|   H.Lila|   H.Grau|   D.Rot|    D.Gr¸n|   D.Blau|   D.Gelb|   D.Cyan|   D.Lila|   D.Grau|   "
+  /*----------++++++++++----------++++++++++----------++++++++++----------++++++++++----------++++++++++----------++++++++++----------++++++++++----------++++++++++*/
+
+1  "Solid|    Cast|     "
+2  "Vast|     Los|      "
+3  "Solide|   Getrennt| "
+  /*----------++++++++++*/
+
+1  "Save this credit roll as:"
+2  "Bewaar credit roll als:"
+3  "Speichere Abspann als:"
+
+1  "Select a credit roll:"
+2  "Kies een credit roll:"
+3  "W‰hlen Sie einen Abspann:"
+
+1  "The file couldn't be saved."
+2  "Het bestand kon niet worden bewaard."
+3  "Diese Datei konnte nicht gespeichert werden."
+
+1  "You need to save your work first."
+2  "U moet eerst uw werk bewaren."
+3  "Sie m¸ssen Ihre Daten erst speichern."
+
+1  "Help will replace your current text! Continue?"
+2  "Hulp vervangt huidige tekst! Doorgaan?"
+3  "Hilfe wird Ihren aktuellen Text ersetzen! Weiter?"
+
+1  "Special formatting codes:"
+2  "Speciale opmaak codes:"
+3  "Spezielle Formatiercodes:"
+
+1  "^d10^Shadow depth is 10"
+2  "^d10^Schaduw diepte is 10"
+3  "^d10^Schattentiefe ist 10"
+
+1  "^d4^Shadow depth is 4"
+2  "^d4^Schaduw diepte is 4"
+3  "^d4^Schattentiefe ist 4"
+
+1  "^d2^Shadow depth is 2"
+2  "^d2^Schaduw diepte is 2"
+3  "^d2^Schattentiefe ist 2"
+
+1  "^fmediapoint^^s9^MediaPoint, 9 points"
+2  "^fmediapoint^^s9^MediaPoint, 9 punts"
+3  "^fmediapoint^^s9^MediaPoint, 9 Punkte"
+
+1  "^fmediapoint^^s10^MediaPoint, 10 points"
+2  "^fmediapoint^^s10^MediaPoint, 10 punts"
+3  "^fmediapoint^^s10^MediaPoint, 10 Punkte"
+
+1  "^fmediapoint^^s18^MediaPoint, 18 points"
+2  "^fmediapoint^^s18^MediaPoint, 18 punts"
+3  "^fmediapoint^^s18^MediaPoint, 18 Punkte"
+
+1  "^fmediapoint^^s20^MediaPoint, 20 points"
+2  "^fmediapoint^^s20^MediaPoint, 20 punts"
+3  "^fmediapoint^^s20^MediaPoint, 20 Punkte"
+
+1  "<Left justified text"
+2  "<Links opgelijnde tekst"
+3  "<Text linksb¸ndig"
+
+1  ">Right justified text"
+2  ">Rechts opgelijnde tekst"
+3  ">Text rechtsb¸ndig"
+
+1  "Special credit roll justification:"
+2  "Speciale credit roll oplijning:"
+3  "Spezielle Abspann-Einstellungen:"
+
+0  "William Shatner / Captain Kirk"
+0  "Leonard Nimoy / Dr. Spock"
+0  "DeForest Kelley / McCoy"
+
+1  "Clear text?"
+2  "Wis tekst?"
+3  "Text lˆschen?"
+
+/* serial xapp */
+
+0  "Serial Data Sender"
+0  "Baud rate:"
+0  "Handshaking:"
+0  "Parity:"
+0  "Bits / Char:"
+0  "Stop Bits:"
+0  "Unit:"
+0  "Pacing:"
+0  "Data:"
+0  "ms"
+0  "XON/XOFF| RTS/CTS|  None|     "
+  /*----------++++++++++----------*/
+0  "None|     Even|     Odd|      Mark|     Space|    "
+  /*----------++++++++++----------++++++++++----------*/
+0  "7| 8| "
+  /*---+++*/
+0  "1| 2| "
+  /*---+++*/
+0  "[0-255] dec."
+0  "{0-FF} hex."
+0  "'a' ASCII"
+0  "^ 1 sec. delay"
+
+0  "Device:"
+
+0 "110|    300|    1200|   2400|   4800|   7200|   9600|   12000|  14400|  19200|  31250|  38400|  57600|  76800|  115200| "
+ /*--------++++++++--------++++++++--------++++++++--------++++++++--------++++++++--------++++++++--------++++++++--------*/
+
+1  "Anim brushes can't be scaled or remapped."
+2  "Anim brushes kunnen niet worden geschaald of geremapped."
+3  "Anim-Pinsel kann nicht skaliert oder remapped werden."
+
+0  "Cache"
+
+/* For anim brushes */
+
+1  "Transparent"
+2  "Transparant"
+3  "Transparent"
+
+1  "Picture, anim or anim brush"
+2  "Plaatje, anim of anim brush"
+3  "Grafik, Anim oder Anim-Pinsel"
+4  "Image / <!>"
+6  "Immagine / <!>"
+10 "Bilde / <!>"
+
+/* Xapp Info */
+
+1  "Last changed:"
+2  "Laatste aanpassing:"
+3  "Letzte ƒnderung:"
+
+1  "Author:"
+2  "Auteur:"
+3  "Autor:"
+
+/* Variable Paths */
+
+1  "Convert fixed path to variable path"
+2  "Verander vast pad in variabel pad"
+3  "Konvertiere direkte in variable Pfadangabe"
+
+1  "Variable path:"
+2  "Variabel pad:"
+3  "Variabler Pfad:"
+
+1  "Fixed path"
+2  "Vast pad"
+3  "Direkter Pfad"
+
+1  "The Script Manager can't find and copy variable paths."
+2  "De Script Manager kan geen variabele paden vinden en kopiÎren."
+3  "Skript Manager findet keine variablen Pfade und kann diese nicht kopieren."
+
+1  "< Variable Path >"
+2  "< Variabel Pad >"
+3  "< Variabler Pfad >"
+
+/* new script menu (misc) item */
+
+1  "Variable path"
+2  "Variabel pad"
+3  "Variabler Pfad"
+
+/* new for color palette */
+
+1  "Color ramp"
+2  "Kleuren ophogen"
+3  "Farbtablett"
+
+/* new for buttons screen in page editor */
+
+1  "Set:"
+2  "Maak:"
+3  "Setze:"
+
+/* new in script editor */
+
+1  "First save the script because this script loads other scripts."
+2  "Bewaar eerst het script want dit script laadt andere scripts."
+3  "Skript erst speichern, da dieser Skript weitere Skripts einliest."
+
+/* New for DOS xapp */
+
+0  "Stack:"
+
+/* New for 129 */
+
+0  "Input Settings"
+
+1  "Async clicking:"
+2  "Async klikken:"
+
+1  "Asynchronous clicking means that clicking is allowed while the player is still busy rendering objects on screen. Default is yes."
+2  "Asynchroon klikken betekent dat klikken is toegestaan terwijl de speler nog bezig is dingen op het scherm te zetten. Standaard op Ja."
+
+/* DPS PAR */
+
+0  "DPS PAR controller"
+
+1  "In:"
+2  "In:"
+
+1  "Out:"
+2  "Uit:"
+
+0  "Studio 16 cue" 
+
+1  "The %s ARexx host is not running."
+2  "De %s ARexx host draait niet."
+3  "Der %s ARexx host ist nicht aktiv."
+4  "L'hÙte ARexx %s n'est pas prÈsent."
+6  "<!>"
+10 "<!>"
+
+/* REMOTE ACCESS */
+
+0  "Remote Access"
+
+1  "Open Session"
+2  "Lees Sessie"
+
+1  "Save Session"
+2  "Bewaar Sessie"
+
+1  "Options"
+2  "Opties"
+
+1  "Upload"
+2  "Verzend"
+
+1  "Scripts"
+2  "Scripts"
+
+1  "Script:"
+2  "Script:"
+
+1  "Swap"
+2  "Wissel"
+
+1  "Carrier"
+2  "Drager"
+
+1  "Connection"
+2  "Verbinding"
+
+1  "Add"
+2  "Toev."
+
+1  "Delete"
+2  "Wis"
+
+1  "Edit"
+2  "Bewerk"
+
+1  "Swap immediately"
+2  "Wissel direct"
+
+1  "Abort"
+2  "Stop"
+
+1  "Upload Options"
+2  "Verzend Opties"
+
+1  "Upload all files"
+2  "Verzend alle bestanden"
+
+1  "Delayed upload"
+2  "Uitgestelde verzending"
+
+1  "Skip system files"
+2  "Sla systeembestanden over"
+
+1  "Upload multiple scripts"
+2  "Verzend meerdere scripts"
+
+1  "Countdown"
+2  "Aftellen"
+
+1  "Upload starts:"
+2  "Verzending begint:"
+
+1  "from now."
+2  "vanaf nu."
+
+1  "Select Script"
+2  "Selecteer Script"
+
+1  "Select Carrier and Connection"
+2  "Selecteer Drager en Verbinding"
+
+1  "Upload delay"
+2  "Verzend-uitstel"
+
+1  "Start to upload:"
+2  "Begin met verzenden:"
+
+1  "Immediately"
+2  "Direct"
+
+1  "Later"
+2  "Later"
+
+1  "Date:"
+2  "Datum:"
+
+1  "Time:"
+2  "Tijd:"
+
+0  "External Communications Plug-in:"
+0  "Connection Description File:"
+
+1  "You have modified the current session. Load a new session anyway?"
+2  "De huidige sessie is aangepast. Lees toch een andere sessie?"
+
+1  "You have modified the current session. Continue without saving?"
+2  "De huidige sessie is aangepast. Doorgaan zonder te bewaren?"
+
+1  "Select a session:"
+2  "Selecteer een sessie:"
+
+1  "Save this session as:"
+2  "Bewaar deze sessie als:"
+
+1  "The session file could not be saved."
+2  "Het sessie-bestand kan niet worden bewaard."
+
+1  "Select ECP:"
+2  "Selecteer ECP:"
+
+1  "Select CDF:"
+2  "Selecteer CDF:"
+
+1  "The session file couldn't be read."
+2  "Het sessie-bestand kan niet worden gelezen."
+
+1  "Preparing script '%s'."
+2  "Script '%s' wordt voorbereid."
+
+1  "The files listed above are missing in '%s'."
+2  "De bestanden hierboven missen in '%s'."
+
+1  "ERROR: Some files are missing in '%s'."
+2  "FOUT: Enkele bestanden missen in '%s'."
+
+1  "Launching ECP '%s'."
+2  "ECP '%s' wordt gestart."
+
+1  "Unable to launch ECP."
+2  "ECP kan niet worden gestart."
+
+1  "DOS error"
+2  "DOS fout"
+
+1  "Finishing upload."
+2  "Verzending wordt beÎindigd."
+
+1  "WARNING: There was %d error reported."
+2  "WAARSCHUWING: Er is %d fout gemeld."
+
+1  "WARNING: There were %d errors reported."
+2  "WAARSCHUWING: Er zijn %d fouten gemeld."
+
+1  "ERROR: ECP or CDF file missing."
+2  "FOUT: ECP of CDF bestand mist."
+
+1  "Upload Status"
+2  "Verzend Status"
+
+1  "You must select at least one script."
+2  "U moet minstens ÈÈn script selecteren."
+
+/* New for script editor */
+
+1  "This script was modified by someone else after you opened it. Continue with saving?"
+2  "Dit script is aangepast door iemand anders sinds u het opende. Doorgaan met bewaren?" 
+
+1  "The file '%s' is protected against overwriting."
+2  "Het bestand '%s' is beschermd tegen overschrijven."
+
+1  "The script should be saved first. Save it now?"
+2  "Het script moet eerst bewaard worden. Nu bewaren?"
+
+/* MORE REMOTE ACCESS STUFF */
+
+1  "Seeking connection."
+2  "Verbinding wordt gelegd."
+
+1  "Connection established."
+2  "Verbinding tot stand gekomen."
+
+1  "Logged on."
+2  "Ingelogd."
+
+1  "Logged off."
+2  "Uitgelogd."
+
+1  "ERROR: Log on failed."
+2  "FOUT: Inloggen niet gelukt."
+
+1  "WARNING: Time out."
+2  "WAARSCHUWING: Time out."
+
+1  "ERROR: Carrier lost."
+2  "FOUT: Verbinding verbroken."
+
+1  "Copying file '%s'."
+2  "Bestand '%s' wordt gekopieerd."
+3  "Kopiere Datei '%s'."
+4  "Copie du fichier '%s'."
+
+1  "Bytes to sent %d."
+2  "Bytes te versturen: %d."
+
+1  "Bytes/sec: %d  Total size: %d  Duration: %d min. %d sec."
+2  "Bytes/sec: %d  Totale grootte: %d  Tijdsduur: %d min. %d sec."
+
+1  "ERROR: could not copy file."
+2  "FOUT: bestand kon niet worden gekopieerd."
+
+1  "ERROR: number %d."
+2  "FOUT: nummer %d."
+
+1  "Total of %d bytes sent in %d min. %d sec. Average speed %d bytes/sec."
+2  "Totaal %d bytes verzonden in %d min. %d sec. Gemidd. snelheid %d bytes/sec."
+
+1  "WARNING: transmission manually aborted."
+2  "WAARSCHUWING: verzending handmatig onderbroken."
+
+1  "Waiting for previous upload to finish."
+2  "Er wordt gewacht op beÎindiging van de vorige scriptverzending."
+
+/* CDF editor */
+
+0  "Connection Description File"
+
+1  "Connection class:"
+2  "Verbindingstype:"
+
+0  "Handshaking:"
+
+1  "Buffer size:"
+2  "Buffer grootte:"
+
+1  "Destination path:"
+2  "Bestandspad:"
+
+1  "Password:"
+2  "Wachtwoord:"
+
+1  "Load CDF"
+2  "Lees CDF"
+
+1  "Save CDF"
+2  "Bewaar CDF"
+
+1  "Serial cable|     Parallel cable|   SCSI|             Modem|            Network|          Data broadcast|   Infrared|         Email|            ISDN|             Leased line|      "
+2  "SeriÎle kabel|    Parallelle kabel| SCSI|             Modem|            Netwerk|          Data broadcast|   Infrarood|        Email|            ISDN|             Leased line|      "
+  /*------------------++++++++++++++++++------------------++++++++++++++++++------------------++++++++++++++++++------------------++++++++++++++++++------------------++++++++++++++++++*/
+
+0  "RTS/CTS|  None|     "
+  /*----------++++++++++*/
+
+0  "Reply string:"
+
+1  "Save this CDF as:"
+2  "Bewaar deze CDF als:"
+
+0  "Dial prefix:"
+
+1  "Phone number:"
+2  "Telefoonnummer:"
+
+1  "Use"
+2  "Gebruik"
+
+1  "You have modified this CDF. Continue without saving?"
+2  "Deze CDF is aangepast. Doorgaan zonder te bewaren?"
+
+/******** E O F ********/

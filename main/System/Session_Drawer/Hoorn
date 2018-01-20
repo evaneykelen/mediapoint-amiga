@@ -1,0 +1,3 @@
+SCRIPT "Ram Disk:" "Untitled_script" 1
+DEST "Work:SC/proj2/main/system/ECP_Drawer/" "Network.ECP" "Work:SC/proj2/main/system/CDF_Drawer/" "Network.CDF"
+

@@ -1,0 +1,66 @@
+host                    14-Mar-94 14:58:03  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text         3df0 lib:c.o          c        code            0    0      260
+                       host.o           host.c   code          260    0      4ac
+                       gen:support.o    support. code          70c    0      30c
+                       serial.o         serial.c code          a18    0      7c4
+                       lowlevel.o       lowlevel code         11dc    0      c04
+                       hostser.o        hostser. code         1de0    0      6b8
+                       lib:/source/_mai _main.c  code         2498    0      12c
+                       gen:asm/wait50hz <noname> code         25c4    0      118
+                       gen:general.o    general. code         26dc    0      1dc
+                       lib:sc.lib       _fpinit. code         28b8    0       30
+                       lib:sc.lib       _MemClea code         28e8    0       80
+                       lib:sc.lib       _stcul_d code         2968    0       30
+                       lib:sc.lib       _stcl_o  code         2998    0       30
+                       lib:sc.lib       _stcl_h  code         29c8    0       3c
+                       lib:sc.lib       _stcd_i  code         2a04    0       54
+                       lib:sc.lib       stccpy.c code         2a58    0       44
+                       lib:sc.lib       _strupr. code         2a9c    0       3c
+                       lib:sc.lib       _cxd33   code         2ad8    0       c4
+                       lib:sc.lib       _cxm33   code         2b9c    0       20
+                       lib:sc.lib       _exit.c  code         2bbc    0       5c
+                       lib:sc.lib       strncmp  code         2c18    0       30
+                       lib:sc.lib       strcat   code         2c48    0       18
+                       lib:sc.lib       memmove  code         2c60    0       2c
+                       lib:sc.lib       free     code         2c8c    0      16c
+                       lib:sc.lib       malloc   code         2df8    0      174
+                       lib:sc.lib       sscanf.c code         2f6c    0       5c
+                       lib:sc.lib       sprintf. code         2fc8    0       44
+                       lib:sc.lib       _sfmt.c  code         300c    0      618
+                       lib:sc.lib       _pfmt.c  code         3624    0      438
+                       lib:sc.lib       _sf.c    code         3a5c    0      168
+                       lib:sc.lib       _pf.c    code         3bc4    0       7c
+                       lib:sc.lib       DelStdIO code         3c40    0       28
+                       lib:sc.lib       DelPort. code         3c68    0       44
+                       lib:sc.lib       DelExtIO code         3cac    0       2c
+                       lib:sc.lib       CrtStdIO code         3cd8    0       40
+                       lib:sc.lib       CrtPort. code         3d18    0       90
+                       lib:sc.lib       CrtExtIO code         3da8    0       48
+   1 chip            4 host.o           host.c   datachip        0    0        4
+   2 __MERGED      6e4 host.o           host.c   data            0    0      280
+                       gen:support.o    support. data          280    0       14
+                       serial.o         serial.c data          294    0      19c
+                       lowlevel.o       lowlevel data          430    0       5c
+                       hostser.o        hostser. data          48c    0      11c
+                       gen:general.o    general. data          5a8    0        4
+                       lib:sc.lib       mstep.c  data          5ac    0        4
+                       lib:sc.lib       sigfunc. data          5b0    0       24
+                       lib:sc.lib       ctype.c  data          5d4    0      104
+                       lib:sc.lib       stack.c  data          6d8    0        4
+                       lib:sc.lib       _ufb.c   data          6dc    0        8
+                       lib:c.o          c        bss           6e4    0       54
+                       host.o           host.c   bss           738    0        4
+                       gen:support.o    support. bss           73c    0      218
+                       lib:/source/_mai _main.c  bss           954    0       8c
+host                    14-Mar-94 14:58:03  Hunk Section                Page 1-2
+
+ num hunk         size filename         punit    type         base  alv     size
+                       lib:sc.lib       errno.c  bss           9e0    0        4
+                       lib:sc.lib       memheap. bss           9e4    0        4
+                       lib:sc.lib       memtype. bss           9e8    0        4
+                       lib:sc.lib       dosbase  bss           9ec    0        4
+                       lib:sc.lib       _top.c   bss           9f0    0        4
+                       lib:sc.lib       _exit.c  bss           9f4    0        4
+                       lib:sc.lib       sscanf.c bss           9f8    0        8

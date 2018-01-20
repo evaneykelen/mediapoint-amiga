@@ -1,0 +1,33 @@
+CC = sc
+
+CFLAGS = DEBUG=LINE DEFINE=TINY DATA=NEAR GST=nb:all.sym NMINC NOSTKCHK
+AFLAGS = -iINCLUDE
+LFLAGS = SMALLCODE SMALLDATA NODEBUG
+
+# these are my applications
+APP1 = IV-24
+
+# the modules needed by each application
+APP10 = setup.o demo:gen/support.o worker.o gen:geninit.o doit.o lib:/source/_main.o\
+				getargs.o fyeview.o screen.o iff.o
+.SUFFIXES:
+.SUFFIXES:	.o	.c	.h
+
+# make all the applications
+all: $(APP1)
+
+$(APP1): $(APP10)
+	slink <WITH <
+FROM lib:cres.o $(APP10)
+LIBRARY lib:sc.lib 
+#lib:amiga.lib lib:debug.lib
+TO $(APP1) $(LFLAGS)
+MAP $(APP1).map
+<
+	cop
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+.a.o:
+	$(AS) $(AFLAGS) $*.a

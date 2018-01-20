@@ -1,0 +1,18 @@
+mpmmu.library           26-Oct-94 13:53:56  Hunk Section                Page 1-1
+
+ num hunk         size filename         punit    type         base  alv     size
+   0 text          e0c libent.o         libent   code            0    0       4c
+                       libinit.o        libinit. code           4c    0      180
+                       nb:formatterm.o  formatte code          1cc    0       28
+                       mpmmu_custom.o   mpmmu_cu code          1f4    0       80
+                       mpmmu.o          mpmmu.c  code          274    0      904
+                       errors.o         errors.c code          b78    0      1cc
+                       T:RCTM4.0000     __Libfun code          d44    0       78
+                       lib:sc.lib       stricmp  code          dbc    0       3c
+                       lib:sc.lib       newlist  code          df8    0       14
+   1 __MERGED       18 libent.o         libent   data            0    0        4
+                       libinit.o        libinit. data            4    0       10
+                       mpmmu_custom.o   mpmmu_cu data           14    0        4
+                       endtag.o         endtag   data           18    0        0
+                       mpmmu_custom.o   mpmmu_cu bss            18    0       34
+                       errors.o         errors.c bss            4c    0        4

@@ -1,0 +1,7 @@
+del Work:sc/proj2/main/config.o              
+del work:sc/proj2/main/errors.o              
+del work:sc/proj2/main/globalallocs.o        
+del work:sc/proj2/main/interact.o            
+del work:sc/proj2/main/stread.o              
+del work:sc/proj2/main/winreq.o              
+del work:sc/proj2/main/pagetalk.o

@@ -1,0 +1,4 @@
+FROM LIB:c.o "testint.o"+"inthandler.o"+"workpageasm.o"
+TO "testint"
+LIB LIB:sc.lib LIB:amiga.lib
+

@@ -1,0 +1,8 @@
+del mp_cdtv.o
+del cdtv_init.o
+del hostser.o
+del Display.o
+del cd_init.o
+del serial.o
+del mpeg_init.o
+del gui.o

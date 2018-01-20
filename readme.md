@@ -100,3 +100,5 @@ free_memory_view:
 ## Copyright?
 
 I honestly don't know who owns the rights of the code. If I recall correctly we sold or licensed the code to some company in the late 1990s but I don't know for sure. Contact me if you have concerns about the legitimacy of the code base being available in this repository.
+
+![MediaPoint](https://pbs.twimg.com/media/DUAm1DnX4AAECKC.png:large)

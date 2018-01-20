@@ -62,6 +62,25 @@ OBJECTSTART
 OBJECTEND
 ```
 
+- MediaPoint supported Arexx (https://en.wikipedia.org/wiki/ARexx):
+
+```
+/* MediaPoint                                                  */
+/* Simple example of getting a variable SCORE from MediaPoint, */
+/* adapting it and sending it back.                            */
+
+ADDRESS 'MEDIAPOINT'
+options results
+
+GETVAR SCORE            /* Get the value from MP */ 
+TEMP=RESULT             /* Store it into RESULT  */
+
+TEMP=TEMP+1             /* Do what you like here */
+
+RESULT=TEMP
+SETVAR SCORE RESULT     /* Send it back          */
+```
+
 - MediaPoint consisted of a visual script and page editor to create interactive playlists of media, a stand-alone player and communications software to transmit scripts, pages and media by modem.
 
 - As mentioned above, some of the code is in 68xxx assembly. Yes, really!
